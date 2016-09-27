@@ -1,3 +1,7 @@
 #!/usr/bin/env node
 
-require('../lib/pie').default(process.argv.slice(2));
+let minimist = require('minimist');
+let logFactory = require('../lib/log-factory');
+let args = minimist(process.argv.slice(2));
+logFactory.init(args.logLevel || args['log-level']);
+require('../lib/pie').default(args);
