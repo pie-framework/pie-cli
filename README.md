@@ -25,8 +25,15 @@ pie-lib --help
 
 #### Tests
 
+##### Unit
 ```
 npm test
+```
+
+##### Integration 
+
+```
+npm run it 
 ```
 
 #### Build

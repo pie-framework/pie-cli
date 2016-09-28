@@ -1,3 +1,5 @@
+import NpmDir from '../npm/npm-dir';
+
 export function match(args){
   return args._.indexOf('pack-question') !== -1;
 }
@@ -37,6 +39,14 @@ pie-cli pack-question --dir ../path/to/dir
 
 export function run(args){
   let root = args.dir || process.cwd();
-  logger.debug('...');
-  process.exit(1);
+  logger.debug('...: root:', root);
+
+  let npmDir = new NpmDir(root);
+
+  /**  {name: location, ...} */
+  let pies = args.pies || []; 
+  
+  return npmDir.freshInstall(pies)
+    .then(() => logger.debug('npm install done'))
+    .catch((e) => logger.error('error', e));
 }

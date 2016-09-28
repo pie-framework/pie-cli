@@ -4,15 +4,14 @@ import _ from 'lodash';
 import { spawn } from 'child_process';
 import readline from 'readline';
 import * as helper from './dependency-helper';
+import { fileLogger } from '../log-factory';
 
 export default class NpmDir {
 
-  constructor() {
-    this.root = root;
-    import { fileLogger } from '../log-factory';
+  constructor(rootDir) {
+    this.rootDir = rootDir;
     this._logger = fileLogger(__filename);
-    this._logger.debug(`root: ${root}`);
-
+    this._logger.debug(`rootDir: ${rootDir}`);
 
     let spawnPromise = (args) => {
 
@@ -20,7 +19,7 @@ export default class NpmDir {
 
       let p = new Promise((resolve, reject) => {
 
-        let s = spawn('npm', args, { cwd: root });
+        let s = spawn('npm', args, { cwd: this.rootDir });
 
         s.on('error', () => {
           this._logger.error('npm install command failed - is npm installed?');
@@ -66,7 +65,7 @@ export default class NpmDir {
 
     this._logger.silly('pies: ', pies);
     let dependencies = _.mapValues(pies, (v, k) => {
-      return path.relative(root, v)
+      return path.relative(this.rootDir, v)
     });
 
     this._logger.silly('generated dependencies: ', dependencies);
@@ -78,28 +77,28 @@ export default class NpmDir {
       dependencies: dependencies
     };
 
-    fs.writeJsonSync(path.join(root, 'package.json'), pkg);
+    fs.writeJsonSync(path.join(this.rootDir, 'package.json'), pkg);
 
     return Promise.resolve(pies);
   };
 
   freshInstall(pies) {
-    fs.removeSync(path.join(root, 'node_modules'));
-    fs.removeSync(path.join(root, 'package.json'));
+    fs.removeSync(path.join(this.rootDir, 'node_modules'));
+    fs.removeSync(path.join(this.rootDir, 'package.json'));
 
     return this.writePackageJson(pies)
-      .then(this.install)
+      .then(() => this.install)
       .then(() => this.linkLocalPies(pies));
   };
 
   linkLocalPies(pies) {
 
     let localOnlyDependencies = _.pickBy(pies, (v) => {
-      return !helper.isSemver(v) && !helper.isGitUrl(v) && helper.pathIsDir(root, v);
+      return !helper.isSemver(v) && !helper.isGitUrl(v) && helper.pathIsDir(this.rootDir, v);
     });
 
     let out = _.values(localOnlyDependencies).reduce((acc, p) => {
-      return acc.then(() => linkPromise(path.relative(root, p)));
+      return acc.then(() => linkPromise(path.relative(this.rootDir, p)));
     }, Promise.resolve());
     return out;
   };

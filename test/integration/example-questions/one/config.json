@@ -4,7 +4,7 @@
       "id": "1",
       "pie" : {
         "name" : "hello-world",
-        "version" : "1.0.0"
+        "version" : "~1.0.0"
       },
       "prompt": "hello world"
     }
