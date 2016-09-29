@@ -1,9 +1,15 @@
 import _ from 'lodash';
+import {fileLogger} from '../log-factory';
 
+/**
+ * TODO: default to PieLabs/$key if not found in the lookup.
+ * TODO: The config doesn't handle version conflicts atm.
+ */
 export default class Config{
   constructor(raw, lookup){
     this._raw = raw;
-    this._lookup = lookup;
+    this._lookup = lookup || {};
+    this._logger = fileLogger(__filename);
   }
 
   /**
@@ -26,21 +32,20 @@ export default class Config{
       return un;
     }
 
-    let addKeyAndLookup = () => {} 
+    let addKeyAndLookup = (acc, un) => {
+      acc[un.name] = this._lookup[un.name];
+      return acc;
+    } 
+
+    this._logger.debug(JSON.stringify(this._raw));
+    this._logger.debug(JSON.stringify(_.map(this._raw.pies, 'pie')));
 
     let uniqNameAndVersions = _(this._raw.pies)
-      .pick('pie')
+      .map('pie')
       .reduce(toUniqueNames, [])
       .map(addLookup);
 
-    let breakingVersions = _.filter(uniqNameAndVersions, (un) => {
-      un.versions
-    });
-
-    if(breakingVersions.length > 0){
-      throw new Error('Breaking changes found!')
-    } else {
+      this._logger.debug('uniqNameAndVersions', uniqNameAndVersions);
       return _.reduce(uniqNameAndVersions, addKeyAndLookup, {});
-    }
   } 
 }

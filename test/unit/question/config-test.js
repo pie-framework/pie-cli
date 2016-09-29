@@ -6,23 +6,16 @@ describe('config', () => {
 
   describe('npmDependencies', () => {
 
-    it('returns the dependencies', () => {
-      let config = new Config([], {});
-      expect(config.npmDependencies).to.eql({});
-    });
-  });
-});
-
-describe('versions', () => {
-
-  describe('isBreakingRange', () => {
-
-    it('returns true for a breaking range', () => {
-      new Versions(['~1.0.0', '2.0.0']).isBreakingRange.should.equal(true);
+    it('returns no dependencies for an empty pie array', () => {
+      expect(new Config([], {}).npmDependencies).to.eql({});
     });
     
-    it('returns false for a non breaking range', () => {
-      new Versions(['~1.2', '1.2.10']).isBreakingRange.should.equal(false);
+    it('returns a dependency with a path from the lookup', () => {
+      expect(new Config({pies: [{pie: {name: 'pie', version: '1.0.0'}}]}, {pie: 'path'}).npmDependencies).to.eql({pie: 'path'});
+    });
+
+    it('ignores version ranges', () => {
+      expect(new Config({pies: [{pie: {name: 'pie', version: '1.0.0'}}]}, {}).npmDependencies).to.eql({pie: undefined});
     });
   });
 });

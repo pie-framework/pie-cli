@@ -1,6 +1,9 @@
 import _ from 'lodash';
 import semver from 'semver';
 
+/**
+ * TODO - stub class looking at compatible version ranges.
+ */
 export default class VersionRange {
   constructor(r){
     this._ranges = _.isArray(r) ? r : [r];

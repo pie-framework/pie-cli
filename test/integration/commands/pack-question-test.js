@@ -8,7 +8,10 @@ describe('pack-question', () => {
 
   let rootDir;
   
-  beforeEach((done) => {
+  before(function(done) {
+
+    this.timeout(30000);
+
     rootDir = resolve('./test/integration/example-questions/one');
     
     packQuestion.run({
@@ -20,5 +23,9 @@ describe('pack-question', () => {
 
   it('installs the node_modules', () => {
     expect(fs.existsSync(path.join(rootDir, 'package.json'))).to.eql(true);
-  })
+  });
+
+  it.only('writes an entry.js file', () => {
+    expect(fs.existsSync(path.join(rootDir, 'entry.js'))).to.eql(true);
+  });
 });
