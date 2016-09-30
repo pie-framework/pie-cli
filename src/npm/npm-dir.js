@@ -5,6 +5,7 @@ import { spawn } from 'child_process';
 import readline from 'readline';
 import * as helper from './dependency-helper';
 import { fileLogger } from '../log-factory';
+import {removeFiles} from '../file-helper';
 
 export default class NpmDir {
 
@@ -63,7 +64,7 @@ export default class NpmDir {
     return false;
   };
 
-  writePackageJson(dependencies) {
+  _writePackageJson(dependencies) {
 
     this._logger.silly('dependencies: ', dependencies);
 
@@ -79,16 +80,20 @@ export default class NpmDir {
     return Promise.resolve(pkg);
   };
 
-  freshInstall(dependencies) {
-    fs.removeSync(path.join(this.rootDir, 'node_modules'));
-    fs.removeSync(path.join(this.rootDir, 'package.json'));
+  /**
+   * Clean all npm related files
+   */
+  clean() {
+    return removeFiles(this.rootDir, ['node_modules', 'package.json']);
+  }
 
-    return this.writePackageJson(dependencies)
-      .then(() => this.install())
-      .then(() => this.linkLocalPies(dependencies));
+  install(dependencies) {
+    return this._writePackageJson(dependencies)
+      .then(() => this._install())
+      .then(() => this._linkLocalPies(dependencies));
   };
 
-  linkLocalPies(pies) {
+  _linkLocalPies(pies) {
 
     let localOnlyDependencies = _.pickBy(pies, (v) => {
       return !helper.isSemver(v) && !helper.isGitUrl(v) && helper.pathIsDir(this.rootDir, v);
@@ -100,7 +105,7 @@ export default class NpmDir {
     return out;
   };
 
-  install() {
+  _install() {
     this._logger.silly('install');
     return this._spawnPromise(['install']);
   };

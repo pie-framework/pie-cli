@@ -1,11 +1,14 @@
 import jsesc from 'jsesc';
 import fs from 'fs-extra';
 import path from 'path';
+import {removeFiles} from '../file-helper';
 
 let mkExampleMarkup = (markup, model) => `
 <!doctype html>
 <html>
   <head>
+    <!-- lodash is one of the supported libs on the controller side -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.2/lodash.js" type="text/javascript"></script>
     <script src="bundle.js" type="text/javascript"></script>
     <script src="controller-map-bundle.js" type="text/javascript"></script>
     <script type="text/javascript">
@@ -34,11 +37,15 @@ let mkExampleMarkup = (markup, model) => `
 </html>
 `;
 
-export default function(root, srcFile, resultName){
+export function build(root, srcFile, resultName, configFile){
   let playerMarkup = fs.readFileSync(path.join(root, srcFile), {encoding: 'utf8'});
-  let model = fs.readJsonSync(path.join(root, 'config.json'));
+  let model = fs.readJsonSync(path.join(root, configFile));
   let example = mkExampleMarkup(playerMarkup, model);
   let outpath = path.join(root, resultName);
   fs.writeFileSync(outpath, example, {encoding: 'utf8'});
   return Promise.resolve(outpath);
+}
+
+export function clean(root, markupName){
+  return removeFiles(root, [markupName]);
 }

@@ -4,6 +4,8 @@ import _ from 'lodash';
 import { fileLogger } from '../log-factory';
 import {configToJsString, writeConfig} from './webpack-write-config';
 import resolve from 'resolve';
+import {removeFiles} from '../file-helper';
+import fs from 'fs-extra';
 
 const logger = fileLogger(__filename);
 
@@ -41,7 +43,38 @@ let baseConfig = (root) => {
   }
 };
 
-export default function bundle(root, entryJs, pies) {
+const ENTRY_JS = 'entry.js';
+
+function writeEntryJs(root, pies){
+
+    let pieRegistrationSrc = _.map(pies, (p, index) => `
+import comp${index} from '${p}';
+document.registerElement('${p}', comp${index});`).join('\n')
+  
+  let js = `
+import PiePlayer from 'pie-player';
+document.registerElement('pie-player', PiePlayer);
+${pieRegistrationSrc}
+
+import ClientSideController from 'pie-client-side-controller';
+window.pie = window.pie || {};
+window.pie.ClientSideController = ClientSideController;
+`;
+
+  return new Promise((resolve, reject) => {
+    let entryPath = path.join(root, ENTRY_JS);
+    fs.writeFile(path.join(root, ENTRY_JS), js, {encoding: 'utf8'}, (err) => {
+      if(err){
+        reject(err);
+      } else {
+        resolve(entryPath);
+      }
+    });
+  });
+}
+
+
+function webpackBundle(root, entryJs, pies) {
 
   logger.info('bundle, root', root, 'entryJs', entryJs, 'pies', pies);
 
@@ -80,4 +113,13 @@ export default function bundle(root, entryJs, pies) {
       }
     });
   });
+}
+
+export function build(root,pies){
+  return writeEntryJs(root, pies)
+    .then( (entryJsPath) => webpackBundle(root, path.basename(entryJsPath), pies));
+}
+
+export function clean(root){
+  return removeFiles(root, ['bundle.js', 'bundle.js.map', ENTRY_JS]);
 }

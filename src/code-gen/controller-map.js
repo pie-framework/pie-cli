@@ -3,6 +3,7 @@ import path from 'path';
 import {fileLogger} from '../log-factory';
 import Config from '../question/config';
 import _ from 'lodash';
+import {removeFiles} from '../file-helper';
 
 const babel = require('babel-core');
 const logger = fileLogger(__filename);
@@ -11,9 +12,9 @@ const BUNDLE = 'controller-map-bundle.js';
 function wrapModule(name, src){
   return `
 root.pie.controllerMap['${name}'] = {};
-(function(exports){
+(function(exports, require){
   ${src}
-})(root.pie.controllerMap['${name}'])
+})(root.pie.controllerMap['${name}'], root.pie.require)
 `;
 }
 
@@ -26,7 +27,7 @@ root.pie.controllerMap['${name}'] = {};
  * 
  * //TODO: make this configurable?
  */
-export default function buildControllerMap(root, jsonFile){
+export function build(root, jsonFile){
   let config = new Config(fs.readJsonSync(path.join(root, jsonFile)));
   logger.info('npmDependencies: ', config.npmDependencies);
   let moduleSrc = _(config.npmDependencies).keys().map((d) => {
@@ -40,6 +41,26 @@ export default function buildControllerMap(root, jsonFile){
   let src = `
   (function(root){
     root.pie = root.pie || {};
+
+    var supportedLibraries = {
+      lodash: _
+    }
+
+    /**
+     * add support for require in modules
+     */
+    root.pie.require = function(name){
+      if(supportedLibraries.hasOwnProperty(name)){
+        if(!supportedLibraries[name]){
+          throw new Error('This library is supported but maybe it has not been loaded? ' + name);
+        } else {
+          return supportedLibraries[name];
+        }
+      } else {
+        throw new Error('This library is not supported: ' + name);
+      }
+    }
+
     root.pie.controllerMap = root.pie.controllerMap || {};
     ${moduleSrc}
   })(this);
@@ -48,4 +69,8 @@ export default function buildControllerMap(root, jsonFile){
   let bundlePath = path.join(root, BUNDLE);
   fs.writeFileSync(bundlePath, src, {encoding: 'utf8'});
   return Promise.resolve({path: bundlePath, src: src});
+}
+
+export function clean(root){
+  return removeFiles(root, [BUNDLE]);
 }
