@@ -2,3 +2,5 @@ node_modules
 lib
 .vscode
 jsconfig.json
+typings
+typings.json

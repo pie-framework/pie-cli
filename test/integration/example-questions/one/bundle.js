@@ -17222,7 +17222,7 @@
 	    key: 'attachedCallback',
 	    value: function attachedCallback() {
 	      console.log('attached..');
-	      var el = _react2.default.createElement(_tester2.default, { mgs: 'ping' });
+	      var el = _react2.default.createElement(_tester2.default, { msg: 'ping' });
 	      _reactDom2.default.render(el, this);
 	    }
 	  }]);
@@ -38694,18 +38694,22 @@
 
 	      var toData = function toData(id) {
 	        var model = _lodash2.default.find(_this._model, { id: id });
-	        var componentName = model && model.component ? model.component.name : '?';
+
+	        if (!model.pie) {
+	          throw new Error('This model is missing a `pie`' + JSON.stringify(model));
+	        }
+
 	        return {
 	          id: id,
-	          componentName: componentName,
+	          pie: model.pie,
 	          model: model,
 	          session: _lodash2.default.find(session, { id: id })
 	        };
 	      };
 
 	      var toPromise = function toPromise(data) {
-	        var modelFn = _this._controllerMap[data.componentName][fnName] || function () {
-	          return Promise.reject(new Error('cant find function for ' + data.componentName));
+	        var modelFn = _this._controllerMap[data.pie.name][fnName] || function () {
+	          return Promise.reject(new Error('cant find function for ' + data.pie.name));
 	        };
 	        return modelFn(data.model, data.session, env).then(function (result) {
 	          result.id = data.id;

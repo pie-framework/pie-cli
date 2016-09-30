@@ -23,6 +23,8 @@ root.pie.controllerMap['${name}'] = {};
  * eg: 
  * 
  * window.pie.controllerMap['my-pie'].model([], {}, {}).then(function(result){ console.log(result); });
+ * 
+ * //TODO: make this configurable?
  */
 export default function buildControllerMap(root, jsonFile){
   let config = new Config(fs.readJsonSync(path.join(root, jsonFile)));

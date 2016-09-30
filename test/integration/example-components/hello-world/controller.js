@@ -1,3 +1,3 @@
 export function model(ids, session, env){
-  return { value: 'tada!'};
+  return Promise.resolve({ value: 'tada!'});
 }

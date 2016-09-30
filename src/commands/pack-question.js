@@ -5,6 +5,7 @@ import path from 'path';
 import _ from 'lodash';
 import bundle from '../bundler/webpack';
 import buildControllerMap from '../bundler/controller-map';
+import buildMarkupSample from '../code-gen/markup-example';
 
 export function match(args){
   return args._.indexOf('pack-question') !== -1;
@@ -103,5 +104,6 @@ export function run(args){
     .then(() => writeEntryJs(root, _.keys(config.npmDependencies)))
     .then(() => buildElementBundle(root, _.keys(config.npmDependencies)))
     .then(() => buildControllerMap(root, 'config.json'))
+    .then(() => buildMarkupSample(root, 'index.html', 'example.html'))
     .then(() => logger.debug('npm install done'));
 }
