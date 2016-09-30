@@ -81,7 +81,7 @@ function webpackBundle(root, entryJs, libraries) {
   let config = _.extend({
     context: root,
     entry: path.join(root, entryJs),
-    output: { filename: 'bundle.js', path: root }
+    output: { filename: 'pie.js', path: root }
   }, baseConfig(root));
 
   config.module.loaders = _.map(config.module.loaders, (l) => {
@@ -133,5 +133,5 @@ export function cleanBuildAssets(root){
 }
 
 export function clean(root){
-  return removeFiles(root, ['bundle.js', 'bundle.js.map', ENTRY_JS]);
+  return removeFiles(root, ['pie.js', 'pie.js.map', ENTRY_JS]);
 }
