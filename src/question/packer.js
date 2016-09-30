@@ -48,9 +48,23 @@ export function build(root, opts){
     'babel-preset-es2015' : '^6.14.0',
     'babel-preset-react' : '^6.11.1'
   });
+  
+  let pieNames = _.keys(config.npmDependencies);
 
   return npmDir.install(npmDependencies)
-    .then(() => elementBundle.build(root, _.keys(config.npmDependencies)))
+    .then(() => {
+
+      let pieClientSideController = {
+        key: 'pie-client-side-controller',
+        initSrc: `
+        import ClientSideController from 'pie-client-side-controller';
+        window.pie = window.pie || {};
+        window.pie.ClientSideController = ClientSideController;`
+      }
+
+      let libs = _.flatten([pieClientSideController,'pie-player'].concat(pieNames));
+      return elementBundle.build(root, libs)
+    })
     .then(() => controllerMap.build(root, opts.configFile)) 
     .then(() => {
       if(!opts.keepBuildAssets){

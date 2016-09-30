@@ -47,19 +47,19 @@ const ENTRY_JS = 'entry.js';
 
 function writeEntryJs(root, pies){
 
-    let pieRegistrationSrc = _.map(pies, (p, index) => `
-import comp${index} from '${p}';
-document.registerElement('${p}', comp${index});`).join('\n')
-  
-  let js = `
-import PiePlayer from 'pie-player';
-document.registerElement('pie-player', PiePlayer);
-${pieRegistrationSrc}
-
-import ClientSideController from 'pie-client-side-controller';
-window.pie = window.pie || {};
-window.pie.ClientSideController = ClientSideController;
+  let registerElementSrc = (p, index) => `import comp${index} from '${p}';
+document.registerElement('${p}', comp${index});
 `;
+
+  let init = (p, index) => {
+    if(p.hasOwnProperty('initSrc')){
+      return p.initSrc;
+    } else {
+      return registerElementSrc(p, index); 
+    }
+  };
+
+  let js = _.map(pies, init).join('\n'); 
 
   return new Promise((resolve, reject) => {
     let entryPath = path.join(root, ENTRY_JS);
@@ -74,9 +74,9 @@ window.pie.ClientSideController = ClientSideController;
 }
 
 
-function webpackBundle(root, entryJs, pies) {
+function webpackBundle(root, entryJs, libraries) {
 
-  logger.info('bundle, root', root, 'entryJs', entryJs, 'pies', pies);
+  logger.info('bundle, root', root, 'entryJs', entryJs, 'pies', libraries);
 
   let config = _.extend({
     context: root,
@@ -85,7 +85,7 @@ function webpackBundle(root, entryJs, pies) {
   }, baseConfig(root));
 
   config.module.loaders = _.map(config.module.loaders, (l) => {
-    let orNames = ['pie-client-side-controller','pie-player'].concat(pies).join('|');
+    let orNames = libraries.join('|');
     let str = `node_modules/(?!(${orNames})/).*`;
     logger.debug('regex string: ', str);
     l.exclude = new RegExp(str);
@@ -115,9 +115,17 @@ function webpackBundle(root, entryJs, pies) {
   });
 }
 
-export function build(root,pies){
-  return writeEntryJs(root, pies)
-    .then( (entryJsPath) => webpackBundle(root, path.basename(entryJsPath), pies));
+/**
+ * 
+ * @param libraries - String|{key: String, initSrc: String}
+ */
+export function build(root,libraries){
+  return writeEntryJs(root, libraries)
+    .then( (entryJsPath) => {
+      let toKey = (p) => _.isString(p) ? p : p.key;
+      let keysOnly = _.map(libraries, toKey);
+      return webpackBundle(root, path.basename(entryJsPath),keysOnly); 
+    });
 }
 
 export function cleanBuildAssets(root){
