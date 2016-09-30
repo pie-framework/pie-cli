@@ -2,14 +2,29 @@
 
 
 ## Install
+
+> !!! Not ready yet
+The following won't be ready until we publish use the developer install instrucstions below.
+
 ```bash
 npm install -g pie-cli 
 ```
 
+#### Developer install 
+
+```bash
+git clone git@github.com:PieLabs/pie-cli.git 
+cd pie-cli 
+npm install 
+npm link 
+
+# pie-cli executable now points to /bin/pie-cli
+
+```
 ## Usage 
 
 ```
-pie --help|-h
+pie-cli --help|-h
 ```
 
 ### Developing

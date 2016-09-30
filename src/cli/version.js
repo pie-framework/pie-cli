@@ -9,7 +9,7 @@ export function match(args){
 export let summary = '--version | -v - print the version';
 
 export function run(args){
-  let pkg = readJsonSync(join(__dirname, '..', 'package.json'));
+  let pkg = readJsonSync(join(__dirname, '..', '..', 'package.json'));
   console.log(`version ${pkg.version}`);
   process.exit(0);
 };

@@ -16,7 +16,8 @@ export default function(opts){
 
   let cmd = _.find( [help].concat(commands), (cmd) => {
     return cmd.match(opts);
-  }) || { run: () => Promise.reject(new Error(`can't find command for: ${opts}`))}
+  }) || help;
+  
   let result = cmd.run(opts); 
   (result || Promise.resolve('done'))
     .then((result) => {
