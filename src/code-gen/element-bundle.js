@@ -120,6 +120,10 @@ export function build(root,pies){
     .then( (entryJsPath) => webpackBundle(root, path.basename(entryJsPath), pies));
 }
 
+export function cleanBuildAssets(root){
+  return removeFiles(root, [ENTRY_JS]);
+}
+
 export function clean(root){
   return removeFiles(root, ['bundle.js', 'bundle.js.map', ENTRY_JS]);
 }

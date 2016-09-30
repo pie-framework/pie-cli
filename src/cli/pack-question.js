@@ -31,6 +31,7 @@ It generates 2 javascript files:
 ### Options
   \`--dir\` - the relative path to a directory to use as the root. This should contain \`config.json\` and \`index.html\` (default: the current working directory)
   \`--configFile\` - the name of the pie data file - default \`${packer.defaults.configFile}\`
+  \`--keepBuildAssets\` - keep supporting build assets (like node_modules etc) - default \`${packer.defaults.keepBuildAssets}\`
   \`--dependenciesFile\` - the name of the dependencies file (to be removed) - default \`${packer.defaults.dependenciesFile}\`
   \`--buildExample\` - build an example? - default \`${packer.defaults.buildExample}\`
   \`--markupFile\` - if building an example - the name of the html file with the layout for the question. - default \`${packer.defaults.markupFile}\`

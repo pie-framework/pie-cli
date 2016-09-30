@@ -25,7 +25,8 @@ export let defaults = {
   dependenciesFile: 'dependencies.json',
   markupFile: 'index.html',
   exampleFile: 'example.html',
-  buildExample: false
+  buildExample: false,
+  keepBuildAssets: false
 };
 
 export function build(root, opts){
@@ -51,6 +52,14 @@ export function build(root, opts){
   return npmDir.install(npmDependencies)
     .then(() => elementBundle.build(root, _.keys(config.npmDependencies)))
     .then(() => controllerMap.build(root, opts.configFile)) 
+    .then(() => {
+      if(!opts.keepBuildAssets){
+        return npmDir.clean()
+          .then(() => elementBundle.cleanBuildAssets(root));
+      } else {
+        return Promise.resolve();
+      }
+    }) 
     .then(() => { 
       if(opts.buildExample){
         return markupExample.build(root, opts.markupFile, opts.exampleFile, opts.configFile);
