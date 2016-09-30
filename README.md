@@ -16,6 +16,7 @@ npm install -g pie-cli
 git clone git@github.com:PieLabs/pie-cli.git 
 cd pie-cli 
 npm install 
+npm run build
 npm link 
 
 # pie-cli executable now points to /bin/pie-cli
