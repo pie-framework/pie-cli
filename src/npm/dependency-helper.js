@@ -7,7 +7,7 @@ export let isGitUrl = (str) => {
   return re.test(str);
 };
 
-export let isSemver = (str) => semver.valid(str) !== null;
+export let isSemver = (str) => semver.validRange(str) !== null || semver.valid(str) !== null;
 
 export let pathIsDir = (root, v) => {
   try {

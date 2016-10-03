@@ -4,7 +4,7 @@
   "description": "The pie cli",
   "preferGlobal": true,
   "bin": {
-    "pie" : "bin/pie"
+    "pie": "bin/pie"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha --require babel-register test/unit/**",
@@ -36,6 +36,8 @@
     "chai": "^3.5.0",
     "minimist": "^1.2.0",
     "mocha": "^3.1.0",
+    "proxyquire": "^1.7.10",
+    "sinon": "^1.17.6",
     "temp": "^0.8.3"
   },
   "dependencies": {
