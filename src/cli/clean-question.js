@@ -34,6 +34,6 @@ export function run(args){
     return Promise.reject(new Error('no dir in ' + args)); 
   }
 
-  return packer.clean(dir)
+  return packer.clean(dir, args)
     .then(() => "clean complete")
 }

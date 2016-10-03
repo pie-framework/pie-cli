@@ -7,7 +7,6 @@ import {removeFiles} from '../file-helper';
 
 const babel = require('babel-core');
 const logger = fileLogger(__filename);
-const BUNDLE = 'controllers.js';
 
 function wrapModule(name, src){
   return `
@@ -27,7 +26,7 @@ root.pie.controllerMap['${name}'] = {};
  * 
  * //TODO: make this configurable?
  */
-export function build(root, jsonFile){
+export function build(root, jsonFile, bundleName){
   let config = new Config(fs.readJsonSync(path.join(root, jsonFile)));
   logger.info('npmDependencies: ', config.npmDependencies);
   let moduleSrc = _(config.npmDependencies).keys().map((d) => {
@@ -66,11 +65,11 @@ export function build(root, jsonFile){
   })(this);
   `;
 
-  let bundlePath = path.join(root, BUNDLE);
+  let bundlePath = path.join(root, bundleName);
   fs.writeFileSync(bundlePath, src, {encoding: 'utf8'});
   return Promise.resolve({path: bundlePath, src: src});
 }
 
-export function clean(root){
-  return removeFiles(root, [BUNDLE]);
+export function clean(root, bundleName){
+  return removeFiles(root, [bundleName]);
 }

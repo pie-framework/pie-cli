@@ -74,14 +74,14 @@ document.registerElement('${p}', comp${index});
 }
 
 
-function webpackBundle(root, entryJs, libraries) {
+function webpackBundle(root, entryJs, libraries, bundleName) {
 
   logger.info('bundle, root', root, 'entryJs', entryJs, 'pies', libraries);
 
   let config = _.extend({
     context: root,
     entry: path.join(root, entryJs),
-    output: { filename: 'pie.js', path: root }
+    output: { filename: bundleName, path: root }
   }, baseConfig(root));
 
   config.module.loaders = _.map(config.module.loaders, (l) => {
@@ -119,12 +119,12 @@ function webpackBundle(root, entryJs, libraries) {
  * 
  * @param libraries - String|{key: String, initSrc: String}
  */
-export function build(root,libraries){
+export function build(root,libraries, bundleName){
   return writeEntryJs(root, libraries)
     .then( (entryJsPath) => {
       let toKey = (p) => _.isString(p) ? p : p.key;
       let keysOnly = _.map(libraries, toKey);
-      return webpackBundle(root, path.basename(entryJsPath),keysOnly); 
+      return webpackBundle(root, path.basename(entryJsPath),keysOnly, bundleName); 
     });
 }
 
@@ -132,6 +132,6 @@ export function cleanBuildAssets(root){
   return removeFiles(root, [ENTRY_JS]);
 }
 
-export function clean(root){
-  return removeFiles(root, ['pie.js', 'pie.js.map', ENTRY_JS]);
+export function clean(root, bundleName){
+  return removeFiles(root, [bundleName, bundleName + '.map', ENTRY_JS]);
 }

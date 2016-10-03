@@ -23,19 +23,19 @@ export let usage = marked(`
 Generate some javascript for use in rendering the question.
 
 It generates 2 javascript files: 
- * \`pie.js\` - contains all the logic for rendering, includes the individual pies, a pie-player definition and ??
- * \`controller-map-bundle.js\` - contains a map of pie names to their controllers, exports the map to either \`window\` or \`exports\`.
+ * \`${packer.DEFAULTS.pieJs}\` - contains all the logic for rendering, includes the individual pies, a pie-player definition and ??
+ * \`${packer.DEFAULTS.controllersJs}\` - contains a map of pie names to their controllers, exports the map to either \`window\` or \`exports\`.
 
 > Note: This doesn't generate the final question for you. To do that you'll need to create the final html page, include the 2 js files above, and use a controller that can interact with the controller-map.js file. See [pie-docs](http://pielabs.github.io/pie-docs) for more infomation.
 
 ### Options
   \`--dir\` - the relative path to a directory to use as the root. This should contain \`config.json\` and \`index.html\` (default: the current working directory)
-  \`--configFile\` - the name of the pie data file - default \`${packer.defaults.configFile}\`
-  \`--keepBuildAssets\` - keep supporting build assets (like node_modules etc) - default \`${packer.defaults.keepBuildAssets}\`
-  \`--dependenciesFile\` - the name of the dependencies file (to be removed) - default \`${packer.defaults.dependenciesFile}\`
-  \`--buildExample\` - build an example? - default \`${packer.defaults.buildExample}\`
-  \`--markupFile\` - if building an example - the name of the html file with the layout for the question. - default \`${packer.defaults.markupFile}\`
-  \`--exampleFile\` - if building an example - the name of the generated example html file.  - default \`${packer.defaults.exampleFile}\`
+  \`--configFile\` - the name of the pie data file - default \`${packer.DEFAULTS.configFile}\`
+  \`--keepBuildAssets\` - keep supporting build assets (like node_modules etc) - default \`${packer.DEFAULTS.keepBuildAssets}\`
+  \`--dependenciesFile\` - the name of the dependencies file (to be removed) - default \`${packer.DEFAULTS.dependenciesFile}\`
+  \`--buildExample\` - build an example? - default \`${packer.DEFAULTS.buildExample}\`
+  \`--markupFile\` - if building an example - the name of the html file with the layout for the question. - default \`${packer.DEFAULTS.markupFile}\`
+  \`--exampleFile\` - if building an example - the name of the generated example html file.  - default \`${packer.DEFAULTS.exampleFile}\`
 ### Examples
 \`\`\`shell
 pie-cli pack-question --dir ../path/to/dir 
@@ -47,8 +47,8 @@ export function run(args){
   let dir = path.resolve(args.dir || process.cwd());
 
   if(args.clean){
-     return packer.clean(dir).then(() => packer.build(dir, args));
+     return packer.clean(dir, args).then(() => packer.build(dir, args));
    } else {
-     return packer.build(dir);
+     return packer.build(dir, args);
    }
 }

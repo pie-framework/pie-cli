@@ -11,28 +11,33 @@ import {fileLogger} from '../log-factory';
 
 let logger = fileLogger(__filename);
 
-export function clean(root){
-  logger.info('clean...', root);
-  let npmDir = new NpmDir(root);
-  return npmDir.clean()
-      .then(() => elementBundle.clean(root)) 
-      .then(() => controllerMap.clean(root))
-      .then(() => markupExample.clean(root, 'example.html'));
-}
-
-export let defaults = {
+export const DEFAULTS = {
   configFile: 'config.json',
   dependenciesFile: 'dependencies.json',
   markupFile: 'index.html',
   exampleFile: 'example.html',
   buildExample: false,
-  keepBuildAssets: false
+  keepBuildAssets: false,
+  pieJs: 'pie.js',
+  controllersJs: 'controllers.js'
 };
+
+export function clean(root, opts){
+
+  opts = _.extend({}, DEFAULTS, opts);
+
+  logger.info('clean...', root);
+  let npmDir = new NpmDir(root);
+  return npmDir.clean()
+      .then(() => elementBundle.clean(root, opts.pieJs)) 
+      .then(() => controllerMap.clean(root, opts.controllersJs))
+      .then(() => markupExample.clean(root, opts.exampleFile));
+}
 
 export function build(root, opts){
   logger.info('build...', root);
 
-  opts = _.extend({}, defaults, opts);
+  opts = _.extend({}, DEFAULTS, opts);
   
   logger.silly('build:opts: ', opts);
   
@@ -63,9 +68,9 @@ export function build(root, opts){
       }
 
       let libs = _.flatten([pieClientSideController,'pie-player'].concat(pieNames));
-      return elementBundle.build(root, libs)
+      return elementBundle.build(root, libs, opts.pieJs)
     })
-    .then(() => controllerMap.build(root, opts.configFile)) 
+    .then(() => controllerMap.build(root, opts.configFile, opts.controllersJs)) 
     .then(() => {
       if(!opts.keepBuildAssets){
         return npmDir.clean()
