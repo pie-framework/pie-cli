@@ -7,7 +7,7 @@ import {removeFiles} from '../file-helper';
 
 const babel = require('babel-core');
 const logger = fileLogger(__filename);
-const BUNDLE = 'controller-map-bundle.js';
+const BUNDLE = 'controllers.js';
 
 function wrapModule(name, src){
   return `

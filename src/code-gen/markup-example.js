@@ -9,8 +9,8 @@ let mkExampleMarkup = (markup, model) => `
   <head>
     <!-- lodash is one of the supported libs on the controller side -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.2/lodash.js" type="text/javascript"></script>
-    <script src="bundle.js" type="text/javascript"></script>
-    <script src="controller-map-bundle.js" type="text/javascript"></script>
+    <script src="pie.js" type="text/javascript"></script>
+    <script src="controllers.js" type="text/javascript"></script>
     <script type="text/javascript">
 
       document.addEventListener('DOMContentLoaded', function(){
