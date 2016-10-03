@@ -24,6 +24,8 @@ export default class NpmDir {
 
       let s = spawn('npm', args, { cwd: this.rootDir });
 
+      let out = '';
+
       s.on('error', () => {
         this._logger.error('npm install command failed - is npm installed?');
         reject();
@@ -41,14 +43,16 @@ export default class NpmDir {
         terminal: false
       }).on('line',  (line) => {
         this._logger.info(line);
+        out += line;
       });
 
-      s.on('close', (code) => {
+      s.on('close', (code, result) => {
         if (code !== 0) {
           this._logger.error(args + ' failed. code: ' + code);
           reject();
         } else {
-          resolve();
+          this._logger.silly(`arguments: ${arguments}`);
+          resolve({stdout: out});
         }
       });
     });
@@ -92,6 +96,19 @@ export default class NpmDir {
       .then(() => this._install())
       .then(() => this._linkLocalPies(dependencies));
   };
+
+  ls(){
+    return this._spawnPromise(['ls', '--json'])
+      .then((result) => {
+        try{
+          return JSON.parse(result.stdout)
+        } 
+        catch(e){
+          this._logger.error(e);
+          return {}
+        }
+      });
+  }
 
   _linkLocalPies(pies) {
 

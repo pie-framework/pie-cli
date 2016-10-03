@@ -46,9 +46,16 @@ export function run(args){
   args.clean = args.clean !== 'false';
   let dir = path.resolve(args.dir || process.cwd());
 
+
+  let frameworkSupport = FrameworkSupport.bootstrap([
+    //1. support for built in frameworks
+    path.join(__dirname, '..', 'framework-support', 'frameworks')
+    //TODO: 2. support for command line frameworks
+  ]);
+
   if(args.clean){
-     return packer.clean(dir, args).then(() => packer.build(dir, args));
+     return packer.clean(dir, args).then(() => packer.build(dir, args, frameworkSupport));
    } else {
-     return packer.build(dir, args);
+     return packer.build(dir, args, frameworkSupport);
    }
 }

@@ -34,7 +34,7 @@ export function clean(root, opts){
       .then(() => markupExample.clean(root, opts.exampleFile));
 }
 
-export function build(root, opts){
+export function build(root, opts, frameworkSupport){
   logger.info('build...', root);
 
   opts = _.extend({}, DEFAULTS, opts);
@@ -51,9 +51,11 @@ export function build(root, opts){
     'pie-controller' : 'PieLabs/pie-controller',
     'babel-loader' : '^6.2.5',
     'babel-preset-es2015' : '^6.14.0',
-    'babel-preset-react' : '^6.11.1'
+    // 'babel-preset-react' : '^6.11.1'
   });
-  
+
+  // -> do the install then get the dependency tree
+
   let pieNames = _.keys(config.npmDependencies);
 
   return npmDir.install(npmDependencies)
@@ -70,6 +72,10 @@ export function build(root, opts){
 
       let libs = _.flatten([pieController,'pie-player'].concat(pieNames));
       return elementBundle.build(root, libs, opts.pieJs)
+    })
+    .then(npmDir.ls)
+    .then((dependencyTree) => {
+      frameworkSupport.load(dependencyTree) => { npmDependencies: {}, webpack: {} }
     })
     .then(() => controllerMap.build(root, opts.configFile, opts.controllersJs)) 
     .then(() => {
