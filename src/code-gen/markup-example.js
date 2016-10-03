@@ -18,11 +18,11 @@ let mkExampleMarkup = (markup, model) => `
         env = {mode: 'gather'};
         model = ${jsesc(model)};
         session = [];
-        controller = new pie.ClientSideController(model, pie.controllerMap);
+        
         var player = document.querySelector('pie-player');
 
         player.addEventListener('pie-player-ready', function(event){
-          player.controller = new pie.ClientSideController(model.pies, pie.controllerMap);
+          player.controller = new pie.Controller(model.pies, pie.controllerMap);
           player.env = env;
           player.session = session;
         });

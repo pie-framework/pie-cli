@@ -48,7 +48,7 @@ export function build(root, opts){
 
   let npmDependencies = _.extend({}, config.npmDependencies, {
     'pie-player': 'PieLabs/pie-player',
-    'pie-client-side-controller' : 'PieLabs/pie-client-side-controller',
+    'pie-controller' : 'PieLabs/pie-controller',
     'babel-loader' : '^6.2.5',
     'babel-preset-es2015' : '^6.14.0',
     'babel-preset-react' : '^6.11.1'
@@ -59,15 +59,16 @@ export function build(root, opts){
   return npmDir.install(npmDependencies)
     .then(() => {
 
-      let pieClientSideController = {
-        key: 'pie-client-side-controller',
+      //TODO: Not sure if this is the best place to define the pie-controller logic.
+      let pieController = {
+        key: 'pie-controller',
         initSrc: `
-        import ClientSideController from 'pie-client-side-controller';
+        import Controller from 'pie-controller';
         window.pie = window.pie || {};
-        window.pie.ClientSideController = ClientSideController;`
+        window.pie.Controller = Controller;`
       }
 
-      let libs = _.flatten([pieClientSideController,'pie-player'].concat(pieNames));
+      let libs = _.flatten([pieController,'pie-player'].concat(pieNames));
       return elementBundle.build(root, libs, opts.pieJs)
     })
     .then(() => controllerMap.build(root, opts.configFile, opts.controllersJs)) 
