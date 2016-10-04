@@ -1,7 +1,8 @@
 import * as packer from '../question/packer';
 import {fileLogger} from '../log-factory';
+import Question from '../question';
+import Packer from '../question/new-packer';
 import path from 'path';
-import FrameworkSupport from '../framework-support';
 
 const logger = fileLogger(__filename);
 
@@ -51,11 +52,14 @@ export function run(args){
   
   let dir = path.resolve(args.dir || process.cwd());
 
-  let frameworkSupport = FrameworkSupport.bootstrap([
-    //1. support for built in frameworks
-    path.join(__dirname, '..', 'framework-support', 'frameworks')
-    //TODO: 2. support for frameworks added via the command line
-  ], require);
+  let question = new Question(dir);
+  let packer = new Packer(question);
+
+  // let frameworkSupport = FrameworkSupport.bootstrap([
+  //   //1. support for built in frameworks
+  //   path.join(__dirname, '..', 'framework-support', 'frameworks')
+  //   //TODO: 2. support for frameworks added via the command line
+  // ], require);
 
   if(args.clean){
      return packer.clean(dir, args).then(() => packer.build(dir, args, frameworkSupport));

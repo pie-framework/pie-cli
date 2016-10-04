@@ -48,8 +48,4 @@ export default class Config{
       this._logger.debug('uniqNameAndVersions', uniqNameAndVersions);
       return _.reduce(uniqNameAndVersions, addKeyAndLookup, {});
   } 
-
-  get pie(){
-    return new Pie(this._raw.pie || {});
-  }
 }
