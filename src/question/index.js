@@ -105,10 +105,9 @@ export default class Question{
    * Return additional dependencies.
    * @return Array[{String|Object{name,npmPkg}}]
    */
-  get buildDependencies(){
-    let pieBuildNodes = _.map(this.piePackages, 'pie.build').flatten();
-    logger.debug('[pieBuildDependencies], buildNodes', pieBuildNodes);
-    //[react, {vue: 'PieLabs/vue'}]
-    return [];
+  get buildKeys(){
+    let pieBuildKeys = _.map(this.piePackages, 'pie.build').flatten();
+    logger.debug('[pieBuildDependencies], buildNodes', pieBuildKeys);
+    return pieBuildKeys;
   }
 }

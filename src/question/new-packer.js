@@ -15,10 +15,11 @@ let logger = buildLogger();
  * > packing means building 2 files: pie.js and controllers.js
  */
 export default class Packer {
-  constructor(question) {
+  constructor(question, frameworkSupport) {
     logger.silly('new Packer');
     this._question = question;
     this._npmDir = new NpmDir(this._question.dir);
+    this._frameworkSuport = frameworkSupport;
   }
 
   clean(opts) {
@@ -53,7 +54,9 @@ export default class Packer {
 
     return this._npmDir.install(npmDependencies)
        .then(() => {
-         this._question.buildDependencies
+         let buildKeys = this._question.buildKeys;
+         let support = frameworkSupport.fromBuildKeys(buildKeys);
+         return this._npmDir.installMoreDependencies(support.npmDependencies);
        })
       
     // .then(() => npmDir.ls())
