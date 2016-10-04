@@ -7,7 +7,7 @@ export let frameworkName = 'react';
  * @see: https://github.com/webpack/webpack/issues/1866
  * @see: https://github.com/babel/babel-loader/issues/149
  */
-export function support(name, resolve) {
+export function support(name, resolutionInfo, resolve) {
 
   if (name !== frameworkName) {
     return;

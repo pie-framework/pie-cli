@@ -49,6 +49,8 @@ export function build(root, opts, frameworkSupport){
   let npmDependencies = _.extend({}, config.npmDependencies, {
     'pie-player': 'PieLabs/pie-player',
     'pie-controller' : 'PieLabs/pie-controller',
+    'babel-core' : '^6.0.0',
+    'webpack' : '^2.1.0-beta',
     'babel-loader' : '^6.2.5',
     'babel-preset-es2015' : '^6.14.0',
     // 'babel-preset-react' : '^6.11.1'
@@ -58,10 +60,26 @@ export function build(root, opts, frameworkSupport){
 
   let pieNames = _.keys(config.npmDependencies);
 
-  return npmDir.install(npmDependencies)
-    .then(() => {
+  let supportModules;
 
-      //TODO: Not sure if this is the best place to define the pie-controller logic.
+  /**
+   * Add dependencies need to build any frameworks used in the package (ie: react,..)
+   * @param tree - a map of depth-0 dependencies of the package - passed to frameworkSupport
+   */
+  let addFrameworkSupportDependencies = (tree) => {
+    logger.silly('dependencyTree', JSON.stringify(tree));
+    supportModules = frameworkSupport.load(tree);
+    let additionalDependencies = supportModules.npmDependencies;
+    logger.silly('additionalDependencies: ', additionalDependencies);
+    return npmDir.installMoreDependencies(additionalDependencies, {save: true})
+      .then(() => supportModules)
+  };
+
+  /**
+   * Build the element bundle.
+   * Include the pie-player and pie-controller packages.
+   */
+  let buildElementBundle = (supportModules) => {
       let pieController = {
         key: 'pie-controller',
         initSrc: `
@@ -69,14 +87,16 @@ export function build(root, opts, frameworkSupport){
         window.pie = window.pie || {};
         window.pie.Controller = Controller;`
       }
-
+      
+      logger.silly('now use supportModules to prep the webpack config: ', JSON.stringify(supportModules));
       let libs = _.flatten([pieController,'pie-player'].concat(pieNames));
-      return elementBundle.build(root, libs, opts.pieJs)
-    })
-    .then(npmDir.ls)
-    .then((dependencyTree) => {
-      frameworkSupport.load(dependencyTree) => { npmDependencies: {}, webpack: {} }
-    })
+      return elementBundle.build(root, libs, opts.pieJs, supportModules.webpackLoaders)
+  };
+
+  return npmDir.install(npmDependencies)
+    .then(() => npmDir.ls())
+    .then(addFrameworkSupportDependencies) 
+    .then(buildElementBundle)
     .then(() => controllerMap.build(root, opts.configFile, opts.controllersJs)) 
     .then(() => {
       if(!opts.keepBuildAssets){

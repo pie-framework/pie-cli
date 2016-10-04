@@ -42,4 +42,38 @@ describe('framework-support', () => {
       expect(support.frameworks.length).to.eql(2);
     });
   });
+
+  describe('load', () => {
+
+    let FrameworkSupport, fs, supportModules;
+
+    beforeEach(() => {
+
+      FrameworkSupport = require('../../../src/framework-support').default;
+      
+      fs = new FrameworkSupport([
+        {
+          support: (name) => {
+            if(name !== 'a'){
+              return;
+            }
+            return { 
+              npmDependencies: { a: '1.0.0'},
+              webpackLoaders: () => []
+            }
+          }
+      }
+      ]);
+      
+      supportModules = fs.load({a: '1.0.0', b: '1.0.0'});
+    })
+    
+    it('returns first supported module\'s npmDependencies', () => {
+      expect(supportModules.a.npmDependencies.a).to.eql('1.0.0');
+    });
+    
+    it('doesnt return support for 2nd module', () => {
+      expect(supportModules.b).to.be.undefined; 
+    });
+  });
 });

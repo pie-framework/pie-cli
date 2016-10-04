@@ -1,6 +1,7 @@
 import * as packer from '../question/packer';
 import {fileLogger} from '../log-factory';
 import path from 'path';
+import FrameworkSupport from '../framework-support';
 
 const logger = fileLogger(__filename);
 
@@ -43,15 +44,18 @@ pie-cli pack-question --dir ../path/to/dir
 `);
 
 export function run(args){
-  args.clean = args.clean !== 'false';
-  let dir = path.resolve(args.dir || process.cwd());
 
+
+  args.clean = args.clean !== 'false';
+  logger.info('args: ', args);
+  
+  let dir = path.resolve(args.dir || process.cwd());
 
   let frameworkSupport = FrameworkSupport.bootstrap([
     //1. support for built in frameworks
     path.join(__dirname, '..', 'framework-support', 'frameworks')
-    //TODO: 2. support for command line frameworks
-  ]);
+    //TODO: 2. support for frameworks added via the command line
+  ], require);
 
   if(args.clean){
      return packer.clean(dir, args).then(() => packer.build(dir, args, frameworkSupport));

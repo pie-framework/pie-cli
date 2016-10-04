@@ -4,3 +4,4 @@ lib
 jsconfig.json
 typings
 typings.json
+.eslintrc.json

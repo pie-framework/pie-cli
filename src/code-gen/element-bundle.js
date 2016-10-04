@@ -9,25 +9,26 @@ import fs from 'fs-extra';
 
 const logger = fileLogger(__filename);
 
+        // {
+        //   test: /.(js|jsx)?$/,
+        //   loader: 'babel-loader',
+        //   query: {
+        //     presets: [
+        //       /** 
+        //        * Note: using resolved modules due to issues w/ symlinking and webpack/babel-loader
+        //        * @see: https://github.com/webpack/webpack/issues/1866
+        //        * @see: https://github.com/babel/babel-loader/issues/149
+        //        */
+        //       resolve.sync('babel-preset-es2015', {basedir: root}), 
+        //       resolve.sync('babel-preset-react', {basedir: root})
+        //     ]
+        //   }
+        // },
+
 let baseConfig = (root) => {
   return {
     module: {
       loaders: [
-        {
-          test: /.(js|jsx)?$/,
-          loader: 'babel-loader',
-          query: {
-            presets: [
-              /** 
-               * Note: using resolved modules due to issues w/ symlinking and webpack/babel-loader
-               * @see: https://github.com/webpack/webpack/issues/1866
-               * @see: https://github.com/babel/babel-loader/issues/149
-               */
-              resolve.sync('babel-preset-es2015', {basedir: root}), 
-              resolve.sync('babel-preset-react', {basedir: root})
-            ]
-          }
-        },
         {
           test: /\.less$/,
           loader: "style!css!less"
@@ -74,8 +75,10 @@ document.registerElement('${p}', comp${index});
 }
 
 
-function webpackBundle(root, entryJs, libraries, bundleName) {
-
+/**
+ * @param loaders {Array[{(resolve) => Object}]}
+ */
+function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
   logger.info('bundle, root', root, 'entryJs', entryJs, 'pies', libraries);
 
   let config = _.extend({
@@ -83,6 +86,11 @@ function webpackBundle(root, entryJs, libraries, bundleName) {
     entry: path.join(root, entryJs),
     output: { filename: bundleName, path: root }
   }, baseConfig(root));
+
+  let frameworkLoaders = getLoaders((k) => resolve.sync(k, {basedir: root}));
+  
+  logger.silly(`frameworkLoaders: ${frameworkLoaders}`);
+  config.module.loaders = config.module.loaders.concat(frameworkLoaders);
 
   config.module.loaders = _.map(config.module.loaders, (l) => {
     let orNames = libraries.join('|');
@@ -119,12 +127,12 @@ function webpackBundle(root, entryJs, libraries, bundleName) {
  * 
  * @param libraries - String|{key: String, initSrc: String}
  */
-export function build(root,libraries, bundleName){
+export function build(root,libraries, bundleName, getLoaders){
   return writeEntryJs(root, libraries)
     .then( (entryJsPath) => {
       let toKey = (p) => _.isString(p) ? p : p.key;
       let keysOnly = _.map(libraries, toKey);
-      return webpackBundle(root, path.basename(entryJsPath),keysOnly, bundleName); 
+      return webpackBundle(root, path.basename(entryJsPath), keysOnly, bundleName, getLoaders); 
     });
 }
 

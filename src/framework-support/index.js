@@ -1,11 +1,34 @@
-import * as helper from './dependency-tree-helper';
 import fs from 'fs-extra';
 import path from 'path';
 import _ from 'lodash';
 import {fileLogger} from '../log-factory';
 
+let logger = fileLogger(__filename);
+
+class SupportConfig{
+
+  constructor(supported){
+    this._supported = supported;
+  }
+
+  get npmDependencies() {
+    return _.reduce(this._supported, (acc,c) => {
+      return _.extend(acc, c.npmDependencies);
+    }, {});
+  }
+
+  webpackLoaders(resolve) {
+    return _.reduce(this._supported, (acc, c) => {
+      return acc.concat(c.webpackLoaders(resolve));
+    }, []); 
+  }
+}
+
 export default class FrameworkSupport{
 
+  /**
+   * @param frameworks - an array of objects that have a `support` function which returns {npmDependencies: , webpackLoaders: (resolve) => {}}
+   */
   constructor(frameworks){
     this.frameworks = frameworks;
   }
@@ -15,7 +38,6 @@ export default class FrameworkSupport{
    */
   static bootstrap(dirs, pathToObject){
 
-    let logger = fileLogger(__filename);
 
     let isJsFile = (dir, f) => {
       return fs.lstatSync(path.join(dir,f)).isFile() && 
@@ -49,11 +71,23 @@ export default class FrameworkSupport{
   };
 
 
-  load(dependencyTree){
-    let flat = helper.flattenDependencyTree(dependencyTree);
-    let resolve = () => {};
-    let support = _.map(this.frameworks, (f) => _(flat).map( d => f.support(d, resolve)).compact()).flatten();
-    this._logger.debug(`support: ${support}`);
-    return support;
+  /**
+   * @param dependencies a map of direct dependencies
+   * @param resolve a method to load in the module (@see react.js)
+   */
+  load(dependencies, resolve){
+    resolve = resolve || (() => {});
+
+    let supportModules = _.reduce(dependencies, (acc, d, key) => {
+      let s = _(this.frameworks).map((f) => f.support(key, d, resolve)).compact().value();
+      //TODO: We are only supporting 1 framework match (last one wins) - could there be more than that?
+      if(s && s.length === 1){
+        acc[key] = s[0];
+      }
+      return acc;
+    }, {});
+
+    logger.debug('supportModules: ', supportModules);
+    return new SupportConfig(supportModules);
   }
 }

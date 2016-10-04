@@ -7,18 +7,19 @@ import * as helper from './dependency-helper';
 import { fileLogger } from '../log-factory';
 import {removeFiles} from '../file-helper';
 
+let logger = fileLogger(__filename);
+
 export default class NpmDir {
 
   constructor(rootDir) {
     this.rootDir = rootDir;
-    this._logger = fileLogger(__filename);
-    this._logger.debug(`rootDir: ${rootDir}`);
-
+    logger.debug(`rootDir: ${rootDir}`);
   }
 
-  _spawnPromise(args) {
-
-    this._logger.info('spawn promise: args: ', args);
+  _spawnPromise(args, ignoreExitCode) {
+    ignoreExitCode = ignoreExitCode || false;
+    
+    logger.info('spawn promise: args: ', args);
 
     let p = new Promise((resolve, reject) => {
 
@@ -27,7 +28,7 @@ export default class NpmDir {
       let out = '';
 
       s.on('error', () => {
-        this._logger.error('npm install command failed - is npm installed?');
+        logger.error('npm install command failed - is npm installed?');
         reject();
       });
 
@@ -35,23 +36,23 @@ export default class NpmDir {
         input: s.stderr,
         terminal: false
       }).on('line', (line) => {
-        this._logger.error(line);
+        logger.error(line);
       });
 
       readline.createInterface({
         input: s.stdout,
         terminal: false
       }).on('line',  (line) => {
-        this._logger.info(line);
+        logger.info(line);
         out += line;
       });
 
       s.on('close', (code, result) => {
-        if (code !== 0) {
-          this._logger.error(args + ' failed. code: ' + code);
+        if (code !== 0 && !ignoreExitCode) {
+          logger.error(args + ' failed. code: ' + code);
           reject();
         } else {
-          this._logger.silly(`arguments: ${arguments}`);
+          logger.silly(`arguments: ${arguments}`);
           resolve({stdout: out});
         }
       });
@@ -64,13 +65,13 @@ export default class NpmDir {
   }
 
   isInstalled() {
-    this._logger.silly('isInstalled');
+    logger.silly('isInstalled');
     return false;
   };
 
   _writePackageJson(dependencies) {
 
-    this._logger.silly('dependencies: ', dependencies);
+    logger.silly('dependencies: ', dependencies);
 
     let pkg = {
       name: 'tmp',
@@ -91,20 +92,50 @@ export default class NpmDir {
     return removeFiles(this.rootDir, ['node_modules', 'package.json']);
   }
 
+  //TODO: Clean up api here - install <> installMoreDependencies
+  //Get it to more accurately reflect what actions are being taken.
+
+  /**
+   * install more dependencies
+   */
+  installMoreDependencies(dependencies, opts){
+    let deps = _.map(dependencies, (value, key) => {
+      if(helper.isSemver(value)){
+        return `${key}@${value}`;
+      } else {
+        return value;
+      }
+    });
+
+    let save = opts.save ? ['--save'] : [];
+    return this._install(deps.concat(save));
+  };
+
   install(dependencies) {
     return this._writePackageJson(dependencies)
       .then(() => this._install())
       .then(() => this._linkLocalPies(dependencies));
   };
 
-  ls(){
-    return this._spawnPromise(['ls', '--json'])
+  /**
+   * List dependencies
+   * @param depth - how deep to go down the dependency tree
+   * 
+   * Seeing this issue: https://github.com/npm/npm/issues/9693
+   * This too: https://github.com/npm/npm/issues/10004
+   * 
+   * Going to have to bypass the errors.
+   */
+  ls(depth){
+    depth = depth || 0;
+    logger.silly('[ls] depth: ', depth);
+    return this._spawnPromise(['ls', '--json', `--depth=${depth}`], true)
       .then((result) => {
         try{
           return JSON.parse(result.stdout)
         } 
         catch(e){
-          this._logger.error(e);
+          logger.error(e);
           return {}
         }
       });
@@ -122,8 +153,11 @@ export default class NpmDir {
     return out;
   };
 
-  _install() {
-    this._logger.silly('install');
-    return this._spawnPromise(['install']);
+  _install(args) {
+    args = args || [];
+    logger.silly('install');
+    let cmd = ['install'].concat(args);
+    logger.silly('[install] > final cmd: ', cmd.join(' '));
+    return this._spawnPromise(cmd);
   };
 }
