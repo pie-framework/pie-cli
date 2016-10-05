@@ -7,73 +7,88 @@ describe('framework-support', () => {
 
   describe('bootstrap', () => {
 
-    let FrameworkSupport, pathToObject, support, fsExtra;
+    let FrameworkSupport, support, fsExtra, resolve, mockRequire;
 
     beforeEach(() => {
+
+      mockRequire = sinon.stub().returns({
+        support: sinon.stub().returns({
+          npmDependencies: {},
+          webpackLoaders: (/*resolve*/) => {
+            return []
+          }
+        })
+      });
 
       fsExtra = {
         readdirSync: sinon.stub().returns(['support.js']),
         lstatSync: sinon.stub().returns({ isFile: sinon.stub().returns(true) })
       };
 
+      resolve = {
+        sync: sinon.spy(function(p){ return p;})
+      }
+
       FrameworkSupport = proxyquire('../../../src/framework-support', {
         'fs-extra': fsExtra,
-        './dependency-tree-helper': {
-          flattenDependencies: sinon.stub().returns([])
-        }
+        resolve: resolve
       }).default;
-
-      pathToObject = sinon.stub().returns({ support: () => { } });
     });
 
     it('reads in modules from the dir', () => {
-      support = FrameworkSupport.bootstrap(['dir'], pathToObject);
+      support = FrameworkSupport.bootstrap(['path/to/support.js'], mockRequire);
       expect(support.frameworks.length).to.eql(1);
     });
 
-    it('reads in 2 modules from 2 different dirs', () => {
-      support = FrameworkSupport.bootstrap(['dir', 'dir-two'], pathToObject);
+    it('reads in 2 modules from the dir', () => {
+      support = FrameworkSupport.bootstrap([
+        'path/to/support.js', 
+        'some/other/path.js'], mockRequire);
       expect(support.frameworks.length).to.eql(2);
     });
 
-    it('reads in 2 modules from the same dir', () => {
-      fsExtra.readdirSync.returns(['a.js', 'b.js']);
-      support = FrameworkSupport.bootstrap(['dir'], pathToObject);
-      expect(support.frameworks.length).to.eql(2);
-    });
   });
 
-  describe('load', () => {
+  describe('buildConfigFromKeys', () => {
 
-    let FrameworkSupport, fs, supportModules;
+    let frameworkSupport, FrameworkSupport;
 
     beforeEach(() => {
-
       FrameworkSupport = require('../../../src/framework-support').default;
-      
-      fs = new FrameworkSupport([
-        {
-          support: (name) => {
-            if(name !== 'a'){
-              return;
-            }
-            return { 
-              npmDependencies: { a: '1.0.0'},
-              webpackLoaders: () => []
+      frameworkSupport = new FrameworkSupport([{
+        support: (key) => {
+          if(key == 'unknown-key'){
+            return undefined;
+          }
+          return {
+            npmDependencies: {
+              'babel-preset-react' : '1.0'
+            },
+            webpackLoaders: (/*resolve*/) => {
+              return [
+                {test: 'test'}
+              ]; 
             }
           }
-      }
-      ]);
-      
-      supportModules = fs.load({a: '1.0.0', b: '1.0.0'});
-    })
-    
-    it('returns first supported module\'s npmDependencies', () => {
-      expect(supportModules.a.npmDependencies.a).to.eql('1.0.0');
+        }
+      }]);
     });
-    
-    it('doesnt return support for 2nd module', () => {
-      expect(supportModules.b).to.be.undefined; 
+
+    it('throws an error if the config is not found', () => {
+      expect( () => frameworkSupport.buildConfigFromKeys(['unknown-key']) ).to.throw(Error);
+    });
+
+    it('returns a build config with npmDependencies', () => {
+      let config = frameworkSupport.buildConfigFromKeys(['react']);
+      expect(config.npmDependencies).to.eql({
+        'babel-preset-react' : '1.0'
+      });
+    });
+
+    it('returns a config with webpackLoaders', () => {
+      let config = frameworkSupport.buildConfigFromKeys(['react']);
+      expect(config.webpackLoaders()).to.eql([{test: 'test'}]);
     });
   });
+
 });

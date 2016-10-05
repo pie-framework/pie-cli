@@ -14,9 +14,8 @@
   "pie" : {
     "version" : "~1.0.0",
     "build" : [ 
-      "react",
       "less",
-      {"vue" : "PieLabs/pie-vue-support"}
+      "vue"
     ] 
   }
 }

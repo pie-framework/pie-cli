@@ -13,6 +13,9 @@ let logger = buildLogger();
 /**
  * A question packer.
  * > packing means building 2 files: pie.js and controllers.js
+ * 
+ * pie pq --support ./node_modules/pie-vue-support 
+ * 
  */
 export default class Packer {
   constructor(question, frameworkSupport) {
@@ -32,7 +35,7 @@ export default class Packer {
       .then(() => markupExample.clean(root, opts.exampleFile));
   }
 
-  pack(opts) {
+  pack(opts, dependencies) {
     logger.silly('[pack]', opts);
 
     opts = _.extend({}, DEFAULTS, opts);
@@ -42,7 +45,12 @@ export default class Packer {
     //let rawConfig = fs.readJsonSync(path.join(root, opts.configFile));
     //let lookup = fs.readJsonSync(path.join(root, opts.dependenciesFile)) || {};
     //let config = new Config(rawConfig, lookup);
-    let npmDependencies = _.extend({}, this.question.npmDependencies, opts.npmDependencies);
+    // let buildKeys = this._question.buildKeys;
+    // let support = this._frameworkSupport.fromBuildKeys(buildKeys);
+    let npmDependencies = _.extend({}, dependencies, this._question.npmDependencies);
+
+    logger.debug('npm dependencies: ', JSON.stringify(npmDependencies));
+
     // let npmDependencies = _.extend({}, config.npmDependencies, {
     //   'pie-player': 'PieLabs/pie-player',
     //   'pie-controller': 'PieLabs/pie-controller',
@@ -51,13 +59,20 @@ export default class Packer {
     //   'babel-loader': '^6.2.5',
     //   'babel-preset-es2015': '^6.14.0',
     // });
+     return this._npmDir.install(npmDependencies)
+        .then(() => {
+          let buildKeys = this._question.buildKeys;
+          let support = this._frameworkSupport.fromBuildKeys(buildKeys);
+          logger.silly('supportDependencies: ', JSON.stringify(support.npmDependencies));
+          return this._npmDir.installMoreDependencies(support.npmDependencies);
+     });
 
-    return this._npmDir.install(npmDependencies)
-       .then(() => {
-         let buildKeys = this._question.buildKeys;
-         let support = frameworkSupport.fromBuildKeys(buildKeys);
-         return this._npmDir.installMoreDependencies(support.npmDependencies);
-       })
+    // return this._npmDir.install(npmDependencies)
+    //    .then(() => {
+    //      let buildKeys = this._question.buildKeys;
+    //      let support = this._frameworkSupport.fromBuildKeys(buildKeys);
+    //      return this._npmDir.installMoreDependencies(support.npmDependencies);
+    //    })
       
     // .then(() => npmDir.ls())
     // .then(addFrameworkSupportDependencies) 
@@ -78,7 +93,7 @@ export default class Packer {
     //     return Promise.resolve('');
     //   }
     // })
-    .then(() => logger.debug('packing completed'));
+    // .then(() => logger.debug('packing completed'));
 
 
   }

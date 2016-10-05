@@ -1,79 +1,57 @@
-import _ from 'loadsh';
-import {buildLogger} from '../log-factory';
+import _ from 'lodash';
+import { buildLogger } from '../log-factory';
 import fs from 'fs-extra';
 import path from 'path';
 
 const logger = buildLogger();
-
-
-/**
- * TODO: default to PieLabs/$key if not found in the lookup.
- * TODO: The config doesn't handle version conflicts atm.
- */
-// class Config{
-//   constructor(raw, lookup){
-//     this._raw = raw;
-//     this._lookup = lookup || {};
-//   }
-
-//   get npmDependencies() {
-//     let toUniqueNames = (acc, p) => {
-//       let existing = _.find(acc, {name: p.name});
-//       if(existing){
-//         existing.versions = _(existing.versions).concat(p.version).uniq(); 
-//       } else {
-//         acc.push({name: p.name, versions: [p.version]});
-//       }
-//       return acc;
-//     }
-
-//     let addLookup = (un) => {
-//       un.lookup = this._lookup[un.name];
-//       return un;
-//     }
-
-//     let addKeyAndLookup = (acc, un) => {
-//       acc[un.name] = this._lookup[un.name];
-//       return acc;
-//     } 
-
-//     logger.debug(JSON.stringify(this._raw));
-//     logger.debug(JSON.stringify(_.map(this._raw.pies, 'pie')));
-
-//     let uniqNameAndVersions = _(this._raw.pies)
-//       .map('pie')
-//       .reduce(toUniqueNames, [])
-//       .map(addLookup);
-
-//       logger.debug('uniqNameAndVersions', uniqNameAndVersions);
-//       return _.reduce(uniqNameAndVersions, addKeyAndLookup, {});
-//   } 
-// }
-
 
 /** 
  * A representation of a pie question directory,
  * which includes a `config.json`, `index.html`, maybe `dependencies.json`
  * And can also include `node_modules`
  */
-export default class Question{
-  constructor(dir, opts){
+export default class Question {
+  constructor(dir, opts) {
 
     opts = _.extend({}, {
       configFile: 'config.json',
       dependenciesFile: 'dependencies.json',
-      markupFile: 'index.html'
+      markupFile: 'index.html',
+      /**
+       * If the following keys are found in the `dependencies` object, treat them as buildKeys
+       */
+      dependencyIsBuildKey: ['react']
     }, opts);
 
     this._dir = dir;
-    
-    let readJson = (n) => {
-      fs.readJsonSync(path.join(this._dir, n));
-    }
+
+
 
     this._opts = opts;
-    this._config = readJson(opts.configFile); 
-    this._dependencies = readJson(opts.dependenciesFile) || {};
+    logger.silly('opts', this._opts);
+    this._config = this.readJson(opts.configFile);
+    logger.silly('config', this._config);
+    this._dependencies = this.readJson(opts.dependenciesFile) || {};
+    logger.silly('dependencies', this._dependencies);
+  }
+
+  readJson(n) {
+    return fs.readJsonSync(path.join(this._dir, n));
+  }
+
+  get dir() {
+    return this._dir;
+  }
+
+
+  get npmDependencies() {
+    return _.reduce(this.pies, (acc, p) => {
+      logger.silly('[npmDependencies] p: ', p);
+      if (p.localPath) {
+        acc[p.name] = p.localPath;
+      }
+      return acc;
+    }, {});
   }
 
   /**
@@ -83,31 +61,54 @@ export default class Question{
     let rawPies = _.map(this._config.pies, 'pie');
 
     let toUniqueNames = (acc, p) => {
-      let existing = _.find(acc, {name: p.name});
-      if(existing){
-        existing.versions = _(existing.versions).concat(p.version).uniq(); 
+      let existing = _.find(acc, { name: p.name });
+      if (existing) {
+        existing.versions = _(existing.versions).concat(p.version).uniq();
       } else {
-        acc.push({name: p.name, versions: [p.version]});
+        acc.push({ name: p.name, versions: [p.version], localPath: this._dependencies[p.name] });
       }
       return acc;
     }
 
-    return _.reduce(rawPies, toUniqueNames); 
+    let out = _.reduce(rawPies, toUniqueNames, []);
+    logger.silly('[pies]', JSON.stringify(out));
+    return out;
   }
 
-  get piePackages(){
+  get piePackages() {
+    let nodeModulesPath = path.join(this._dir, 'node_modules');
+
+    if (!fs.existsSync(nodeModulesPath)) {
+      throw new Error('pie packages cant be read until node_modules has been installed');
+    }
+
     return _(this.pies)
-    .map('name')
-    .map((name) => this.readJson(this._dir, path.join('node_modules', name)));
+      .map('name')
+      .map((name) => this.readJson(path.join('node_modules', name, 'package.json')))
+      .value();
   }
 
   /**
    * Return additional dependencies.
    * @return Array[{String|Object{name,npmPkg}}]
    */
-  get buildKeys(){
-    let pieBuildKeys = _.map(this.piePackages, 'pie.build').flatten();
-    logger.debug('[pieBuildDependencies], buildNodes', pieBuildKeys);
-    return pieBuildKeys;
+  get buildKeys() {
+    let packages = this.piePackages;
+    let keysFromDependencies = _(packages).map('dependencies').map((d) => {
+      let keys = _(d).reduce((acc, value, key) => {
+        if (_.includes(this._opts.dependencyIsBuildKey, key)) {
+          acc.push(key);
+        }
+        return acc;
+      }, []);
+      return keys;
+    }).flattenDeep().value();
+    
+    logger.debug('[buildKeys] keysFromDependencies', JSON.stringify(keysFromDependencies));
+    let keys = _(packages).map('pie.build').flattenDeep().value();
+    logger.debug('[buildKeys] keys', JSON.stringify(keys));
+    let out = _.uniq(_.concat(keys, keysFromDependencies));
+    logger.debug('[buildKeys] out', JSON.stringify(out));
+    return out.sort();
   }
 }

@@ -47,12 +47,11 @@ export default class NpmDir {
         out += line;
       });
 
-      s.on('close', (code, result) => {
+      s.on('close', (code) => {
         if (code !== 0 && !ignoreExitCode) {
           logger.error(args + ' failed. code: ' + code);
           reject();
         } else {
-          logger.silly(`arguments: ${arguments}`);
           resolve({stdout: out});
         }
       });

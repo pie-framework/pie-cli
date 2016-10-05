@@ -1,15 +1,16 @@
 import * as packer from '../question/packer';
-import {fileLogger} from '../log-factory';
+import { fileLogger } from '../log-factory';
 import Question from '../question';
 import Packer from '../question/new-packer';
 import path from 'path';
+import FrameworkSupport from '../framework-support';
 
 const logger = fileLogger(__filename);
 
 var marked = require('marked');
 var TerminalRenderer = require('marked-terminal');
 
-export function match(args){
+export function match(args) {
   return args._.indexOf('pack-question') !== -1;
 }
 
@@ -31,6 +32,7 @@ It generates 2 javascript files:
 > Note: This doesn't generate the final question for you. To do that you'll need to create the final html page, include the 2 js files above, and use a controller that can interact with the controller-map.js file. See [pie-docs](http://pielabs.github.io/pie-docs) for more infomation.
 
 ### Options
+  \`--support\` - an npm module or js file to load to add support for a build type.
   \`--dir\` - the relative path to a directory to use as the root. This should contain \`config.json\` and \`index.html\` (default: the current working directory)
   \`--configFile\` - the name of the pie data file - default \`${packer.DEFAULTS.configFile}\`
   \`--keepBuildAssets\` - keep supporting build assets (like node_modules etc) - default \`${packer.DEFAULTS.keepBuildAssets}\`
@@ -44,26 +46,36 @@ pie-cli pack-question --dir ../path/to/dir
 \`\`\`
 `);
 
-export function run(args){
+export function run(args) {
 
 
   args.clean = args.clean !== 'false';
   logger.info('args: ', args);
-  
+
   let dir = path.resolve(args.dir || process.cwd());
 
+  let frameworkSupport = FrameworkSupport.bootstrap(
+    (args.support || []).concat([
+      path.join(__dirname, '..', 'framework-support', 'frameworks', 'react')
+    ]));
+
+  logger.debug('frameworkSupport: ', frameworkSupport);
   let question = new Question(dir);
-  let packer = new Packer(question);
+  let packer = new Packer(question, frameworkSupport);
 
-  // let frameworkSupport = FrameworkSupport.bootstrap([
-  //   //1. support for built in frameworks
-  //   path.join(__dirname, '..', 'framework-support', 'frameworks')
-  //   //TODO: 2. support for frameworks added via the command line
-  // ], require);
+  let dependencies = {
+    'pie-player': 'PieLabs/pie-player',
+    'pie-controller': 'PieLabs/pie-controller',
+    'babel-core': '^6.0.0',
+    'webpack': '^2.1.0-beta',
+    'babel-loader': '^6.2.5',
+    'babel-preset-es2015': '^6.14.0',
+  };
 
-  if(args.clean){
-     return packer.clean(dir, args).then(() => packer.build(dir, args, frameworkSupport));
-   } else {
-     return packer.build(dir, args, frameworkSupport);
-   }
+  if (args.clean) {
+    return packer.clean(args)
+      .then(() => packer.pack(args, dependencies));
+  } else {
+    return packer.pack(args, dependencies);
+  }
 }

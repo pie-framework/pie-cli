@@ -2,24 +2,27 @@ import fs from 'fs-extra';
 import path from 'path';
 import _ from 'lodash';
 import {fileLogger} from '../log-factory';
+import resolve from 'resolve';
 
 let logger = fileLogger(__filename);
 
-class SupportConfig{
+export class BuildConfig{
 
-  constructor(supported){
-    this._supported = supported;
+  constructor(modules){
+    logger.debug('[BuildConfig:constructor]', modules);
+    this._modules = modules;
   }
 
   get npmDependencies() {
-    return _.reduce(this._supported, (acc,c) => {
-      return _.extend(acc, c.npmDependencies);
+    return _.reduce(this._modules, (acc,c) => {
+      logger.debug('config: ', JSON.stringify(c.config));
+      return _.extend(acc, c.config.npmDependencies);
     }, {});
   }
 
   webpackLoaders(resolve) {
-    return _.reduce(this._supported, (acc, c) => {
-      return acc.concat(c.webpackLoaders(resolve));
+    return _.reduce(this._modules, (acc, c) => {
+      return acc.concat(c.config.webpackLoaders(resolve));
     }, []); 
   }
 }
@@ -33,61 +36,56 @@ export default class FrameworkSupport{
     this.frameworks = frameworks;
   }
 
+
   /**
-   * @param pathToObject - convert src at given path to an object
+   * @return BuildConfig
    */
-  static bootstrap(dirs, pathToObject){
+  buildConfigFromKeys(keys){
 
-
-    let isJsFile = (dir, f) => {
-      return fs.lstatSync(path.join(dir,f)).isFile() && 
-        path.extname(f) === '.js'
+    let toModule  = (k) => {
+      let config = _(this.frameworks).map((f) => f.support(k)).compact().head();
+      logger.silly('key: ', k, ' config: ', config);
+      return { 
+        key: k, 
+        config: config, 
+        error: config ? null : new Error('No config for ' + k)
+      };
     }
 
-    let loadModule = (dir, f) => {
+    let modules = _.map(keys, toModule);
+
+    let errors = _.filter(modules, (m) => m.error);
+
+    if(errors.length > 0){
+      throw new Error('Missing config for: ' + _.map(errors, 'key'));
+    }
+    logger.debug('modules: ', modules);
+    return new BuildConfig(modules);
+  }
+
+  /**
+   * @param _require - convert src at given path to an object (used for testing)
+   */
+  static bootstrap(modules, _require){
+    _require = _require || require;
+
+    let loadModule = (f) => {
       try {
-        let supportModule = pathToObject(path.join(dir, f));
-        if(_.isFunction(supportModule.support)){
-          return supportModule;
-        } 
+        let path = resolve.sync(f);
+        logger.debug('path: ', path);
+        return _require(path);
       } catch(e){
-        this._logger.error(e);
+        logger.error(e);
       }
     };
 
-    logger.silly(`dirs`, dirs);
+    logger.silly(`modules`, modules);
 
-    let supportModules = _(dirs).map((d) => {
-      let files = _.filter(fs.readdirSync(d), (f) => isJsFile(d,f));
-      logger.silly('files: ', files);
-      let out = _(files).map( (f) => loadModule(d, f)).compact().value();
-      logger.silly('out: ', out);
-      return out;
-    }).flatten().value();
+    let loadedModules = _.map(modules, loadModule);
+    
+    logger.silly(`loadedModules`, loadedModules);
 
-    logger.silly(`supportModules:`, supportModules);
-
-    return new FrameworkSupport(supportModules);
+    return new FrameworkSupport(loadedModules);
   };
 
-
-  /**
-   * @param dependencies a map of direct dependencies
-   * @param resolve a method to load in the module (@see react.js)
-   */
-  load(dependencies, resolve){
-    resolve = resolve || (() => {});
-
-    let supportModules = _.reduce(dependencies, (acc, d, key) => {
-      let s = _(this.frameworks).map((f) => f.support(key, d, resolve)).compact().value();
-      //TODO: We are only supporting 1 framework match (last one wins) - could there be more than that?
-      if(s && s.length === 1){
-        acc[key] = s[0];
-      }
-      return acc;
-    }, {});
-
-    logger.debug('supportModules: ', supportModules);
-    return new SupportConfig(supportModules);
-  }
 }
