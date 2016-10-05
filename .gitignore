@@ -4,3 +4,5 @@ lib
 jsconfig.json
 typings
 typings.json
+*.iml
+.idea

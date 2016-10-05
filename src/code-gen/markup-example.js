@@ -22,7 +22,8 @@ let mkExampleMarkup = (markup, model) => `
         var player = document.querySelector('pie-player');
 
         player.addEventListener('pie-player-ready', function(event){
-          player.controller = new pie.Controller(model.pies, pie.controllerMap);
+          var scoringProcessor = new pie.ScoringProcessorFactory().getProcessor(model);           
+          player.controller = new pie.Controller(model.pies, pie.controllerMap, scoringProcessor);
           player.env = env;
           player.session = session;
         });

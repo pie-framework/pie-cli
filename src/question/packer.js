@@ -49,6 +49,7 @@ export function build(root, opts){
   let npmDependencies = _.extend({}, config.npmDependencies, {
     'pie-player': 'PieLabs/pie-player',
     'pie-controller' : 'PieLabs/pie-controller',
+    'pie-default-scoring-processor' : 'PieLabs/pie-default-scoring-processor#feature/factory',
     'babel-loader' : '^6.2.5',
     'babel-preset-es2015' : '^6.14.0',
     'babel-preset-react' : '^6.11.1'
@@ -64,8 +65,10 @@ export function build(root, opts){
         key: 'pie-controller',
         initSrc: `
         import Controller from 'pie-controller';
+        import ScoringProcessorFactory from 'pie-default-scoring-processor';
         window.pie = window.pie || {};
-        window.pie.Controller = Controller;`
+        window.pie.Controller = Controller;
+        window.pie.ScoringProcessorFactory = ScoringProcessorFactory;`
       }
 
       let libs = _.flatten([pieController,'pie-player'].concat(pieNames));
