@@ -89,7 +89,7 @@ export default class Question {
   }
 
   /**
-   * Return additional dependencies.
+   * Return keys denoting build requirements.
    * @return Array[{String|Object{name,npmPkg}}]
    */
   get buildKeys() {
@@ -104,11 +104,12 @@ export default class Question {
       return keys;
     }).flattenDeep().value();
     
-    logger.debug('[buildKeys] keysFromDependencies', JSON.stringify(keysFromDependencies));
+    logger.silly('[buildKeys] keysFromDependencies', JSON.stringify(keysFromDependencies));
     let keys = _(packages).map('pie.build').flattenDeep().value();
-    logger.debug('[buildKeys] keys', JSON.stringify(keys));
-    let out = _.uniq(_.concat(keys, keysFromDependencies));
-    logger.debug('[buildKeys] out', JSON.stringify(out));
+    logger.silly('[buildKeys] keys', JSON.stringify(keys));
+    let joined = _.concat(keys, keysFromDependencies);
+    let out = _(joined).compact().sort().value();
+    logger.silly('[buildKeys] out', JSON.stringify(out));
     return out.sort();
   }
 }

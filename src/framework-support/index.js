@@ -15,7 +15,7 @@ export class BuildConfig{
 
   get npmDependencies() {
     return _.reduce(this._modules, (acc,c) => {
-      logger.debug('config: ', JSON.stringify(c.config));
+      logger.silly('config: ', JSON.stringify(c.config));
       return _.extend(acc, c.config.npmDependencies);
     }, {});
   }
@@ -71,6 +71,7 @@ export default class FrameworkSupport{
 
     let loadModule = (f) => {
       try {
+        logger.debug('f: ', f);
         let path = resolve.sync(f);
         logger.debug('path: ', path);
         return _require(path);

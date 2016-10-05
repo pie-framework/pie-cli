@@ -7,7 +7,7 @@ export let frameworkName = 'react';
  * @see: https://github.com/webpack/webpack/issues/1866
  * @see: https://github.com/babel/babel-loader/issues/149
  */
-export function support(name, resolutionInfo, resolve) {
+export function support(name) {
 
   if (name !== frameworkName) {
     return;
@@ -18,8 +18,8 @@ export function support(name, resolutionInfo, resolve) {
       'babel-preset-es2015': '~6.16.0',
       'babel-preset-react': '~6.16.0'
     },
-    webpack: {
-      loaders: [
+    webpackLoaders: (resolve) => {
+      return [
         {
           test: /.(jsx)?$/,
           loader: 'babel-loader',
@@ -33,5 +33,4 @@ export function support(name, resolutionInfo, resolve) {
       ]
     }
   };
-
 }

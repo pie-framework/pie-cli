@@ -106,7 +106,7 @@ export default class NpmDir {
       }
     });
 
-    let save = opts.save ? ['--save'] : [];
+    let save = (opts && opts.save) ? ['--save'] : [];
     return this._install(deps.concat(save));
   };
 

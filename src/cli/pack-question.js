@@ -56,26 +56,19 @@ export function run(args) {
 
   let frameworkSupport = FrameworkSupport.bootstrap(
     (args.support || []).concat([
-      path.join(__dirname, '..', 'framework-support', 'frameworks', 'react')
+      path.join(__dirname, '../framework-support/frameworks/react')
     ]));
 
   logger.debug('frameworkSupport: ', frameworkSupport);
   let question = new Question(dir);
   let packer = new Packer(question, frameworkSupport);
 
-  let dependencies = {
-    'pie-player': 'PieLabs/pie-player',
-    'pie-controller': 'PieLabs/pie-controller',
-    'babel-core': '^6.0.0',
-    'webpack': '^2.1.0-beta',
-    'babel-loader': '^6.2.5',
-    'babel-preset-es2015': '^6.14.0',
-  };
+  
 
   if (args.clean) {
     return packer.clean(args)
-      .then(() => packer.pack(args, dependencies));
+      .then(() => packer.pack(args));
   } else {
-    return packer.pack(args, dependencies);
+    return packer.pack(args);
   }
 }

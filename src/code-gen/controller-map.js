@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
 import {fileLogger} from '../log-factory';
-import Config from '../question/config';
 import _ from 'lodash';
 import {removeFiles} from '../file-helper';
 
@@ -26,10 +25,9 @@ root.pie.controllerMap['${name}'] = {};
  * 
  * //TODO: make this configurable?
  */
-export function build(root, jsonFile, bundleName){
-  let config = new Config(fs.readJsonSync(path.join(root, jsonFile)));
-  logger.info('npmDependencies: ', config.npmDependencies);
-  let moduleSrc = _(config.npmDependencies).keys().map((d) => {
+export function build(root, jsonFile, bundleName, pies){
+  
+  let moduleSrc = _(pies).keys().map((d) => {
     let controllerPath = path.join(root, 'node_modules', d, 'controller.js');
     let src = fs.readFileSync( controllerPath, {encoding: 'utf8'});
     let result = babel.transform(src, {presets: [require.resolve('babel-preset-es2015')]});
