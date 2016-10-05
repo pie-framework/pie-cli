@@ -9,30 +9,10 @@ import fs from 'fs-extra';
 
 const logger = fileLogger(__filename);
 
-        // {
-        //   test: /.(js|jsx)?$/,
-        //   loader: 'babel-loader',
-        //   query: {
-        //     presets: [
-        //       /** 
-        //        * Note: using resolved modules due to issues w/ symlinking and webpack/babel-loader
-        //        * @see: https://github.com/webpack/webpack/issues/1866
-        //        * @see: https://github.com/babel/babel-loader/issues/149
-        //        */
-        //       resolve.sync('babel-preset-es2015', {basedir: root}), 
-        //       resolve.sync('babel-preset-react', {basedir: root})
-        //     ]
-        //   }
-        // },
-
 let baseConfig = (root) => {
   return {
     module: {
       loaders: [
-        {
-          test: /\.less$/,
-          loader: "style!css!less"
-        }
       ]
     },
     resolveLoader: {

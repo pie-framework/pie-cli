@@ -14,8 +14,7 @@
   "pie" : {
     "version" : "~1.0.0",
     "build" : [ 
-      "less",
-      "vue"
+      "less"
     ] 
   }
 }

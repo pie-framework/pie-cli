@@ -2,7 +2,12 @@ export function support(name){
   if(name == 'less'){
     return {
       npmDependencies: {},
-      webpackLoaders: () => []
+      webpackLoaders: () => [
+        {
+          test: /\.less$/,
+          loader: "style!css!less"
+        }
+      ]
     }
   }
 }
