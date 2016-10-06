@@ -47,8 +47,8 @@ export function build(root, opts){
   let config = new Config(rawConfig, lookup);
 
   let npmDependencies = _.extend({}, config.npmDependencies, {
-    'pie-player': 'PieLabs/pie-player#scoring',
-    'pie-controller' : 'PieLabs/pie-controller#scoring-processor',
+    'pie-player': 'PieLabs/pie-player',
+    'pie-controller' : 'PieLabs/pie-controller',
     'pie-control-panel' : 'PieLabs/pie-control-panel',
     'babel-loader' : '^6.2.5',
     'babel-preset-es2015' : '^6.14.0',
