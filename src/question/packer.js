@@ -49,6 +49,7 @@ export function build(root, opts){
   let npmDependencies = _.extend({}, config.npmDependencies, {
     'pie-player': 'PieLabs/pie-player',
     'pie-controller' : 'PieLabs/pie-controller',
+    'pie-control-panel' : 'PieLabs/pie-control-panel',
     'babel-loader' : '^6.2.5',
     'babel-preset-es2015' : '^6.14.0',
     'babel-preset-react' : '^6.11.1'
@@ -68,7 +69,7 @@ export function build(root, opts){
         window.pie.Controller = Controller;`
       }
 
-      let libs = _.flatten([pieController,'pie-player'].concat(pieNames));
+      let libs = _.flatten([pieController,'pie-player', 'pie-control-panel'].concat(pieNames));
       return elementBundle.build(root, libs, opts.pieJs)
     })
     .then(() => controllerMap.build(root, opts.configFile, opts.controllersJs)) 

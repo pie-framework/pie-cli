@@ -12,7 +12,7 @@ let mkExampleMarkup = (markup, model) => `
     <script src="pie.js" type="text/javascript"></script>
     <script src="controllers.js" type="text/javascript"></script>
     <script type="text/javascript">
-
+    
       document.addEventListener('DOMContentLoaded', function(){
 
         env = {mode: 'gather'};
@@ -22,14 +22,30 @@ let mkExampleMarkup = (markup, model) => `
         var player = document.querySelector('pie-player');
 
         player.addEventListener('pie-player-ready', function(event){
-          player.controller = new pie.Controller(model.pies, pie.controllerMap);
+          var pieController = new pie.Controller(model, pie.controllerMap);
+          player.controller = pieController;
           player.env = env;
           player.session = session;
+          
+          var panel = document.querySelector('pie-control-panel');
+          panel.env = { mode: 'gather' };
+          panel.addEventListener('envChanged', function(event){
+            console.log('envChanged', event.target.env);
+            player.env = event.target.env;    
+            
+            if(event.target.env.mode === 'evaluate'){
+              player.getOutcome().then(function(outcome){
+                console.log('outcome', outcome);
+                panel.score = " &nbsp; " + outcome.summary.percentage + "% (" + outcome.summary.points + "/" + outcome.summary.maxPoints + ") &nbsp; "; 
+              });
+            }
+          });
         });
       });
     </script>
   </head>
   <body>
+    <pie-control-panel></pie-control-panel>
     <pie-player>
     ${markup}
     </pie-player>
