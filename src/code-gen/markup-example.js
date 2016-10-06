@@ -36,6 +36,7 @@ let mkExampleMarkup = (markup, model) => `
             if(event.target.env.mode === 'evaluate'){
               player.getOutcome().then(function(outcome){
                 console.log('outcome', outcome);
+                panel.score = " &nbsp; " + outcome.summary.percentage + "% (" + outcome.summary.points + "/" + outcome.summary.maxPoints + ") &nbsp; "; 
               });
             }
           });
