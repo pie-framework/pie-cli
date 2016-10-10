@@ -40,10 +40,7 @@ export default class Packer {
 
     let npmDependencies = _.extend({}, DEFAULT_DEPENDENCIES, this._question.npmDependencies);
     
-    let pieNames = _.keys(npmDependencies);
-
     logger.debug('npm dependencies: ', JSON.stringify(npmDependencies));
-
 
     let buildElementBundle = (supportConfig) => {
 
@@ -95,10 +92,10 @@ export default class Packer {
 export const DEFAULT_DEPENDENCIES = {
   'pie-player': 'PieLabs/pie-player',
   'pie-controller': 'PieLabs/pie-controller',
-  'babel-core': '^6.0.0',
-  'webpack': '^2.1.0-beta',
+  'babel-core': '^6.16.0',
+  'webpack': '2.1.0-beta.21',
   'babel-loader': '^6.2.5',
-  'babel-preset-es2015': '^6.14.0',
+  'babel-preset-es2015': '^6.16.0',
 };
 
 export const DEFAULTS = {

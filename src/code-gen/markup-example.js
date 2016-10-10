@@ -22,7 +22,7 @@ let mkExampleMarkup = (markup, model) => `
         var player = document.querySelector('pie-player');
 
         player.addEventListener('pie-player-ready', function(event){
-          player.controller = new pie.Controller(model.pies, pie.controllerMap);
+          player.controller = new pie.Controller(model, pie.controllerMap);
           player.env = env;
           player.session = session;
         });

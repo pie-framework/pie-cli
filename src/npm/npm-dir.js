@@ -59,10 +59,6 @@ export default class NpmDir {
     return p;
   };
 
-  _linkPromise(p) {
-    return this._spawnPromise(['link', p]);
-  }
-
   isInstalled() {
     logger.silly('isInstalled');
     return false;
@@ -112,8 +108,8 @@ export default class NpmDir {
 
   install(dependencies) {
     return this._writePackageJson(dependencies)
-      .then(() => this._install())
-      .then(() => this._linkLocalPies(dependencies));
+      .then(() => this._install());
+      //.then(() => this._linkLocalPies(dependencies));
   };
 
   /**
@@ -139,19 +135,6 @@ export default class NpmDir {
         }
       });
   }
-
-  _linkLocalPies(pies) {
-
-    let localOnlyDependencies = _.pickBy(pies, (v) => {
-      return !helper.isSemver(v) && !helper.isGitUrl(v) && helper.pathIsDir(this.rootDir, v);
-    });
-
-    let out = _.values(localOnlyDependencies).reduce((acc, p) => {
-      return acc.then(() => this._linkPromise(p));
-    }, Promise.resolve());
-    return out;
-  };
-
   _install(args) {
     args = args || [];
     logger.silly('install');

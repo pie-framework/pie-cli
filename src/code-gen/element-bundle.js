@@ -2,9 +2,9 @@ import path from 'path';
 import webpack from 'webpack';
 import _ from 'lodash';
 import { fileLogger } from '../log-factory';
-import {configToJsString, writeConfig} from './webpack-write-config';
+import { configToJsString, writeConfig } from './webpack-write-config';
 import resolve from 'resolve';
-import {removeFiles} from '../file-helper';
+import { removeFiles } from '../file-helper';
 import fs from 'fs-extra';
 
 const logger = fileLogger(__filename);
@@ -13,12 +13,23 @@ let baseConfig = (root) => {
   return {
     module: {
       loaders: [
+        {
+          test: /\.js$/,
+          loader: resolve.sync('babel-loader', {basedir: root}),
+          query: {
+            babelrc: false,
+            presets: [
+              resolve.sync('babel-preset-es2015', {basedir: root})
+            ]
+          },
+        }
       ]
     },
     resolveLoader: {
-      root: path.join(root, 'node_modules')
+      root: path.resolve(path.join(root, 'node_modules')),
     },
     resolve: {
+      root: path.resolve(path.join(root, 'node_modules')),
       extensions: ['', '.js', '.jsx']
     }
   }
@@ -26,26 +37,26 @@ let baseConfig = (root) => {
 
 const ENTRY_JS = 'entry.js';
 
-function writeEntryJs(root, pies){
+function writeEntryJs(root, pies) {
 
   let registerElementSrc = (p, index) => `import comp${index} from '${p}';
 document.registerElement('${p}', comp${index});
 `;
 
   let init = (p, index) => {
-    if(p.hasOwnProperty('initSrc')){
+    if (p.hasOwnProperty('initSrc')) {
       return p.initSrc;
     } else {
-      return registerElementSrc(p, index); 
+      return registerElementSrc(p, index);
     }
   };
 
-  let js = _.map(pies, init).join('\n'); 
+  let js = _.map(pies, init).join('\n');
 
   return new Promise((resolve, reject) => {
     let entryPath = path.join(root, ENTRY_JS);
-    fs.writeFile(path.join(root, ENTRY_JS), js, {encoding: 'utf8'}, (err) => {
-      if(err){
+    fs.writeFile(path.join(root, ENTRY_JS), js, { encoding: 'utf8' }, (err) => {
+      if (err) {
         reject(err);
       } else {
         resolve(entryPath);
@@ -67,8 +78,8 @@ function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
     output: { filename: bundleName, path: root }
   }, baseConfig(root));
 
-  let frameworkLoaders = getLoaders((k) => resolve.sync(k, {basedir: root}));
-  
+  let frameworkLoaders = getLoaders((k) => resolve.sync(k, { basedir: root }));
+
   logger.silly(`frameworkLoaders: ${frameworkLoaders}`);
   config.module.loaders = config.module.loaders.concat(frameworkLoaders);
 
@@ -107,19 +118,19 @@ function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
  * 
  * @param libraries - String|{key: String, initSrc: String}
  */
-export function build(root,libraries, bundleName, getLoaders){
+export function build(root, libraries, bundleName, getLoaders) {
   return writeEntryJs(root, libraries)
-    .then( (entryJsPath) => {
+    .then((entryJsPath) => {
       let toKey = (p) => _.isString(p) ? p : p.key;
       let keysOnly = _.map(libraries, toKey);
-      return webpackBundle(root, path.basename(entryJsPath), keysOnly, bundleName, getLoaders); 
+      return webpackBundle(root, path.basename(entryJsPath), keysOnly, bundleName, getLoaders);
     });
 }
 
-export function cleanBuildAssets(root){
+export function cleanBuildAssets(root) {
   return removeFiles(root, [ENTRY_JS]);
 }
 
-export function clean(root, bundleName){
+export function clean(root, bundleName) {
   return removeFiles(root, [bundleName, bundleName + '.map', ENTRY_JS]);
 }

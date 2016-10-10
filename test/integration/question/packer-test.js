@@ -1,4 +1,4 @@
-import Packer, {DEFAULTS} from '../../../src/question/new-packer';
+import Packer, {DEFAULTS} from '../../../src/question/packer';
 import FrameworkSupport from '../../../src/framework-support';
 import Question from '../../../src/question';
 import { expect } from 'chai';

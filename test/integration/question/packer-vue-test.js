@@ -1,4 +1,4 @@
-import Packer, {DEFAULTS} from '../../../src/question/new-packer';
+import Packer, {DEFAULTS} from '../../../src/question/packer';
 import FrameworkSupport from '../../../src/framework-support';
 import Question from '../../../src/question';
 import { expect } from 'chai';
@@ -6,6 +6,7 @@ import { resolve } from 'path';
 import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
+import expandHomeDir from 'expand-home-dir';
 
 describe('Packer.pack :: Vue', () => {
 
@@ -16,8 +17,11 @@ describe('Packer.pack :: Vue', () => {
   before(function (done) {
 
     this.timeout(50000);
-    
-    let tmpPath = temp.mkdirSync('packer-test');
+
+    let tmpPath = path.resolve( expandHomeDir('~/tmp/packer-vue-test-three'));
+    fs.removeSync(tmpPath)
+    fs.mkdirSync(tmpPath);
+    //let tmpPath = temp.mkdirSync('packer-test');
     console.log('packer-test tmp: ', tmpPath);
     questionPath = path.join(tmpPath, 'example-questions', 'vue-question');
     fs.copySync(rootDir, questionPath);
