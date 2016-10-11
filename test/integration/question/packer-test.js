@@ -25,8 +25,7 @@ describe('pack-question', () => {
 
     frameworkSupport = FrameworkSupport.bootstrap([
       path.join(__dirname, '../../../src/framework-support/frameworks/react'),
-      path.join(__dirname, '../../../src/framework-support/frameworks/less'),
-      path.join(__dirname, '../../../src/framework-support/frameworks/vue')
+      path.join(__dirname, '../../../src/framework-support/frameworks/less')
     ]);
 
     question = new Question(questionPath);

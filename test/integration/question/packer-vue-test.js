@@ -18,10 +18,7 @@ describe('Packer.pack :: Vue', () => {
 
     this.timeout(50000);
 
-    let tmpPath = path.resolve( expandHomeDir('~/tmp/packer-vue-test-three'));
-    fs.removeSync(tmpPath)
-    fs.mkdirSync(tmpPath);
-    //let tmpPath = temp.mkdirSync('packer-test');
+    let tmpPath = temp.mkdirSync('packer-test');
     console.log('packer-test tmp: ', tmpPath);
     questionPath = path.join(tmpPath, 'example-questions', 'vue-question');
     fs.copySync(rootDir, questionPath);
