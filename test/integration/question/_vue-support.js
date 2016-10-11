@@ -4,11 +4,11 @@ export function support(name) {
       npmDependencies: {
         'vue-loader': '~9.5.1'
       },
-      webpackLoaders: (resolve) => {
+      webpackLoaders: () => {
         return [
           {
             test: /\.vue$/,
-            loader: resolve('vue-loader')
+            loader: 'vue-loader'
           }
         ];
       }
