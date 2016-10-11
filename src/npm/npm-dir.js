@@ -109,35 +109,10 @@ export default class NpmDir {
   install(dependencies) {
     return this._writePackageJson(dependencies)
       .then(() => this._install());
-      //.then(() => this._linkLocalPies(dependencies));
   };
 
-  /**
-   * List dependencies
-   * @param depth - how deep to go down the dependency tree
-   * 
-   * Seeing this issue: https://github.com/npm/npm/issues/9693
-   * This too: https://github.com/npm/npm/issues/10004
-   * 
-   * Going to have to bypass the errors.
-   */
-  ls(depth){
-    depth = depth || 0;
-    logger.silly('[ls] depth: ', depth);
-    return this._spawnPromise(['ls', '--json', `--depth=${depth}`], true)
-      .then((result) => {
-        try{
-          return JSON.parse(result.stdout)
-        } 
-        catch(e){
-          logger.error(e);
-          return {}
-        }
-      });
-  }
   _install(args) {
     args = args || [];
-    logger.silly('install');
     let cmd = ['install'].concat(args);
     logger.silly('[install] > final cmd: ', cmd.join(' '));
     return this._spawnPromise(cmd);

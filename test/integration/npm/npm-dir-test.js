@@ -15,18 +15,4 @@ describe('npm-dir', () => {
       .catch(done);
   });  
 
-  describe('ls', () => {
-
-    it('returns the dependency tree', (done) => {
-
-      let npmDir = new NpmDir(tmpPath);
-
-      npmDir.ls().then(
-        (tree) => {
-          expect(tree.dependencies.hasOwnProperty('lodash')).to.eql(true);
-          done();
-        })
-        .catch(done);
-    });
-  });
 });
