@@ -16,9 +16,9 @@
     "type": "git",
     "url": "git+ssh://git@github.com/PieLabs/pie-cli.git"
   },
-  "engines" : {
-    "node" : ">=6.7.0",
-    "npm" : ">=3.10.7"
+  "engines": {
+    "node": ">=6.7.0",
+    "npm": ">=3.10.7"
   },
   "keywords": [
     "pie",
