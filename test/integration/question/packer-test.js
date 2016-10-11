@@ -7,7 +7,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
 
-describe('pack-question', () => {
+describe('Packer.pack', () => {
 
   let rootDir = resolve('./test/integration/example-questions/one');
   let componentsDir = resolve('./test/integration/example-components');

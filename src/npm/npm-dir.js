@@ -43,7 +43,7 @@ export default class NpmDir {
         input: s.stdout,
         terminal: false
       }).on('line',  (line) => {
-        logger.info(line);
+        logger.verbose(line);
         out += line;
       });
 
