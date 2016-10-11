@@ -13,6 +13,12 @@ describe('npm-dir', () => {
     npmDir.install({lodash: '*'})
       .then(() => done())
       .catch(done);
-  });  
+  }); 
+
+  it('contains lodash in node_modules', () => {
+    let lodashModule = path.join(tmpPath, 'node_modules/lodash');
+    let stat = fs.statSync(lodashModule); 
+    expect(stat.isDirectory()).to.eql(true);
+  }); 
 
 });

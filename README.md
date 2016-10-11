@@ -48,6 +48,8 @@ npm test
 
 ##### Integration 
 
+> The integration tests are slower than the unit tests cos of all the `npm install` commands.
+
 ```
 npm run it 
 ```

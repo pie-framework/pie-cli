@@ -37,7 +37,7 @@ describe('Question', () => {
 
     it('returns the build keys', () => {
       fs.copySync(helloWorld, path.join(tmpNodeModules, 'hello-world'));
-      expect(question.buildKeys).to.eql(['less', 'react', 'vue']);
+      expect(question.buildKeys).to.eql(['less', 'react']);
     });
   });
 
