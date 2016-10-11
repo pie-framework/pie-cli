@@ -4,6 +4,9 @@ import _ from 'lodash';
 import {fileLogger} from '../log-factory';
 import resolve from 'resolve';
 
+//add babel require hook
+require('babel-register');
+
 let logger = fileLogger(__filename);
 
 export class BuildConfig{
@@ -70,14 +73,10 @@ export default class FrameworkSupport{
     _require = _require || require;
 
     let loadModule = (f) => {
-      try {
-        logger.debug('f: ', f);
-        let path = resolve.sync(f);
-        logger.debug('path: ', path);
-        return _require(path);
-      } catch(e){
-        logger.error(e);
-      }
+      logger.debug('f: ', f);
+      let path = resolve.sync(f);
+      logger.debug('path: ', path);
+      return _require(path);
     };
 
     logger.silly(`modules`, modules);
