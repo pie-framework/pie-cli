@@ -27,13 +27,13 @@ export default class Question {
 
     this._opts = opts;
     logger.silly('opts', this._opts);
-    this._config = this.readJson(opts.configFile);
+    this._config = this._readJson(opts.configFile);
     logger.silly('config', this._config);
-    this._dependencies = this.readJson(opts.dependenciesFile) || {};
+    this._dependencies = this._readJson(opts.dependenciesFile) || {};
     logger.silly('dependencies', this._dependencies);
   }
 
-  readJson(n) {
+  _readJson(n) {
     return fs.readJsonSync(path.join(this._dir, n));
   }
 
@@ -82,7 +82,7 @@ export default class Question {
 
     return _(this.pies)
       .map('name')
-      .map((name) => this.readJson(path.join('node_modules', name, 'package.json')))
+      .map((name) => this._readJson(path.join('node_modules', name, 'package.json')))
       .value();
   }
 

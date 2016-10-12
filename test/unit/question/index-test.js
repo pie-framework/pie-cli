@@ -79,5 +79,83 @@ describe('Question', () => {
       });
     });
 
+    describe('get piePackages', () => {
+      beforeEach(() => {
+        fsExtra = {
+          readJsonSync: sinon.stub().returns({}),
+          existsSync: sinon.stub().returns(true)
+        };
+
+        Question = proxyquire('../../../src/question', {
+          'fs-extra': fsExtra
+        }).default;
+      });
+
+      it('returns an empty array for an empty config', () => {
+        let q = new Question(__dirname, {});
+        expect(q.piePackages).to.eql([]);
+      });
+
+      it('throws an error if node_modules does not exist', () => {
+        fsExtra.existsSync = sinon.stub().withArgs(path.join(__dirname, 'node_modules')).returns(false);
+        let q = new Question(__dirname, {});
+        expect(() => q.piePackages).to.throw(Error);
+      });
+
+      it('returns the package.json for 1 pie', () => {
+
+        fsExtra.existsSync = sinon.stub().returns(true);
+        fsExtra.readJsonSync.withArgs(
+          path.join(__dirname, 'node_modules', 'my-pie', 'package.json'))
+          .returns({
+            name: 'my-pie',
+            dependencies: {
+              lodash: '*'
+            }
+          });
+        fsExtra.readJsonSync.withArgs(
+          path.join(__dirname, 'config.json'))
+          .returns({
+            pies: [
+              {
+                pie: {
+                  name: 'my-pie',
+                  version: '1.0.0'
+                }
+              }
+            ]
+          });
+        let q = new Question(__dirname, {});
+        expect(q.piePackages).to.eql([{
+          name: 'my-pie',
+          dependencies: {
+            lodash: '*'
+          }
+        }]);
+      });
+    });
+
+    /*describe('buildKeys', () => {
+
+      beforeEach(() => {
+
+        fsExtra = {
+          readJsonSync: sinon.stub().withArgs(path.join(__dirname, 'node_modules', 'my-pie', 'package.json')).returns({
+            name: 'my-pie',
+            pie: {
+              build: {
+
+              }
+            }
+          })
+        }
+      });
+
+      it('returns the build keys', () => {
+        let q = new Question(__dirname, {});
+        expect(q.buildKeys).to.eql(['build-key']);
+      });
+    });*/
+
   });
 });
