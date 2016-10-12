@@ -1,6 +1,6 @@
 import { buildLogger } from '../log-factory';
 import Question from '../question';
-import Packer, {DEFAULTS} from '../question/packer';
+import Packer, { DEFAULTS } from '../question/packer';
 import path from 'path';
 import FrameworkSupport from '../framework-support';
 import _ from 'lodash';
@@ -71,28 +71,28 @@ export function support(name){
 
 export function run(args) {
 
-
   args.clean = args.clean !== 'false';
   logger.info('args: ', args);
 
   let dir = path.resolve(args.dir || process.cwd());
-  
+
   args.support = args.support || [];
   let support = _.isArray(args.support) ? args.support : [args.support];
   support = _.map(support, (s) => path.resolve(path.join(dir, s)));
-  
+
   logger.info('support: ', support);
 
   let frameworkSupport = FrameworkSupport.bootstrap(
     support.concat([
-      path.join(__dirname, '../framework-support/frameworks/react')
+      path.join(__dirname, '../framework-support/frameworks/react'),
+      path.join(__dirname, '../framework-support/frameworks/less')
     ]));
 
-  logger.debug('frameworkSupport: ', frameworkSupport);
+  logger.silly('[run] frameworkSupport: ', frameworkSupport);
+
   let question = new Question(dir);
   let packer = new Packer(question, frameworkSupport);
 
-  
 
   if (args.clean) {
     return packer.clean(args)

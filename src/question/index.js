@@ -25,8 +25,6 @@ export default class Question {
 
     this._dir = dir;
 
-
-
     this._opts = opts;
     logger.silly('opts', this._opts);
     this._config = this.readJson(opts.configFile);
@@ -103,7 +101,7 @@ export default class Question {
       }, []);
       return keys;
     }).flattenDeep().value();
-    
+
     logger.silly('[buildKeys] keysFromDependencies', JSON.stringify(keysFromDependencies));
     let keys = _(packages).map('pie.build').flattenDeep().value();
     logger.silly('[buildKeys] keys', JSON.stringify(keys));
