@@ -1,5 +1,5 @@
 import FrameworkSupport from '../../../src/framework-support';
-import {expect} from 'chai';
+import { expect } from 'chai';
 import path from 'path';
 
 describe('FrameworkSupport', () => {
@@ -23,8 +23,10 @@ describe('FrameworkSupport', () => {
   });
 
   it('gets a config for react', () => {
-    let config = frameworkSupport.buildConfigFromKeys(['react']);
-    expect(config.npmDependencies).to.eql(target.support('react').npmDependencies);
+    let config = frameworkSupport.buildConfigFromPieDependencies({
+      react: ['1.2.3']
+    });
+    expect(config.npmDependencies).to.eql(target.support({ react: [] }).npmDependencies);
   });
 
 });

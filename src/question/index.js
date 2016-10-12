@@ -16,11 +16,7 @@ export default class Question {
     opts = _.extend({}, {
       configFile: 'config.json',
       dependenciesFile: 'dependencies.json',
-      markupFile: 'index.html',
-      /**
-       * If the following keys are found in the `dependencies` object, treat them as buildKeys
-       */
-      dependencyIsBuildKey: ['react']
+      markupFile: 'index.html'
     }, opts);
 
     this._dir = dir;
@@ -86,28 +82,19 @@ export default class Question {
       .value();
   }
 
-  /**
-   * Return keys denoting build requirements.
-   * @return Array[{String|Object{name,npmPkg}}]
-   */
-  get buildKeys() {
-    let packages = this.piePackages;
-    let keysFromDependencies = _(packages).map('dependencies').map((d) => {
-      let keys = _(d).reduce((acc, value, key) => {
-        if (_.includes(this._opts.dependencyIsBuildKey, key)) {
-          acc.push(key);
+  get piePackageDependencies() {
+    let mergeDependencies = (acc, deps) => {
+      return _.reduce(deps, (acc, value, key) => {
+        if (acc[key]) {
+          acc[key].push(value);
+        } else {
+          acc[key] = [value]
         }
         return acc;
-      }, []);
-      return keys;
-    }).flattenDeep().value();
+      }, acc);
+    };
 
-    logger.silly('[buildKeys] keysFromDependencies', JSON.stringify(keysFromDependencies));
-    let keys = _(packages).map('pie.build').flattenDeep().value();
-    logger.silly('[buildKeys] keys', JSON.stringify(keys));
-    let joined = _.concat(keys, keysFromDependencies);
-    let out = _(joined).compact().sort().value();
-    logger.silly('[buildKeys] out', JSON.stringify(out));
-    return out.sort();
+    return _(this.piePackages).map('dependencies').reduce(mergeDependencies, {});
   }
+
 }

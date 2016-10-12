@@ -6,14 +6,18 @@ import path from 'path';
 describe('Question', () => {
   let Question, fsExtra;
 
+  function proxyQuestion() {
+    return proxyquire('../../../src/question', {
+      'fs-extra': fsExtra
+    }).default;
+  }
+
   beforeEach(() => {
     fsExtra = {
       readJsonSync: sinon.stub().returns({})
     };
 
-    Question = proxyquire('../../../src/question', {
-      'fs-extra': fsExtra
-    }).default;
+    Question = proxyQuestion();
   });
 
   describe('constructor', () => {
@@ -135,27 +139,40 @@ describe('Question', () => {
       });
     });
 
-    /*describe('buildKeys', () => {
-
+    describe('piePackageDependencies', () => {
       beforeEach(() => {
 
-        fsExtra = {
-          readJsonSync: sinon.stub().withArgs(path.join(__dirname, 'node_modules', 'my-pie', 'package.json')).returns({
-            name: 'my-pie',
-            pie: {
-              build: {
+        fsExtra.existsSync = sinon.stub().returns(true);
 
+        fsExtra.readJsonSync
+          .withArgs(path.join(__dirname, 'dependencies.json'))
+          .returns({})
+          .withArgs(path.join(__dirname, 'config.json'))
+          .returns({
+            pies: [{
+              pie: {
+                name: 'my-pie'
               }
-            }
+            }]
           })
-        }
+          .withArgs(path.join(__dirname, 'node_modules/my-pie/package.json'))
+          .returns({
+            dependencies: {
+              react: '15.0.2',
+              less: '2.3.4'
+            }
+          });
       });
 
-      it('returns the build keys', () => {
+      it('returns the merged dependencies', () => {
+
         let q = new Question(__dirname, {});
-        expect(q.buildKeys).to.eql(['build-key']);
+        expect(q.piePackageDependencies).to.eql({
+          react: ['15.0.2'],
+          less: ['2.3.4']
+        })
       });
-    });*/
+    });
 
   });
 });

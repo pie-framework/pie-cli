@@ -1,13 +1,14 @@
-export function support(name) {
-  if (name === 'less') {
-    return {
-      npmDependencies: {},
-      webpackLoaders: () => [
-        {
-          test: /\.less$/,
-          loader: "style!css!less"
-        }
-      ]
-    }
+export function support(dependencies) {
+  if (!dependencies.less) {
+    return;
+  }
+  return {
+    npmDependencies: {},
+    webpackLoaders: () => [
+      {
+        test: /\.less$/,
+        loader: "style!css!less"
+      }
+    ]
   }
 }

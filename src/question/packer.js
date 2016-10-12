@@ -39,7 +39,7 @@ export default class Packer {
     logger.silly('[pack] opts: ', opts);
 
     let npmDependencies = _.extend({}, DEFAULT_DEPENDENCIES, this._question.npmDependencies);
-    
+
     logger.debug('npm dependencies: ', JSON.stringify(npmDependencies));
 
     let buildElementBundle = (supportConfig) => {
@@ -60,13 +60,18 @@ export default class Packer {
     };
 
 
-    return this._npmDir.install(npmDependencies)
+    return this._npmDir.install(npmDependencies, { force: opts.fullInstall })
       .then(() => {
-        let buildKeys = this._question.buildKeys;
-        let supportConfig = this._frameworkSupport.buildConfigFromKeys(buildKeys);
-        logger.silly('supportDependencies: ', JSON.stringify(supportConfig.npmDependencies));
+        let pieDependencies = this._question.piePackageDependencies;
+        logger.silly('pieDependencies: ', JSON.stringify(pieDependencies));
+        let supportConfig = this._frameworkSupport.buildConfigFromPieDependencies(pieDependencies);
+        logger.silly('supportConfig: ', JSON.stringify(supportConfig.npmDependencies));
+        if (!supportConfig) {
+          return Promise.reject(new Error('no support config'));
+        }
+
         return this._npmDir.installMoreDependencies(supportConfig.npmDependencies)
-         .then(() => supportConfig);
+          .then(() => supportConfig);
       })
       .then(buildElementBundle)
       .then(() => controllerMap.build(this._question.dir, opts.configFile, opts.controllersJs, this._question.npmDependencies))
@@ -106,5 +111,6 @@ export const DEFAULTS = {
   buildExample: false,
   keepBuildAssets: false,
   pieJs: 'pie.js',
-  controllersJs: 'controllers.js'
+  controllersJs: 'controllers.js',
+  fullInstall: false
 }

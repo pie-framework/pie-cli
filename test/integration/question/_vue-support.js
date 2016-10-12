@@ -1,5 +1,5 @@
-export function support(name) {
-  if (name === 'vue') {
+export function support(dependencies) {
+  if (dependencies.vue) {
     return {
       npmDependencies: {
         'vue-loader': '~9.5.1'

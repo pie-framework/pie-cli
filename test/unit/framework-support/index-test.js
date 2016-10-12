@@ -26,7 +26,7 @@ describe('framework-support', () => {
       };
 
       resolve = {
-        sync: sinon.spy(function(p){ return p;})
+        sync: sinon.spy(function (p) { return p; })
       }
 
       FrameworkSupport = proxyquire('../../../src/framework-support', {
@@ -42,52 +42,53 @@ describe('framework-support', () => {
 
     it('reads in 2 modules from the dir', () => {
       support = FrameworkSupport.bootstrap([
-        'path/to/support.js', 
+        'path/to/support.js',
         'some/other/path.js'], mockRequire);
       expect(support.frameworks.length).to.eql(2);
     });
 
   });
 
-  describe('buildConfigFromKeys', () => {
+  describe('buildConfigFromPieDependencies', () => {
 
     let frameworkSupport, FrameworkSupport;
 
     beforeEach(() => {
       FrameworkSupport = require('../../../src/framework-support').default;
       frameworkSupport = new FrameworkSupport([{
-        support: (key) => {
-          if(key == 'unknown-key'){
-            return undefined;
-          }
-          return {
-            npmDependencies: {
-              'babel-preset-react' : '1.0'
-            },
-            webpackLoaders: (/*resolve*/) => {
-              return [
-                {test: 'test'}
-              ]; 
+        support: (deps) => {
+          if (deps.react) {
+            return {
+              npmDependencies: {
+                'babel-preset-react': '1.0'
+              },
+              webpackLoaders: (/*resolve*/) => {
+                return [
+                  { test: 'test' }
+                ];
+              }
             }
           }
         }
       }]);
     });
 
-    it('throws an error if the config is not found', () => {
-      expect( () => frameworkSupport.buildConfigFromKeys(['unknown-key']) ).to.throw(Error);
-    });
-
     it('returns a build config with npmDependencies', () => {
-      let config = frameworkSupport.buildConfigFromKeys(['react']);
+      let config = frameworkSupport.buildConfigFromPieDependencies(
+        {
+          react: ['1.2.3']
+        }
+      );
       expect(config.npmDependencies).to.eql({
-        'babel-preset-react' : '1.0'
+        'babel-preset-react': '1.0'
       });
     });
 
     it('returns a config with webpackLoaders', () => {
-      let config = frameworkSupport.buildConfigFromKeys(['react']);
-      expect(config.webpackLoaders()).to.eql([{test: 'test'}]);
+      let config = frameworkSupport.buildConfigFromPieDependencies({
+        react: ['1.2.3']
+      });
+      expect(config.webpackLoaders()).to.eql([{ test: 'test' }]);
     });
   });
 

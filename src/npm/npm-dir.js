@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 import readline from 'readline';
 import * as helper from './dependency-helper';
 import { fileLogger } from '../log-factory';
-import {removeFiles} from '../file-helper';
+import { removeFiles } from '../file-helper';
 
 let logger = fileLogger(__filename);
 
@@ -18,7 +18,7 @@ export default class NpmDir {
 
   _spawnPromise(args, ignoreExitCode) {
     ignoreExitCode = ignoreExitCode || false;
-    
+
     logger.info('spawn promise: args: ', args);
 
     let p = new Promise((resolve, reject) => {
@@ -42,7 +42,7 @@ export default class NpmDir {
       readline.createInterface({
         input: s.stdout,
         terminal: false
-      }).on('line',  (line) => {
+      }).on('line', (line) => {
         logger.verbose(line);
         out += line;
       });
@@ -52,7 +52,7 @@ export default class NpmDir {
           logger.error(args + ' failed. code: ' + code);
           reject();
         } else {
-          resolve({stdout: out});
+          resolve({ stdout: out });
         }
       });
     });
@@ -93,9 +93,9 @@ export default class NpmDir {
   /**
    * install more dependencies
    */
-  installMoreDependencies(dependencies, opts){
+  installMoreDependencies(dependencies, opts) {
     let deps = _.map(dependencies, (value, key) => {
-      if(helper.isSemver(value)){
+      if (helper.isSemver(value)) {
         return `${key}@${value}`;
       } else {
         return value;
@@ -106,9 +106,18 @@ export default class NpmDir {
     return this._install(deps.concat(save));
   };
 
-  install(dependencies) {
-    return this._writePackageJson(dependencies)
-      .then(() => this._install());
+  install(dependencies, opts) {
+
+    let pkgExists = fs.existsSync(path.join(this.rootDir, 'package.json'));
+
+    logger.silly('[install] pkgExists: ', pkgExists)
+    if (pkgExists && !opts.force) {
+      logger.info('[install] skipping install cmd');
+      return Promise.resolve({ skipped: true });
+    } else {
+      return this._writePackageJson(dependencies)
+        .then(() => this._install());
+    }
   };
 
   _install(args) {

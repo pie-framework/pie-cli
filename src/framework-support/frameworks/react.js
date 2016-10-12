@@ -7,12 +7,12 @@ export let frameworkName = 'react';
  * @see: https://github.com/webpack/webpack/issues/1866
  * @see: https://github.com/babel/babel-loader/issues/149
  */
-export function support(name) {
+export function support(dependencies) {
 
-  if (name !== frameworkName) {
+  if (!dependencies.react) {
     return;
   }
-  
+
   return {
     npmDependencies: {
       'babel-preset-es2015': '~6.16.0',
