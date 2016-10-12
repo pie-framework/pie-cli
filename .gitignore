@@ -1,7 +1,9 @@
-node_modules
-lib
+*.iml
+.idea
 .vscode
 jsconfig.json
+lib
+node_modules
 typings
 typings.json
 .eslintrc.json

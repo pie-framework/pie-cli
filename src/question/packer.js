@@ -54,7 +54,7 @@ export default class Packer {
       }
 
       logger.silly('now use supportModules to prep the webpack config: ', JSON.stringify(supportConfig));
-      let libs = _.flatten([pieController, 'pie-player'].concat(_.map(this._question.pies, 'name')));
+      let libs = _.flatten([pieController, 'pie-player', 'pie-control-panel'].concat(_.map(this._question.pies, 'name')));
       logger.silly('[buildElementBundle] libs: ', libs);
       return elementBundle.build(this._question.dir, libs, opts.pieJs, supportConfig.webpackLoaders.bind(supportConfig))
     };
@@ -95,12 +95,13 @@ export default class Packer {
 }
 
 export const DEFAULT_DEPENDENCIES = {
-  'pie-player': 'PieLabs/pie-player',
-  'pie-controller': 'PieLabs/pie-controller',
   'babel-core': '^6.16.0',
   'webpack': '2.1.0-beta.21',
   'babel-loader': '^6.2.5',
   'babel-preset-es2015': '^6.16.0',
+  'pie-player': 'PieLabs/pie-player',
+  'pie-controller': 'PieLabs/pie-controller',
+  'pie-control-panel': 'PieLabs/pie-control-panel',
 };
 
 export const DEFAULTS = {

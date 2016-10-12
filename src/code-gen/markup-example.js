@@ -1,7 +1,7 @@
 import jsesc from 'jsesc';
 import fs from 'fs-extra';
 import path from 'path';
-import {removeFiles} from '../file-helper';
+import { removeFiles } from '../file-helper';
 
 let mkExampleMarkup = (markup, model) => `
 <!doctype html>
@@ -12,7 +12,7 @@ let mkExampleMarkup = (markup, model) => `
     <script src="pie.js" type="text/javascript"></script>
     <script src="controllers.js" type="text/javascript"></script>
     <script type="text/javascript">
-
+    
       document.addEventListener('DOMContentLoaded', function(){
 
         env = {mode: 'gather'};
@@ -22,14 +22,30 @@ let mkExampleMarkup = (markup, model) => `
         var player = document.querySelector('pie-player');
 
         player.addEventListener('pie-player-ready', function(event){
-          player.controller = new pie.Controller(model, pie.controllerMap);
+          var pieController = new pie.Controller(model, pie.controllerMap);
+          player.controller = pieController;
           player.env = env;
           player.session = session;
+          
+          var panel = document.querySelector('pie-control-panel');
+          panel.env = { mode: 'gather' };
+          panel.addEventListener('envChanged', function(event){
+            console.log('envChanged', event.target.env);
+            player.env = event.target.env;    
+            
+            if(event.target.env.mode === 'evaluate'){
+              player.getOutcome().then(function(outcome){
+                console.log('outcome', outcome);
+                panel.score = " &nbsp; " + outcome.summary.percentage + "% (" + outcome.summary.points + "/" + outcome.summary.maxPoints + ") &nbsp; "; 
+              });
+            }
+          });
         });
       });
     </script>
   </head>
   <body>
+    <pie-control-panel></pie-control-panel>
     <pie-player>
     ${markup}
     </pie-player>
@@ -37,15 +53,15 @@ let mkExampleMarkup = (markup, model) => `
 </html>
 `;
 
-export function build(root, srcFile, resultName, configFile){
-  let playerMarkup = fs.readFileSync(path.join(root, srcFile), {encoding: 'utf8'});
+export function build(root, srcFile, resultName, configFile) {
+  let playerMarkup = fs.readFileSync(path.join(root, srcFile), { encoding: 'utf8' });
   let model = fs.readJsonSync(path.join(root, configFile));
   let example = mkExampleMarkup(playerMarkup, model);
   let outpath = path.join(root, resultName);
-  fs.writeFileSync(outpath, example, {encoding: 'utf8'});
+  fs.writeFileSync(outpath, example, { encoding: 'utf8' });
   return Promise.resolve(outpath);
 }
 
-export function clean(root, markupName){
+export function clean(root, markupName) {
   return removeFiles(root, [markupName]);
 }
