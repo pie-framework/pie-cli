@@ -19,7 +19,7 @@ export default class NpmDir {
   _spawnPromise(args, ignoreExitCode) {
     ignoreExitCode = ignoreExitCode || false;
 
-    logger.info('spawn promise: args: ', args);
+    logger.debug('[_spawnPromise] args: ', args);
 
     let p = new Promise((resolve, reject) => {
 
@@ -36,7 +36,13 @@ export default class NpmDir {
         input: s.stderr,
         terminal: false
       }).on('line', (line) => {
-        logger.error(line);
+        //@see: https://github.com/npm/npm/issues/13656 an issue w/ npm 3.10.7
+        let eventEmitterWarning = 'Possible EventEmitter memory leak detected';
+        if (line.indexOf(eventEmitterWarning) !== -1) {
+          logger.silly(line);
+        } else {
+          logger.error(line);
+        }
       });
 
       readline.createInterface({
@@ -90,28 +96,47 @@ export default class NpmDir {
   //TODO: Clean up api here - install <> installMoreDependencies
   //Get it to more accurately reflect what actions are being taken.
 
+  _exists(name) {
+    return fs.existsSync(path.join(this.rootDir, name));
+  }
   /**
    * install more dependencies
    */
   installMoreDependencies(dependencies, opts) {
-    let deps = _.map(dependencies, (value, key) => {
+
+    logger.info('[installMoreDependencies] ', dependencies);
+
+    let needsInstalling = (value, key) => !this._exists(`node_modules/${key}`);
+
+    let getInstallName = (value, key) => {
       if (helper.isSemver(value)) {
         return `${key}@${value}`;
       } else {
         return value;
       }
-    });
+    }
+
+    let deps = _(dependencies).pickBy(needsInstalling).map(getInstallName).value();
+
+    logger.silly('[installMoreDependencies] deps:', JSON.stringify(deps));
 
     let save = (opts && opts.save) ? ['--save'] : [];
-    return this._install(deps.concat(save));
+
+    if (deps.length === 0) {
+      logger.info(`skipping the installation of ${_.keys(dependencies).join(', ')}`);
+      return Promise.resolve({ skipped: true });
+    } else {
+      return this._install(deps.concat(save));
+    }
   };
 
-  install(dependencies, opts) {
-
-    let pkgExists = fs.existsSync(path.join(this.rootDir, 'package.json'));
+  install(dependencies) {
+    logger.info('[install] ...');
+    let pkgExists = this._exists('package.json')
+    let nodeModulesExists = this._exists('node_modules');
 
     logger.silly('[install] pkgExists: ', pkgExists)
-    if (pkgExists && !opts.force) {
+    if (pkgExists && nodeModulesExists) {
       logger.info('[install] skipping install cmd');
       return Promise.resolve({ skipped: true });
     } else {

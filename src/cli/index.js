@@ -10,18 +10,20 @@ let commands = [
   cleanQuestion
 ];
 
-export default function(opts){
-  
+export default function (opts) {
+
   let help = new Help('pie-cli', commands);
 
-  let cmd = _.find( [help].concat(commands), (cmd) => {
+  let cmd = _.find([help].concat(commands), (cmd) => {
     return cmd.match(opts);
   }) || help;
-  
-  let result = cmd.run(opts); 
+
+  let result = cmd.run(opts);
   (result || Promise.resolve('done'))
     .then((result) => {
-      console.log(result);
+      if (result) {
+        console.log(result);
+      }
     })
     .catch((err) => {
       console.error(err);

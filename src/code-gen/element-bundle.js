@@ -15,11 +15,11 @@ let baseConfig = (root) => {
       loaders: [
         {
           test: /\.js$/,
-          loader: resolve.sync('babel-loader', {basedir: root}),
+          loader: resolve.sync('babel-loader', { basedir: root }),
           query: {
             babelrc: false,
             presets: [
-              resolve.sync('babel-preset-es2015', {basedir: root})
+              resolve.sync('babel-preset-es2015', { basedir: root })
             ]
           },
         }
@@ -70,7 +70,7 @@ document.registerElement('${p}', comp${index});
  * @param loaders {Array[{(resolve) => Object}]}
  */
 function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
-  logger.info('bundle, root', root, 'entryJs', entryJs, 'pies', libraries);
+  logger.debug('bundle, root', root, 'entryJs', entryJs, 'pies', libraries);
 
   let config = _.extend({
     context: root,
@@ -99,6 +99,7 @@ function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
   }
 
   return new Promise((resolve, reject) => {
+    logger.info('compiling with webpack...');
     webpack(config, (err, stats) => {
       if (err) {
         logger.error(err);
@@ -107,7 +108,7 @@ function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
         _.forEach(stats.compilation.errors, (e) => logger.error(e));
         reject(new Error('Webpack build errors - see the logs'));
       } else {
-        logger.debug('webpack compile done!');
+        logger.info(`webpack compile done. duration (ms): ${stats.endTime - stats.startTime}`);
         resolve(config.output.filename);
       }
     });
