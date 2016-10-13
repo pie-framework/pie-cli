@@ -26,6 +26,7 @@ pie-cli pack-question --dir ../path/to/dir
 You can point to a js file to add support for a framework that has been added to a pie's `dependencies` object in the `package.json`.
 The module should (if it wants to support what's in the dependencies) an object that contains `npmDependencies : Object` and `webpackLoaders : (resolve) => Object`. Under the hood we use webpack to build the bundle and so these dependencies are what you'd use if you were doing your own webpack build.
 
+> Out of the box `pie-cli` has support for `react` and `less`.
 
 ```javascript
 /**
