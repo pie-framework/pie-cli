@@ -60,6 +60,19 @@ export default class Packer {
     };
 
 
+    // 1. create npm dir
+    /*
+
+    - client-dir 
+        index.html
+        config.json
+        package.json { comp: '../..'}
+        node_modules/
+        controller-dir/
+          package.json { comp-controller: '../../controller'}
+    */
+
+
     return this._npmDir.install(npmDependencies)
       .then(() => {
         let pieDependencies = this._question.piePackageDependencies;

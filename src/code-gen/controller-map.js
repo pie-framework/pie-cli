@@ -1,20 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
-import {fileLogger} from '../log-factory';
+import { buildLogger } from '../log-factory';
 import _ from 'lodash';
-import {removeFiles} from '../file-helper';
+import { removeFiles } from '../file-helper';
+import NpmDir from '../npm/npm-dir';
+import webpack from 'webpack';
 
-const babel = require('babel-core');
-const logger = fileLogger(__filename);
-
-function wrapModule(name, src){
-  return `
-root.pie.controllerMap['${name}'] = {};
-(function(exports, require){
-  ${src}
-})(root.pie.controllerMap['${name}'], root.pie.require)
-`;
-}
+const logger = buildLogger();
 
 /**
  * Exports a controller map to: `window.pie.controllerMap`,
@@ -25,49 +17,85 @@ root.pie.controllerMap['${name}'] = {};
  * 
  * //TODO: make this configurable?
  */
-export function build(root, jsonFile, bundleName, pies){
-  
-  let moduleSrc = _(pies).keys().map((d) => {
-    let controllerPath = path.join(root, 'node_modules', d, 'controller.js');
-    let src = fs.readFileSync( controllerPath, {encoding: 'utf8'});
-    let result = babel.transform(src, {presets: [require.resolve('babel-preset-es2015')]});
-    return wrapModule(d, result.code);
-  }).value().join('\n');
+export function build(question) {
 
+  let controllerPath = path.join(question.dir, 'controllers');
+  fs.ensureDirSync(controllerPath);
 
-  let src = `
-  (function(root){
-    root.pie = root.pie || {};
+  logger.silly('[build] controllerPath', controllerPath);
 
-    var supportedLibraries = {
-      lodash: _
+  let controllerNpmDir = new NpmDir(controllerPath);
+
+  let dependencies = _.reduce(question.pies, (acc, p) => {
+    let pieControllerDir = path.join(p.installedPath, 'controller');
+    if (fs.existsSync(pieControllerDir)) {
+      let modulePath = path.relative(controllerPath, pieControllerDir);
+      acc[p.name] = modulePath;
+    } else {
+      logger.warn('[build] the following path doesnt exist: ', pieControllerDir);
     }
 
-    /**
-     * add support for require in modules
-     */
-    root.pie.require = function(name){
-      if(supportedLibraries.hasOwnProperty(name)){
-        if(!supportedLibraries[name]){
-          throw new Error('This library is supported but maybe it has not been loaded? ' + name);
-        } else {
-          return supportedLibraries[name];
-        }
-      } else {
-        throw new Error('This library is not supported: ' + name);
+    return acc;
+  }, {});
+
+  dependencies = _.extend({}, dependencies, {
+    'babel-loader': '^6.2.5',
+    'babel-preset-es2015': '^6.16.0'
+  });
+
+  logger.silly('[build] dependncies', dependencies);
+
+  let writeEntryJs = () => {
+    let entryJs = `//todo`;
+    fs.writeFileSync(path.join(controllerPath, 'entry.js'), entryJs, { encoding: 'utf8' });
+    return Promise.resolve();
+  }
+
+  let runWebpack = () => {
+
+    let config = {
+      context: controllerPath,
+      entry: path.join(controllerPath, 'entry.js'),
+      output: {
+        path: controllerPath,
+        filename: 'controller-bundle.js'
+      },
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: ['babel-preset-es2015']
+            }
+          }
+        ]
       }
-    }
+    };
 
-    root.pie.controllerMap = root.pie.controllerMap || {};
-    ${moduleSrc}
-  })(this);
-  `;
+    return new Promise((resolve, reject) => {
+      webpack(config, (err, stats) => {
+        if (err) {
+          reject(err);
+        } else if (stats.compilation.errors.length > 0) {
+          _.forEach(stats.compilation.errors, (e) => logger.error(e));
+          reject(new Error('Webpack build errors - see log'));
+        } else {
+          resolve(config.output.filename);
+        }
+      });
+    });
+  }
 
-  let bundlePath = path.join(root, bundleName);
-  fs.writeFileSync(bundlePath, src, {encoding: 'utf8'});
-  return Promise.resolve({path: bundlePath, src: src});
+  return controllerNpmDir.install(dependencies)
+    .then(writeEntryJs)
+    .then(runWebpack)
+    .then(() => {
+      logger.info('controller-map done!');
+    })
+    .catch((e) => logger.error(e));
 }
 
-export function clean(root, bundleName){
+export function clean(root, bundleName) {
   return removeFiles(root, [bundleName]);
 }

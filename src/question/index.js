@@ -59,7 +59,12 @@ export default class Question {
       if (existing) {
         existing.versions = _(existing.versions).concat(p.version).uniq();
       } else {
-        acc.push({ name: p.name, versions: [p.version], localPath: this._dependencies[p.name] });
+        acc.push({
+          name: p.name,
+          versions: [p.version],
+          localPath: this._dependencies[p.name],
+          installedPath: path.join(this._dir, 'node_modules', p.name)
+        });
       }
       return acc;
     }
