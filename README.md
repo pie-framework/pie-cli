@@ -25,7 +25,7 @@ npm link
 ## Usage 
 
 ```
-pie-cli --help|-h
+pie --help|-h
 ```
 
 ### Developing
