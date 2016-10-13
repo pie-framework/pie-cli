@@ -5,6 +5,9 @@ import _ from 'lodash';
 import { removeFiles } from '../file-helper';
 import NpmDir from '../npm/npm-dir';
 import webpack from 'webpack';
+import camelCase from 'camel-case';
+import resolve from 'resolve';
+import { writeConfig } from './webpack-write-config';
 
 const logger = buildLogger();
 
@@ -38,16 +41,18 @@ export function build(question) {
     return acc;
   }, {});
 
-  dependencies = _.extend({}, dependencies, {
+  let finalDependencies = _.extend({}, dependencies, {
+    'babel-core': '^6.17.0',
     'babel-loader': '^6.2.5',
     'babel-preset-es2015': '^6.16.0'
   });
 
-  logger.silly('[build] dependncies', dependencies);
+  logger.silly('[build] finalDependncies', finalDependencies);
 
   let writeEntryJs = () => {
-    let entryJs = `//todo`;
-    fs.writeFileSync(path.join(controllerPath, 'entry.js'), entryJs, { encoding: 'utf8' });
+    //TODO: hardcoding to x-controller here - is that safe?
+    let entrySrc = _.map(dependencies, (_, key) => `exports.${camelCase(key)} = require('${key}-controller')`);
+    fs.writeFileSync(path.join(controllerPath, 'entry.js'), entrySrc, { encoding: 'utf8' });
     return Promise.resolve();
   }
 
@@ -66,12 +71,21 @@ export function build(question) {
             test: /\.js$/,
             loader: 'babel-loader',
             query: {
-              presets: ['babel-preset-es2015']
+              presets: [
+                resolve.sync('babel-preset-es2015', { basedir: controllerPath })]
             }
           }
         ]
+      },
+      resolve: {
+        root: path.resolve(path.join(controllerPath, 'node_modules'))
+      },
+      resolveLoader: {
+        root: path.resolve(path.join(controllerPath, 'node_modules'))
       }
     };
+
+    writeConfig(path.join(controllerPath, 'webpack.config.js'), config);
 
     return new Promise((resolve, reject) => {
       webpack(config, (err, stats) => {
@@ -87,7 +101,7 @@ export function build(question) {
     });
   }
 
-  return controllerNpmDir.install(dependencies)
+  return controllerNpmDir.install(finalDependencies)
     .then(writeEntryJs)
     .then(runWebpack)
     .then(() => {
