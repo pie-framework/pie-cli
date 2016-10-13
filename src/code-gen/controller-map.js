@@ -63,7 +63,9 @@ export function build(question) {
       entry: path.join(controllerPath, 'entry.js'),
       output: {
         path: controllerPath,
-        filename: 'controller-bundle.js'
+        filename: 'controller-bundle.js',
+        library: 'controller-map',
+        libraryTarget: 'umd'
       },
       module: {
         loaders: [
