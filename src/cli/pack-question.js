@@ -27,7 +27,7 @@ export let usage = marked(
 
 export function run(args) {
 
-  args.clean = args.clean === 'true';
+  args.clean = args.clean === true || args.clean === 'true';
   logger.info('args: ', args);
 
   let dir = path.resolve(args.dir || process.cwd());

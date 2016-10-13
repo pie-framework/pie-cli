@@ -15,13 +15,17 @@ let baseConfig = (root) => {
       loaders: [
         {
           test: /\.js$/,
-          loader: resolve.sync('babel-loader', {basedir: root}),
+          loader: resolve.sync('babel-loader', { basedir: root }),
           query: {
             babelrc: false,
             presets: [
-              resolve.sync('babel-preset-es2015', {basedir: root})
+              resolve.sync('babel-preset-es2015', { basedir: root })
             ]
           },
+        },
+        {
+          test: /\.css$/,
+          loader: 'style!css'
         }
       ]
     },
