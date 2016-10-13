@@ -4,10 +4,10 @@ import _ from 'lodash';
 import { spawn } from 'child_process';
 import readline from 'readline';
 import * as helper from './dependency-helper';
-import { fileLogger } from '../log-factory';
+import { buildLogger } from '../log-factory';
 import { removeFiles } from '../file-helper';
 
-let logger = fileLogger(__filename);
+let logger = buildLogger();
 
 export default class NpmDir {
 
@@ -63,11 +63,6 @@ export default class NpmDir {
       });
     });
     return p;
-  };
-
-  isInstalled() {
-    logger.silly('isInstalled');
-    return false;
   };
 
   _writePackageJson(dependencies) {
