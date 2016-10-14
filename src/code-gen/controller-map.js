@@ -139,5 +139,5 @@ exports['${key}'].version =  '${value}';`
 }
 
 export function clean(root, bundleName) {
-  return removeFiles(root, [bundleName]);
+  return removeFiles(root, ['controllers', bundleName]);
 }

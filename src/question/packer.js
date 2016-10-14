@@ -73,7 +73,7 @@ export default class Packer {
           .then(() => supportConfig);
       })
       .then(buildElementBundle)
-      .then(() => controllerMap.build(this._question))
+      .then(() => controllerMap.build(this._question, { controllersFilename: opts.controllersJs }))
       .then((controllerBuild) => {
         if (opts.buildExample) {
           return markupExample.build(this._question, controllerBuild, path.join(this._question.dir, opts.exampleFile));
@@ -94,14 +94,15 @@ export default class Packer {
 }
 
 export const DEFAULT_DEPENDENCIES = {
-  'babel-core': '^6.16.0',
-  'webpack': '2.1.0-beta.21',
   'babel-core': '^6.17.0',
   'babel-loader': '^6.2.5',
   'babel-preset-es2015': '^6.16.0',
+  'css-loader': '^0.25.0',
   'pie-player': 'PieLabs/pie-player',
   'pie-controller': 'PieLabs/pie-controller',
   'pie-control-panel': 'PieLabs/pie-control-panel',
+  'style-loader': '^0.13.1',
+  'webpack': '2.1.0-beta.21'
 };
 
 export const DEFAULTS = {

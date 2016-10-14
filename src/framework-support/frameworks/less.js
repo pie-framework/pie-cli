@@ -3,7 +3,9 @@ export function support(dependencies) {
     return;
   }
   return {
-    npmDependencies: {},
+    npmDependencies: {
+      'less-loader': '^2.2.3'
+    },
     webpackLoaders: () => [
       {
         test: /\.less$/,
