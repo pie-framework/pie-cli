@@ -12,7 +12,7 @@ describe('controller-map', () => {
 
   describe('build', () => {
 
-    let bundlePath;
+    let buildResult;
 
     before(function (done) {
       this.timeout(40000);
@@ -26,31 +26,17 @@ describe('controller-map', () => {
         .then(() => build(question))
         .then((result) => {
           console.log(result);
-          done(new Error('todo..'));
+          buildResult = result;
+          done();
         })
         .catch((e) => {
           console.log(e.stack);
           done(new Error('test error'))
         });
-
-      // console.log('tmpPath: ', tmpPath);
-      // let projectPath = path.join(__dirname, 'controller-map-project');
-      // fs.copySync(projectPath, tmpPath);
-      // build(tmpPath, 'config.json', 'test-bundle.js')
-      //   .then((result) => {
-      //     bundlePath = result.path;
-      //     console.log('bundlePath:', bundlePath);
-      //     console.log(fs.readFileSync(bundlePath, { encoding: 'utf8' }));
-      //     done();
-      //   })
-      //   .catch((e) => {
-      //     console.log('error: ', e);
-      //     done(e);
-      //   });
     });
 
     it('builds the js file', () => {
-      expect(fs.existsSync(bundlePath)).to.eql(true);
+      expect(fs.existsSync(buildResult.path)).to.eql(true);
     });
   });
 });

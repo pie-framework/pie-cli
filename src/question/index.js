@@ -37,6 +37,16 @@ export default class Question {
     return this._dir;
   }
 
+  get config() {
+    return this._config;
+  }
+
+  get markup() {
+    if (!this._markup) {
+      this._markup = fs.readFileSync(path.join(this._dir, this._opts.markupFile));
+    }
+    return this._markup;
+  }
 
   get npmDependencies() {
     return _.reduce(this.pies, (acc, p) => {

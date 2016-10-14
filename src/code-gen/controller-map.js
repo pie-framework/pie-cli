@@ -5,22 +5,38 @@ import _ from 'lodash';
 import { removeFiles } from '../file-helper';
 import NpmDir from '../npm/npm-dir';
 import webpack from 'webpack';
-import camelCase from 'camel-case';
 import resolve from 'resolve';
 import { writeConfig } from './webpack-write-config';
+import { dependenciesToHash } from '../npm/dependency-helper';
 
 const logger = buildLogger();
 
+export let DEFAULT_OPTS = (outputDir) => {
+  return {
+    controllersFilename: 'controllers-map.js',
+    outputDir: outputDir
+  };
+}
+
+export const NPM_DEPENDENCIES = {
+  'babel-core': '^6.17.0',
+  'babel-loader': '^6.2.5',
+  'babel-preset-es2015': '^6.16.0'
+}
+
 /**
- * Exports a controller map to: `window.pie.controllerMap`,
- * Where the map contains the logic for each pie. Each piece of logic is stored using the name of the pie.
- * eg: 
- * 
- * window.pie.controllerMap['my-pie'].model([], {}, {}).then(function(result){ console.log(result); });
- * 
- * //TODO: make this configurable?
+ * Exports a controller map to: `window[uid]`.
+ * Where `uid` is a hash of the dependencies object's key/values.
+ * The object will contain a map of controllers accessible via: 
+ * ```
+ * window[uid][controllerName] //=> { version: '', model: Function, outcome: Function }
+ * //eg: 
+ * window['xxxxxxxxx']['my-pie'].model([], {}, {}).then(function(result){ console.log(result); });
+ * ```
  */
-export function build(question) {
+export function build(question, opts) {
+
+  opts = _.extend({}, DEFAULT_OPTS(question.dir), opts);
 
   let controllerPath = path.join(question.dir, 'controllers');
   fs.ensureDirSync(controllerPath);
@@ -41,17 +57,21 @@ export function build(question) {
     return acc;
   }, {});
 
-  let finalDependencies = _.extend({}, dependencies, {
-    'babel-core': '^6.17.0',
-    'babel-loader': '^6.2.5',
-    'babel-preset-es2015': '^6.16.0'
-  });
+  let uid = dependenciesToHash(dependencies);
+
+  logger.debug('dependencies:', dependencies, 'uid: ', uid);
+
+  let finalDependencies = _.extend({}, dependencies, NPM_DEPENDENCIES);
 
   logger.silly('[build] finalDependncies', finalDependencies);
 
   let writeEntryJs = () => {
     //TODO: hardcoding to x-controller here - is that safe?
-    let entrySrc = _.map(dependencies, (_, key) => `exports.${camelCase(key)} = require('${key}-controller')`);
+    let entrySrc = _.map(dependencies, (value, key) => {
+      return `exports['${key}'] = require('${key}-controller');
+exports['${key}'].version =  '${value}';`
+    });
+
     fs.writeFileSync(path.join(controllerPath, 'entry.js'), entrySrc, { encoding: 'utf8' });
     return Promise.resolve();
   }
@@ -62,9 +82,9 @@ export function build(question) {
       context: controllerPath,
       entry: path.join(controllerPath, 'entry.js'),
       output: {
-        path: controllerPath,
-        filename: 'controller-bundle.js',
-        library: 'controller-map',
+        path: opts.outputDir,
+        filename: opts.controllersFilename,
+        library: uid,
         libraryTarget: 'umd'
       },
       module: {
@@ -97,7 +117,12 @@ export function build(question) {
           _.forEach(stats.compilation.errors, (e) => logger.error(e));
           reject(new Error('Webpack build errors - see log'));
         } else {
-          resolve(config.output.filename);
+          resolve({
+            dir: config.output.path,
+            filename: config.output.filename,
+            path: path.join(config.output.path, config.output.filename),
+            library: uid
+          });
         }
       });
     });
@@ -106,8 +131,9 @@ export function build(question) {
   return controllerNpmDir.install(finalDependencies)
     .then(writeEntryJs)
     .then(runWebpack)
-    .then(() => {
-      logger.info('controller-map done!');
+    .then((result) => {
+      logger.info(`controller-map with uid: ${uid} written to: ${result.path}!`);
+      return result;
     })
     .catch((e) => logger.error(e));
 }

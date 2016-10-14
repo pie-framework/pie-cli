@@ -4,6 +4,7 @@ import * as controllerMap from '../code-gen/controller-map';
 import * as markupExample from '../code-gen/markup-example';
 import _ from 'lodash'
 import { buildLogger } from '../log-factory';
+import path from 'path';
 
 let logger = buildLogger();
 
@@ -44,7 +45,6 @@ export default class Packer {
 
     let buildElementBundle = (supportConfig) => {
 
-      //TODO: This has been externalised - will prob change anyway w/ new controller build.
       let pieController = {
         key: 'pie-controller',
         initSrc: `
@@ -58,20 +58,6 @@ export default class Packer {
       logger.silly('[buildElementBundle] libs: ', libs);
       return elementBundle.build(this._question.dir, libs, opts.pieJs, supportConfig.webpackLoaders.bind(supportConfig))
     };
-
-
-    // 1. create npm dir
-    /*
-
-    - client-dir 
-        index.html
-        config.json
-        package.json { comp: '../..'}
-        node_modules/
-        controller-dir/
-          package.json { comp-controller: '../../controller'}
-    */
-
 
     return this._npmDir.install(npmDependencies)
       .then(() => {
@@ -87,20 +73,20 @@ export default class Packer {
           .then(() => supportConfig);
       })
       .then(buildElementBundle)
-      .then(() => controllerMap.build(this._question.dir, opts.configFile, opts.controllersJs, this._question.npmDependencies))
+      .then(() => controllerMap.build(this._question))
+      .then((controllerBuild) => {
+        if (opts.buildExample) {
+          return markupExample.build(this._question, controllerBuild, path.join(this._question.dir, opts.exampleFile));
+        } else {
+          return Promise.resolve('');
+        }
+      })
       .then(() => {
         if (!opts.keepBuildAssets) {
           return this._npmDir.clean()
             .then(() => elementBundle.cleanBuildAssets(this._question.dir));
         } else {
           return Promise.resolve();
-        }
-      })
-      .then(() => {
-        if (opts.buildExample) {
-          return markupExample.build(this._question.dir, opts.markupFile, opts.exampleFile, opts.configFile);
-        } else {
-          return Promise.resolve('');
         }
       })
       .then(() => logger.debug('packing completed'));
