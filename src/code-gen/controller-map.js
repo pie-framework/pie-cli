@@ -72,7 +72,7 @@ export function build(question, opts) {
 exports['${key}'].version =  '${value}';`
     });
 
-    fs.writeFileSync(path.join(controllerPath, 'entry.js'), entrySrc, { encoding: 'utf8' });
+    fs.writeFileSync(path.join(controllerPath, 'entry.js'), entrySrc.join('\n'), { encoding: 'utf8' });
     return Promise.resolve();
   }
 
