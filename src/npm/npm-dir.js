@@ -5,27 +5,30 @@ import { spawn } from 'child_process';
 import readline from 'readline';
 import * as helper from './dependency-helper';
 import { fileLogger } from '../log-factory';
-import {removeFiles} from '../file-helper';
+import { removeFiles } from '../file-helper';
+
+let logger = fileLogger(__filename);
 
 export default class NpmDir {
 
   constructor(rootDir) {
     this.rootDir = rootDir;
-    this._logger = fileLogger(__filename);
-    this._logger.debug(`rootDir: ${rootDir}`);
-
+    logger.debug(`rootDir: ${rootDir}`);
   }
 
-  _spawnPromise(args) {
+  _spawnPromise(args, ignoreExitCode) {
+    ignoreExitCode = ignoreExitCode || false;
 
-    this._logger.info('spawn promise: args: ', args);
+    logger.info('spawn promise: args: ', args);
 
     let p = new Promise((resolve, reject) => {
 
       let s = spawn('npm', args, { cwd: this.rootDir });
 
+      let out = '';
+
       s.on('error', () => {
-        this._logger.error('npm install command failed - is npm installed?');
+        logger.error('npm install command failed - is npm installed?');
         reject();
       });
 
@@ -33,40 +36,37 @@ export default class NpmDir {
         input: s.stderr,
         terminal: false
       }).on('line', (line) => {
-        this._logger.error(line);
+        logger.error(line);
       });
 
       readline.createInterface({
         input: s.stdout,
         terminal: false
-      }).on('line',  (line) => {
-        this._logger.info(line);
+      }).on('line', (line) => {
+        logger.verbose(line);
+        out += line;
       });
 
       s.on('close', (code) => {
-        if (code !== 0) {
-          this._logger.error(args + ' failed. code: ' + code);
+        if (code !== 0 && !ignoreExitCode) {
+          logger.error(args + ' failed. code: ' + code);
           reject();
         } else {
-          resolve();
+          resolve({ stdout: out });
         }
       });
     });
     return p;
   };
 
-  _linkPromise(p) {
-    return this._spawnPromise(['link', p]);
-  }
-
   isInstalled() {
-    this._logger.silly('isInstalled');
+    logger.silly('isInstalled');
     return false;
   };
 
   _writePackageJson(dependencies) {
 
-    this._logger.silly('dependencies: ', dependencies);
+    logger.silly('dependencies: ', dependencies);
 
     let pkg = {
       name: 'tmp',
@@ -87,26 +87,43 @@ export default class NpmDir {
     return removeFiles(this.rootDir, ['node_modules', 'package.json']);
   }
 
-  install(dependencies) {
-    return this._writePackageJson(dependencies)
-      .then(() => this._install())
-      .then(() => this._linkLocalPies(dependencies));
-  };
+  //TODO: Clean up api here - install <> installMoreDependencies
+  //Get it to more accurately reflect what actions are being taken.
 
-  _linkLocalPies(pies) {
-
-    let localOnlyDependencies = _.pickBy(pies, (v) => {
-      return !helper.isSemver(v) && !helper.isGitUrl(v) && helper.pathIsDir(this.rootDir, v);
+  /**
+   * install more dependencies
+   */
+  installMoreDependencies(dependencies, opts) {
+    let deps = _.map(dependencies, (value, key) => {
+      if (helper.isSemver(value)) {
+        return `${key}@${value}`;
+      } else {
+        return value;
+      }
     });
 
-    let out = _.values(localOnlyDependencies).reduce((acc, p) => {
-      return acc.then(() => this._linkPromise(p));
-    }, Promise.resolve());
-    return out;
+    let save = (opts && opts.save) ? ['--save'] : [];
+    return this._install(deps.concat(save));
   };
 
-  _install() {
-    this._logger.silly('install');
-    return this._spawnPromise(['install']);
+  install(dependencies, opts) {
+
+    let pkgExists = fs.existsSync(path.join(this.rootDir, 'package.json'));
+
+    logger.silly('[install] pkgExists: ', pkgExists)
+    if (pkgExists && !opts.force) {
+      logger.info('[install] skipping install cmd');
+      return Promise.resolve({ skipped: true });
+    } else {
+      return this._writePackageJson(dependencies)
+        .then(() => this._install());
+    }
+  };
+
+  _install(args) {
+    args = args || [];
+    let cmd = ['install'].concat(args);
+    logger.silly('[install] > final cmd: ', cmd.join(' '));
+    return this._spawnPromise(cmd);
   };
 }

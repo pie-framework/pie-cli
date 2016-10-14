@@ -2,11 +2,11 @@ import winston from 'winston';
 import path from 'path';
 import _ from 'lodash';
 import fs from 'fs-extra';
+import stackTrace from 'stack-trace';
 
 let config = {
   'default': 'info'
 };
-
 export let init = (log) => {
   if (!log) {
     return;
@@ -94,5 +94,11 @@ export let fileLogger = (filename) => {
     label = parsed.name;
   }
   return getLogger(label);
+}
+
+
+export function buildLogger(){
+  let trace = stackTrace.get();
+  return fileLogger(trace[1].getFileName())
 }
 

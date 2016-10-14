@@ -6,3 +6,4 @@ lib
 node_modules
 typings
 typings.json
+.eslintrc.json

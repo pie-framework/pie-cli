@@ -1,7 +1,7 @@
 import jsesc from 'jsesc';
 import fs from 'fs-extra';
 import path from 'path';
-import {removeFiles} from '../file-helper';
+import { removeFiles } from '../file-helper';
 
 let mkExampleMarkup = (markup, model) => `
 <!doctype html>
@@ -53,15 +53,15 @@ let mkExampleMarkup = (markup, model) => `
 </html>
 `;
 
-export function build(root, srcFile, resultName, configFile){
-  let playerMarkup = fs.readFileSync(path.join(root, srcFile), {encoding: 'utf8'});
+export function build(root, srcFile, resultName, configFile) {
+  let playerMarkup = fs.readFileSync(path.join(root, srcFile), { encoding: 'utf8' });
   let model = fs.readJsonSync(path.join(root, configFile));
   let example = mkExampleMarkup(playerMarkup, model);
   let outpath = path.join(root, resultName);
-  fs.writeFileSync(outpath, example, {encoding: 'utf8'});
+  fs.writeFileSync(outpath, example, { encoding: 'utf8' });
   return Promise.resolve(outpath);
 }
 
-export function clean(root, markupName){
+export function clean(root, markupName) {
   return removeFiles(root, [markupName]);
 }

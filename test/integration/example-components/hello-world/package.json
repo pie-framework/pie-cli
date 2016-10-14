@@ -1,12 +1,20 @@
 {
   "name" : "hello-world",
   "version" : "1.0.0",
+  "license": "MIT",
+  "description": "Just a test pkg",
+  "repository": {
+    
+  },
   "main" : "lib/index.js",
   "dependencies": {
     "react" : "~15.3.2",
     "react-dom" : "~15.3.2"
   },
   "pie" : {
-    "version" : "~1.0.0"
+    "version" : "~1.0.0",
+    "build" : [ 
+      "less"
+    ] 
   }
 }

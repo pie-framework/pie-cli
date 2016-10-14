@@ -6,26 +6,26 @@ import { resolve } from 'path';
 import fs from 'fs-extra';
 import path from 'path';
 import temp from 'temp';
+import expandHomeDir from 'expand-home-dir';
 
-describe('Packer.pack', () => {
+describe('Packer.pack :: Vue', () => {
 
-  let rootDir = resolve('./test/integration/example-questions/one');
+  let rootDir = resolve('./test/integration/example-questions/vue-question');
   let componentsDir = resolve('./test/integration/example-components');
   let questionPath, question, frameworkSupport, packer;
   
   before(function (done) {
 
     this.timeout(50000);
-    
+
     let tmpPath = temp.mkdirSync('packer-test');
     console.log('packer-test tmp: ', tmpPath);
-    questionPath = path.join(tmpPath, 'example-questions', 'one');
+    questionPath = path.join(tmpPath, 'example-questions', 'vue-question');
     fs.copySync(rootDir, questionPath);
     fs.copySync(componentsDir, path.join(tmpPath, 'example-components'));
 
     frameworkSupport = FrameworkSupport.bootstrap([
-      path.join(__dirname, '../../../src/framework-support/frameworks/react'),
-      path.join(__dirname, '../../../src/framework-support/frameworks/less')
+      path.join(__dirname, '_vue-support')
     ]);
 
     question = new Question(questionPath);
