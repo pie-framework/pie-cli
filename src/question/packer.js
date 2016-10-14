@@ -22,7 +22,7 @@ export default class Packer {
   }
 
   clean(opts) {
-    logger.debug('[clean]', opts);
+    logger.info('[clean]', opts);
     opts = _.extend({}, DEFAULTS, opts);
     let root = this._question.dir;
     return this._npmDir.clean()
@@ -60,7 +60,7 @@ export default class Packer {
     };
 
 
-    return this._npmDir.install(npmDependencies, { force: opts.fullInstall })
+    return this._npmDir.install(npmDependencies)
       .then(() => {
         let pieDependencies = this._question.piePackageDependencies;
         logger.silly('pieDependencies: ', JSON.stringify(pieDependencies));
@@ -70,7 +70,7 @@ export default class Packer {
           return Promise.reject(new Error('no support config'));
         }
 
-        return this._npmDir.installMoreDependencies(supportConfig.npmDependencies)
+        return this._npmDir.installMoreDependencies(supportConfig.npmDependencies, { save: true })
           .then(() => supportConfig);
       })
       .then(buildElementBundle)
@@ -112,7 +112,8 @@ export const DEFAULTS = {
   markupFile: 'index.html',
   exampleFile: 'example.html',
   buildExample: false,
-  keepBuildAssets: false,
+  clean: false,
+  keepBuildAssets: true,
   pieJs: 'pie.js',
   controllersJs: 'controllers.js',
   fullInstall: false

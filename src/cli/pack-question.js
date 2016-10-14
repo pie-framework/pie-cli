@@ -21,14 +21,13 @@ marked.setOptions({
   renderer: new TerminalRenderer()
 });
 
-console.log('>>', require.main.filename);
 export let usage = marked(
   fs.readFileSync(path.join(require.main.filename, '../../docs/pack-question.md'), { encoding: 'utf8' }));
 
 export function run(args) {
 
   args.clean = args.clean === true || args.clean === 'true';
-  logger.info('args: ', args);
+  logger.debug('args: ', args);
 
   let dir = path.resolve(args.dir || process.cwd());
 
@@ -36,7 +35,7 @@ export function run(args) {
   let support = _.isArray(args.support) ? args.support : [args.support];
   support = _.map(support, (s) => path.resolve(path.join(dir, s)));
 
-  logger.info('support: ', support);
+  logger.silly('support: ', support);
 
   let frameworkSupport = FrameworkSupport.bootstrap(
     support.concat([
