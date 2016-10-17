@@ -2,7 +2,7 @@
 .idea
 .vscode
 jsconfig.json
-lib
+/lib
 node_modules
 typings
 typings.json
