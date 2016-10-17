@@ -39,7 +39,7 @@ export default class Packer {
 
     logger.silly('[pack] opts: ', opts);
 
-    let npmDependencies = _.extend({}, DEFAULT_DEPENDENCIES, this._question.npmDependencies);
+    let npmDependencies = _.extend({}, DEFAULT_DEPENDENCIES(opts.pieBranch), this._question.npmDependencies);
 
     logger.debug('npm dependencies: ', JSON.stringify(npmDependencies));
 
@@ -93,18 +93,27 @@ export default class Packer {
   }
 }
 
-export const DEFAULT_DEPENDENCIES = {
-  'babel-core': '^6.17.0',
-  'babel-loader': '^6.2.5',
-  'style-loader': '^0.13.1',
-  'css-loader': '^0.25.0',
-  'babel-preset-es2015': '^6.16.0',
-  'css-loader': '^0.25.0',
-  'pie-player': 'PieLabs/pie-player',
-  'pie-controller': 'PieLabs/pie-controller',
-  'pie-control-panel': 'PieLabs/pie-control-panel',
-  'style-loader': '^0.13.1',
-  'webpack': '2.1.0-beta.21'
+export let DEFAULT_DEPENDENCIES = (branch) => {
+
+  branch = branch || 'master';
+
+  let branchSpecific = {
+    'pie-player': `PieLabs/pie-player#${branch}`,
+    'pie-controller': `PieLabs/pie-controller#${branch}`,
+    'pie-control-panel': `PieLabs/pie-control-panel#${branch}`
+  }
+
+  return _.extend({
+    'babel-core': '^6.17.0',
+    'babel-loader': '^6.2.5',
+    'style-loader': '^0.13.1',
+    'css-loader': '^0.25.0',
+    'babel-preset-es2015': '^6.16.0',
+    'css-loader': '^0.25.0',
+    'style-loader': '^0.13.1',
+    'webpack': '2.1.0-beta.21'
+
+  }, branchSpecific);
 };
 
 export const DEFAULTS = {
@@ -117,5 +126,6 @@ export const DEFAULTS = {
   keepBuildAssets: true,
   pieJs: 'pie.js',
   controllersJs: 'controllers.js',
-  fullInstall: false
+  fullInstall: false,
+  pieBranch: 'develop'
 }

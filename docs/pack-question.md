@@ -9,6 +9,7 @@ It generates 2 javascript files:
 > Note: This doesn't generate the final question for you. To do that you'll need to create the final html page, include the 2 js files above, and use a controller that can interact with the controller-map.js file. See [pie-docs](http://pielabs.github.io/pie-docs) for more infomation.
 
 ### Options
+  `--pieBranch` - what branch of the pie dependencies (pie-player, pie-control-panel, etc) to use: default: `develop`.
   `--clean` - clean build assets before packing. default: `false`
   `--support` - a js file to load to add support for a build type. See below.
   `--dir` - the relative path to a directory to use as the root. This should contain `config.json` and `index.html` (default: the current working directory)
