@@ -21,7 +21,7 @@ let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
         
         var player = document.querySelector('pie-player');
 
-        player.addEventListener('pie-player-ready', function(event){
+        player.addEventListener('pie.player-ready', function(event){
           var pieController = new pie.Controller(model, window['${controllerUid}']);
           player.controller = pieController;
           player.env = env;
