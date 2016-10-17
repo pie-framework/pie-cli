@@ -22,6 +22,10 @@ let baseConfig = (root) => {
               resolve.sync('babel-preset-es2015', { basedir: root })
             ]
           },
+        },
+        {
+          test: /\.css$/,
+          loader: 'style!css'
         }
       ]
     },

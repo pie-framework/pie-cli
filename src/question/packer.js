@@ -96,6 +96,8 @@ export default class Packer {
 export const DEFAULT_DEPENDENCIES = {
   'babel-core': '^6.17.0',
   'babel-loader': '^6.2.5',
+  'style-loader': '^0.13.1',
+  'css-loader': '^0.25.0',
   'babel-preset-es2015': '^6.16.0',
   'css-loader': '^0.25.0',
   'pie-player': 'PieLabs/pie-player',
