@@ -1,0 +1,9 @@
+{
+  "name": "vue-component-controller",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "lodash": "~4.16.4"
+  }
+}

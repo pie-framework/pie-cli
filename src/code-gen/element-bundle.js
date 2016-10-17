@@ -84,7 +84,7 @@ function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
 
   let frameworkLoaders = getLoaders((k) => resolve.sync(k, { basedir: root }));
 
-  logger.silly(`frameworkLoaders: ${frameworkLoaders}`);
+  logger.silly(`frameworkLoaders: ${JSON.stringify(frameworkLoaders)}`);
   config.module.loaders = config.module.loaders.concat(frameworkLoaders);
 
   config.module.loaders = _.map(config.module.loaders, (l) => {

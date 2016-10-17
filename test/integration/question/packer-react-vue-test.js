@@ -5,19 +5,21 @@ import { expect } from 'chai';
 import { join } from 'path';
 import fs from 'fs-extra';
 import path from 'path';
-import testHelper from '../integration-test-helper';
+import { setUpTmpQuestionAndComponents } from '../integration-test-helper';
 
-describe('Packer.pack :: Vue', () => {
+describe('Packer.pack :: React + Vue', () => {
 
   let questionPath, question, frameworkSupport, packer;
 
   before(function (done) {
 
     this.timeout(50000);
-    let tmpPath = testHelper.setUpTmpQuestionAndComponents('packer-vue-test');
-    let questionPath = join(tmpPath, 'example-questions/vue-question');
+    let tmpPath = setUpTmpQuestionAndComponents('packer-react-and-vue-test');
+    questionPath = join(tmpPath, 'example-questions/react-and-vue-question');
 
     frameworkSupport = FrameworkSupport.bootstrap([
+      path.join(__dirname, '../../../src/framework-support/frameworks/react'),
+      path.join(__dirname, '../../../src/framework-support/frameworks/less'),
       path.join(__dirname, '_vue-support')
     ]);
 
@@ -35,4 +37,4 @@ describe('Packer.pack :: Vue', () => {
   it('builds ' + DEFAULTS.pieJs, () => {
     expect(fs.existsSync(path.join(questionPath, DEFAULTS.pieJs))).to.eql(true);
   });
-});
+})

@@ -37,6 +37,16 @@ export default class Question {
     return this._dir;
   }
 
+  get config() {
+    return this._config;
+  }
+
+  get markup() {
+    if (!this._markup) {
+      this._markup = fs.readFileSync(path.join(this._dir, this._opts.markupFile));
+    }
+    return this._markup;
+  }
 
   get npmDependencies() {
     return _.reduce(this.pies, (acc, p) => {
@@ -59,7 +69,12 @@ export default class Question {
       if (existing) {
         existing.versions = _(existing.versions).concat(p.version).uniq();
       } else {
-        acc.push({ name: p.name, versions: [p.version], localPath: this._dependencies[p.name] });
+        acc.push({
+          name: p.name,
+          versions: [p.version],
+          localPath: this._dependencies[p.name],
+          installedPath: path.join(this._dir, 'node_modules', p.name)
+        });
       }
       return acc;
     }

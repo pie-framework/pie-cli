@@ -1,6 +1,8 @@
 import semver from 'semver';
 import fs from 'fs-extra';
 import path from 'path';
+import crypto from 'crypto';
+import _ from 'lodash';
 
 export let isGitUrl = (str) => {
   var re = /(?:git|ssh|https?|git@[\w\.]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-/_]+?)$/;
@@ -17,4 +19,18 @@ export let pathIsDir = (root, v) => {
   } catch (e) {
     return false;
   }
+};
+
+export let dependenciesToHash = (dependencies) => {
+  if (!dependencies || !_.isObject(dependencies) || _.isEmpty(dependencies)) {
+    throw new Error('dependencies must be an non empty object');
+  }
+
+  let raw = _.reduce(dependencies, (acc, value, key) => {
+    acc += `${key}:${value}`;
+    return acc;
+  }, '');
+
+  return crypto.createHash('md5').update(raw).digest('hex');
+
 };

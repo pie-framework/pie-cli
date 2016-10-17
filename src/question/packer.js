@@ -4,6 +4,7 @@ import * as controllerMap from '../code-gen/controller-map';
 import * as markupExample from '../code-gen/markup-example';
 import _ from 'lodash'
 import { buildLogger } from '../log-factory';
+import path from 'path';
 
 let logger = buildLogger();
 
@@ -44,7 +45,6 @@ export default class Packer {
 
     let buildElementBundle = (supportConfig) => {
 
-      //TODO: This has been externalised - will prob change anyway w/ new controller build.
       let pieController = {
         key: 'pie-controller',
         initSrc: `
@@ -58,7 +58,6 @@ export default class Packer {
       logger.silly('[buildElementBundle] libs: ', libs);
       return elementBundle.build(this._question.dir, libs, opts.pieJs, supportConfig.webpackLoaders.bind(supportConfig))
     };
-
 
     return this._npmDir.install(npmDependencies)
       .then(() => {
@@ -74,7 +73,14 @@ export default class Packer {
           .then(() => supportConfig);
       })
       .then(buildElementBundle)
-      .then(() => controllerMap.build(this._question.dir, opts.configFile, opts.controllersJs, this._question.npmDependencies))
+      .then(() => controllerMap.build(this._question, { controllersFilename: opts.controllersJs }))
+      .then((controllerBuild) => {
+        if (opts.buildExample) {
+          return markupExample.build(this._question, controllerBuild, path.join(this._question.dir, opts.exampleFile));
+        } else {
+          return Promise.resolve('');
+        }
+      })
       .then(() => {
         if (!opts.keepBuildAssets) {
           return this._npmDir.clean()
@@ -83,27 +89,22 @@ export default class Packer {
           return Promise.resolve();
         }
       })
-      .then(() => {
-        if (opts.buildExample) {
-          return markupExample.build(this._question.dir, opts.markupFile, opts.exampleFile, opts.configFile);
-        } else {
-          return Promise.resolve('');
-        }
-      })
       .then(() => logger.debug('packing completed'));
   }
 }
 
 export const DEFAULT_DEPENDENCIES = {
-  'babel-core': '^6.16.0',
-  'webpack': '2.1.0-beta.21',
+  'babel-core': '^6.17.0',
   'babel-loader': '^6.2.5',
   'style-loader': '^0.13.1',
   'css-loader': '^0.25.0',
   'babel-preset-es2015': '^6.16.0',
+  'css-loader': '^0.25.0',
   'pie-player': 'PieLabs/pie-player',
   'pie-controller': 'PieLabs/pie-controller',
   'pie-control-panel': 'PieLabs/pie-control-panel',
+  'style-loader': '^0.13.1',
+  'webpack': '2.1.0-beta.21'
 };
 
 export const DEFAULTS = {

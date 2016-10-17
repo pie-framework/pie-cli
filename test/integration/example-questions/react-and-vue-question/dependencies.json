@@ -1,0 +1,4 @@
+{
+  "vue-component": "../../example-components/vue-component",
+  "hello-world": "../../example-components/hello-world"
+}

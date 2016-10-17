@@ -4,34 +4,39 @@ import os from 'os';
 import temp from 'temp';
 import fs from 'fs-extra';
 import path from 'path';
+import * as testHelper from '../integration-test-helper';
+import Question from '../../../src/question';
+import NpmDir from '../../../src/npm/npm-dir';
 
 describe('controller-map', () => {
 
   describe('build', () => {
 
-    let bundlePath;
+    let buildResult;
 
-    before((done) => {
+    before(function (done) {
+      this.timeout(40000);
 
-      let tmpPath = temp.mkdirSync('controller-map-test');
-      console.log('tmpPath: ', tmpPath);
-      let projectPath = path.join(__dirname, 'controller-map-project');
-      fs.copySync(projectPath, tmpPath);
-      build(tmpPath, 'config.json', 'test-bundle.js')
+      let tmpPath = testHelper.setUpTmpQuestionAndComponents('controller-map-test');
+
+      let questionPath = path.join(tmpPath, 'example-questions', 'one');
+      let question = new Question(questionPath);
+      let npmDir = new NpmDir(question.dir);
+      npmDir.install(question.npmDependencies)
+        .then(() => build(question))
         .then((result) => {
-          bundlePath = result.path;
-          console.log('bundlePath:', bundlePath);
-          console.log(fs.readFileSync(bundlePath, { encoding: 'utf8' }));
+          console.log(result);
+          buildResult = result;
           done();
         })
         .catch((e) => {
-          console.log('error: ', e);
-          done(e);
+          console.log(e.stack);
+          done(new Error('test error'))
         });
     });
 
     it('builds the js file', () => {
-      expect(fs.existsSync(bundlePath)).to.eql(true);
+      expect(fs.existsSync(buildResult.path)).to.eql(true);
     });
   });
 });

@@ -1,73 +1,143 @@
 import fs from 'fs-extra';
 import path from 'path';
-import {fileLogger} from '../log-factory';
+import { buildLogger } from '../log-factory';
 import _ from 'lodash';
-import {removeFiles} from '../file-helper';
+import { removeFiles } from '../file-helper';
+import NpmDir from '../npm/npm-dir';
+import webpack from 'webpack';
+import resolve from 'resolve';
+import { writeConfig } from './webpack-write-config';
+import { dependenciesToHash } from '../npm/dependency-helper';
 
-const babel = require('babel-core');
-const logger = fileLogger(__filename);
+const logger = buildLogger();
 
-function wrapModule(name, src){
-  return `
-root.pie.controllerMap['${name}'] = {};
-(function(exports, require){
-  ${src}
-})(root.pie.controllerMap['${name}'], root.pie.require)
-`;
+export let DEFAULT_OPTS = (outputDir) => {
+  return {
+    controllersFilename: 'controllers-map.js',
+    outputDir: outputDir
+  };
+}
+
+export const NPM_DEPENDENCIES = {
+  'babel-core': '^6.17.0',
+  'babel-loader': '^6.2.5',
+  'babel-preset-es2015': '^6.16.0'
 }
 
 /**
- * Exports a controller map to: `window.pie.controllerMap`,
- * Where the map contains the logic for each pie. Each piece of logic is stored using the name of the pie.
- * eg: 
- * 
- * window.pie.controllerMap['my-pie'].model([], {}, {}).then(function(result){ console.log(result); });
- * 
- * //TODO: make this configurable?
+ * Exports a controller map to: `window[uid]`.
+ * Where `uid` is a hash of the dependencies object's key/values.
+ * The object will contain a map of controllers accessible via: 
+ * ```
+ * window[uid][controllerName] //=> { version: '', model: Function, outcome: Function }
+ * //eg: 
+ * window['xxxxxxxxx']['my-pie'].model([], {}, {}).then(function(result){ console.log(result); });
+ * ```
  */
-export function build(root, jsonFile, bundleName, pies){
-  
-  let moduleSrc = _(pies).keys().map((d) => {
-    let controllerPath = path.join(root, 'node_modules', d, 'controller.js');
-    let src = fs.readFileSync( controllerPath, {encoding: 'utf8'});
-    let result = babel.transform(src, {presets: [require.resolve('babel-preset-es2015')]});
-    return wrapModule(d, result.code);
-  }).value().join('\n');
+export function build(question, opts) {
 
+  opts = _.extend({}, DEFAULT_OPTS(question.dir), opts);
 
-  let src = `
-  (function(root){
-    root.pie = root.pie || {};
+  let controllerPath = path.join(question.dir, 'controllers');
+  fs.ensureDirSync(controllerPath);
 
-    var supportedLibraries = {
-      lodash: _
+  logger.silly('[build] controllerPath', controllerPath);
+
+  let controllerNpmDir = new NpmDir(controllerPath);
+
+  let dependencies = _.reduce(question.pies, (acc, p) => {
+    let pieControllerDir = path.join(p.installedPath, 'controller');
+    if (fs.existsSync(pieControllerDir)) {
+      let modulePath = path.relative(controllerPath, pieControllerDir);
+      acc[p.name] = modulePath;
+    } else {
+      logger.warn('[build] the following path doesnt exist: ', pieControllerDir);
     }
 
-    /**
-     * add support for require in modules
-     */
-    root.pie.require = function(name){
-      if(supportedLibraries.hasOwnProperty(name)){
-        if(!supportedLibraries[name]){
-          throw new Error('This library is supported but maybe it has not been loaded? ' + name);
-        } else {
-          return supportedLibraries[name];
-        }
-      } else {
-        throw new Error('This library is not supported: ' + name);
+    return acc;
+  }, {});
+
+  let uid = dependenciesToHash(dependencies);
+
+  logger.debug('dependencies:', dependencies, 'uid: ', uid);
+
+  let finalDependencies = _.extend({}, dependencies, NPM_DEPENDENCIES);
+
+  logger.silly('[build] finalDependncies', finalDependencies);
+
+  let writeEntryJs = () => {
+    //TODO: hardcoding to x-controller here - is that safe?
+    let entrySrc = _.map(dependencies, (value, key) => {
+      return `exports['${key}'] = require('${key}-controller');
+exports['${key}'].version =  '${value}';`
+    });
+
+    fs.writeFileSync(path.join(controllerPath, 'entry.js'), entrySrc.join('\n'), { encoding: 'utf8' });
+    return Promise.resolve();
+  }
+
+  let runWebpack = () => {
+
+    let config = {
+      context: controllerPath,
+      entry: path.join(controllerPath, 'entry.js'),
+      output: {
+        path: opts.outputDir,
+        filename: opts.controllersFilename,
+        library: uid,
+        libraryTarget: 'umd'
+      },
+      module: {
+        loaders: [
+          {
+            test: /\.js$/,
+            loader: 'babel-loader',
+            query: {
+              presets: [
+                resolve.sync('babel-preset-es2015', { basedir: controllerPath })]
+            }
+          }
+        ]
+      },
+      resolve: {
+        root: path.resolve(path.join(controllerPath, 'node_modules'))
+      },
+      resolveLoader: {
+        root: path.resolve(path.join(controllerPath, 'node_modules'))
       }
-    }
+    };
 
-    root.pie.controllerMap = root.pie.controllerMap || {};
-    ${moduleSrc}
-  })(this);
-  `;
+    writeConfig(path.join(controllerPath, 'webpack.config.js'), config);
 
-  let bundlePath = path.join(root, bundleName);
-  fs.writeFileSync(bundlePath, src, {encoding: 'utf8'});
-  return Promise.resolve({path: bundlePath, src: src});
+    return new Promise((resolve, reject) => {
+      webpack(config, (err, stats) => {
+        if (err) {
+          reject(err);
+        } else if (stats.compilation.errors.length > 0) {
+          _.forEach(stats.compilation.errors, (e) => logger.error(e));
+          reject(new Error('Webpack build errors - see log'));
+        } else {
+          resolve({
+            dir: config.output.path,
+            filename: config.output.filename,
+            path: path.join(config.output.path, config.output.filename),
+            library: uid
+          });
+        }
+      });
+    });
+  }
+
+  return controllerNpmDir.install(finalDependencies)
+    .then(writeEntryJs)
+    .then(runWebpack)
+    .then((result) => {
+      logger.info(`controller-map with uid: ${uid} written to: ${result.path}!`);
+      return result;
+    })
+    .catch((e) => logger.error(e));
 }
 
-export function clean(root, bundleName){
-  return removeFiles(root, [bundleName]);
+export function clean(root, bundleName) {
+  return removeFiles(root, ['controllers', bundleName]);
 }

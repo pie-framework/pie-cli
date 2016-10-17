@@ -77,8 +77,8 @@ describe('Question', () => {
       it('returns 2 pie', () => {
         let q = new Question(__dirname, {});
         expect(q.pies).to.eql([
-          { name: 'my-pie', versions: ['1.0.0'], localPath: '../..' },
-          { name: 'my-other-pie', versions: ['1.0.0'], localPath: undefined }
+          { name: 'my-pie', versions: ['1.0.0'], localPath: '../..', installedPath: path.join(__dirname, 'node_modules/my-pie') },
+          { name: 'my-other-pie', versions: ['1.0.0'], localPath: undefined, installedPath: path.join(__dirname, 'node_modules/my-other-pie') }
         ]);
       });
     });

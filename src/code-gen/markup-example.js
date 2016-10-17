@@ -3,14 +3,14 @@ import fs from 'fs-extra';
 import path from 'path';
 import { removeFiles } from '../file-helper';
 
-let mkExampleMarkup = (markup, model) => `
+let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
 <!doctype html>
 <html>
   <head>
     <!-- lodash is one of the supported libs on the controller side -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.2/lodash.js" type="text/javascript"></script>
     <script src="pie.js" type="text/javascript"></script>
-    <script src="controllers.js" type="text/javascript"></script>
+    <script src="${controllerFile}" type="text/javascript"></script>
     <script type="text/javascript">
     
       document.addEventListener('DOMContentLoaded', function(){
@@ -22,7 +22,7 @@ let mkExampleMarkup = (markup, model) => `
         var player = document.querySelector('pie-player');
 
         player.addEventListener('pie-player-ready', function(event){
-          var pieController = new pie.Controller(model, pie.controllerMap);
+          var pieController = new pie.Controller(model, window['${controllerUid}']);
           player.controller = pieController;
           player.env = env;
           player.session = session;
@@ -53,13 +53,17 @@ let mkExampleMarkup = (markup, model) => `
 </html>
 `;
 
-export function build(root, srcFile, resultName, configFile) {
-  let playerMarkup = fs.readFileSync(path.join(root, srcFile), { encoding: 'utf8' });
-  let model = fs.readJsonSync(path.join(root, configFile));
-  let example = mkExampleMarkup(playerMarkup, model);
-  let outpath = path.join(root, resultName);
-  fs.writeFileSync(outpath, example, { encoding: 'utf8' });
-  return Promise.resolve(outpath);
+export function build(question, controller, output) {
+  let example = mkExampleMarkup(question.markup, question.config, controller.filename, controller.library);
+  return new Promise((resolve, reject) => {
+    fs.writeFile(output, example, { encoding: 'utf8' }, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(output);
+      }
+    });
+  });
 }
 
 export function clean(root, markupName) {
