@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+if [ -d ".git" ]; then
+  exec ln -s ../../git-hooks/post-checkout .git/hooks/post-checkout
+fi
+
+exit 0
