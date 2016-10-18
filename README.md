@@ -1,5 +1,6 @@
 # pie-cli 
 
+[![Build Status](https://travis-ci.org/PieLabs/pie-cli.svg?branch=develop)](https://travis-ci.org/PieLabs/pie-cli)
 
 ## Install
 
