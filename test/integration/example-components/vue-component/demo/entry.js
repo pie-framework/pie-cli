@@ -1,4 +1,4 @@
 import VueComponent from '../lib/index';
 
-document.registerElement('vue-component', VueComponent);
+customElements.define('vue-component', VueComponent);
 

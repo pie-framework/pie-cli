@@ -37,7 +37,7 @@ function writeEntryJs(root, pies) {
     throw new Error('Custom Elements arent supported');
   }`;
 
-  let registerElementSrc = (p, index) => `
+  let defineCustomElement = (p, index) => `
   import comp${index} from '${p}';
   //customElements v1 
   customElements.define('${p}', comp${index});
@@ -47,7 +47,7 @@ function writeEntryJs(root, pies) {
     if (p.hasOwnProperty('initSrc')) {
       return p.initSrc;
     } else {
-      return registerElementSrc(p, index);
+      return defineCustomElement(p, index);
     }
   };
 
