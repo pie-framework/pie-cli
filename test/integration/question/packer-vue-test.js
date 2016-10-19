@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import fs from 'fs-extra';
 import path from 'path';
-import testHelper from '../integration-test-helper';
+import { setUpTmpQuestionAndComponents } from '../integration-test-helper';
 
 describe('Packer.pack :: Vue', () => {
 
@@ -14,8 +14,8 @@ describe('Packer.pack :: Vue', () => {
   before(function (done) {
 
     this.timeout(50000);
-    let tmpPath = testHelper.setUpTmpQuestionAndComponents('packer-vue-test');
-    let questionPath = join(tmpPath, 'example-questions/vue-question');
+    let tmpPath = setUpTmpQuestionAndComponents('packer-vue-test');
+    questionPath = join(tmpPath, 'example-questions/vue-question');
 
     frameworkSupport = FrameworkSupport.bootstrap([
       path.join(__dirname, '_vue-support')
