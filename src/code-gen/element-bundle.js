@@ -14,16 +14,6 @@ let baseConfig = (root) => {
     module: {
       loaders: [
         {
-          test: /\.js$/,
-          loader: resolve.sync('babel-loader', { basedir: root }),
-          query: {
-            babelrc: false,
-            presets: [
-              resolve.sync('babel-preset-es2015', { basedir: root })
-            ]
-          },
-        },
-        {
           test: /\.css$/,
           loader: 'style!css'
         }
@@ -43,9 +33,15 @@ const ENTRY_JS = 'entry.js';
 
 function writeEntryJs(root, pies) {
 
-  let registerElementSrc = (p, index) => `import comp${index} from '${p}';
-document.registerElement('${p}', comp${index});
-`;
+  let preamble = `if(!customElements){
+    throw new Error('Custom Elements arent supported');
+  }`;
+
+  let registerElementSrc = (p, index) => `
+  import comp${index} from '${p}';
+  //customElements v1 
+  customElements.define('${p}', comp${index});
+  `;
 
   let init = (p, index) => {
     if (p.hasOwnProperty('initSrc')) {
@@ -55,7 +51,9 @@ document.registerElement('${p}', comp${index});
     }
   };
 
-  let js = _.map(pies, init).join('\n');
+  let js = `${preamble}
+  ${_.map(pies, init).join('\n')};
+  `;
 
   return new Promise((resolve, reject) => {
     let entryPath = path.join(root, ENTRY_JS);
@@ -68,7 +66,6 @@ document.registerElement('${p}', comp${index});
     });
   });
 }
-
 
 /**
  * @param loaders {Array[{(resolve) => Object}]}

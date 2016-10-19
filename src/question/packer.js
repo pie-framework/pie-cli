@@ -98,9 +98,11 @@ export let DEFAULT_DEPENDENCIES = (branch) => {
   branch = branch || 'master';
 
   let branchSpecific = {
-    'pie-player': `PieLabs/pie-player#${branch}`,
     'pie-controller': `PieLabs/pie-controller#${branch}`,
-    'pie-control-panel': `PieLabs/pie-control-panel#${branch}`
+    // 'pie-player': `PieLabs/pie-player#${branch}`,
+    // 'pie-control-panel': `PieLabs/pie-control-panel#${branch}`
+    'pie-player': `PieLabs/pie-player#feature/custom-elements-v1`,
+    'pie-control-panel': `PieLabs/pie-control-panel#feature/custom-elements-v1`
   }
 
   return _.extend({

@@ -15,18 +15,18 @@ export function support(dependencies) {
 
   return {
     npmDependencies: {
-      'babel-preset-es2015': '~6.16.0',
       'babel-preset-react': '~6.16.0'
     },
-    webpackLoaders: (resolve) => {
+    webpackLoaders: () => {
       return [
         {
           test: /.(jsx)?$/,
           loader: 'babel-loader',
+          //Don't read in .babelrc files from the dependencies
           query: {
+            babelrc: false,
             presets: [
-              resolve('babel-preset-es2015'),
-              resolve('babel-preset-react')
+              'babel-preset-react'
             ]
           }
         }

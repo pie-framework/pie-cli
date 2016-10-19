@@ -3,11 +3,8 @@ import ReactDOM from 'react-dom';
 import Tester from './tester';
 
 export default class HelloWorld extends HTMLElement {
-  createdCallback() {
-    console.log('created..');
-  }
 
-  attachedCallback() {
+  connectedCallback() {
     console.log('attached..');
     this.dispatchEvent(new CustomEvent('pie.register', { bubbles: true }));
   }

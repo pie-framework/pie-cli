@@ -1,6 +1,5 @@
 import jsesc from 'jsesc';
 import fs from 'fs-extra';
-import path from 'path';
 import { removeFiles } from '../file-helper';
 
 let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
@@ -12,23 +11,22 @@ let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
     <script src="pie.js" type="text/javascript"></script>
     <script src="${controllerFile}" type="text/javascript"></script>
     <script type="text/javascript">
-    
-      document.addEventListener('DOMContentLoaded', function(){
 
-        env = {mode: 'gather'};
-        model = ${jsesc(model)};
-        session = [];
+        window.pie = window.pie || {};
+        window.pie.env = {mode: 'gather'};
+        window.pie.model = ${jsesc(model)};
+        window.pie.session = [];
         
-        var player = document.querySelector('pie-player');
-
-        player.addEventListener('pie.player-ready', function(event){
-          var pieController = new pie.Controller(model, window['${controllerUid}']);
+        document.addEventListener('pie.player-ready', function(event){
+          var player = event.target;
+          var pieController = new pie.Controller(window.pie.model, window['${controllerUid}']);
           player.controller = pieController;
-          player.env = env;
-          player.session = session;
+          player.env = window.pie.env;
+          player.session = window.pie.session;
           
           var panel = document.querySelector('pie-control-panel');
-          panel.env = { mode: 'gather' };
+          panel.env = window.pie.env; 
+          
           panel.addEventListener('envChanged', function(event){
             console.log('envChanged', event.target.env);
             player.env = event.target.env;    
@@ -41,7 +39,6 @@ let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
             }
           });
         });
-      });
     </script>
   </head>
   <body>
