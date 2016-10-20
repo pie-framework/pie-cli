@@ -8,7 +8,7 @@ describe('pack-question', () => {
     cmd = require('../../../src/cli/pack-question', {
       '../question': {},
       '../question/packer': {}
-    }).default;
+    });
   });
 
   describe('match', () => {
