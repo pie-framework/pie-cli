@@ -1,3 +1,4 @@
+//@flow 
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import fs from 'fs-extra';
@@ -5,13 +6,22 @@ import path from 'path';
 
 const logger = buildLogger();
 
+type NameAndVersions = { name: string, versions: Array<string> };
+
 /** 
  * A representation of a pie question directory,
  * which includes a `config.json`, `index.html`, maybe `dependencies.json`
  * And can also include `node_modules`
  */
 export default class Question {
-  constructor(dir, opts) {
+
+  _opts: any;
+  _dir: string;
+  _markup: string;
+  _config: any;
+  _dependencies: any;
+
+  constructor(dir: string, opts: mixed) {
 
     opts = _.extend({}, {
       configFile: 'config.json',
@@ -29,26 +39,26 @@ export default class Question {
     logger.silly('dependencies', this._dependencies);
   }
 
-  _readJson(n) {
+  _readJson(n: string): any {
     return fs.readJsonSync(path.join(this._dir, n));
   }
 
-  get dir() {
+  get dir(): string {
     return this._dir;
   }
 
-  get config() {
+  get config(): any {
     return this._config;
   }
 
-  get markup() {
+  get markup(): string {
     if (!this._markup) {
       this._markup = fs.readFileSync(path.join(this._dir, this._opts.markupFile));
     }
     return this._markup;
   }
 
-  get npmDependencies() {
+  get npmDependencies(): any {
     return _.reduce(this.pies, (acc, p) => {
       logger.silly('[npmDependencies] p: ', p);
       if (p.localPath) {
@@ -61,7 +71,7 @@ export default class Question {
   /**
    * @return Array[{name:, versions: []}]
    */
-  get pies() {
+  get pies(): Array<NameAndVersions> {
     let rawPies = _.map(this._config.pies, 'pie');
 
     let toUniqueNames = (acc, p) => {
@@ -84,7 +94,7 @@ export default class Question {
     return out;
   }
 
-  get piePackages() {
+  get piePackages(): any {
     let nodeModulesPath = path.join(this._dir, 'node_modules');
 
     if (!fs.existsSync(nodeModulesPath)) {
@@ -97,7 +107,7 @@ export default class Question {
       .value();
   }
 
-  get piePackageDependencies() {
+  get piePackageDependencies(): Array<any> {
     let mergeDependencies = (acc, deps) => {
       return _.reduce(deps, (acc, value, key) => {
         if (acc[key]) {

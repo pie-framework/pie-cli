@@ -16,7 +16,7 @@ npm install -g pie-cli
 ```bash
 git clone git@github.com:PieLabs/pie-cli.git 
 cd pie-cli 
-npm install -g babel-cli babel-preset-es2015
+npm install -g babel-cli 
 npm install 
 npm run build
 npm link 
@@ -39,6 +39,15 @@ npm link
 babel --watch src -d lib
 # in some other dir 
 pie-lib --help
+```
+
+#### Flow 
+
+Flow is configured (but only a few files have been flowified). To use:
+
+```shell
+npm install -g flow-bin 
+flow
 ```
 
 #### Tests
