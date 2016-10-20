@@ -17,6 +17,10 @@ class Cmd extends CliCommand {
     args.clean = args.clean === true || args.clean === 'true';
     logger.silly('args: ', args);
     return Promise.reject(new Error('todo...'));
+    //1. npm install for elements
+    //2. npm install for controllers
+    //3. webpack dev middleware for both 
+    //4. set up a watch from src -> node_modules
   }
 }
 
