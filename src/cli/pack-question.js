@@ -1,58 +1,56 @@
 import { buildLogger } from '../log-factory';
 import Question from '../question';
 import Packer from '../question/packer';
-import fs from 'fs-extra';
-import path from 'path';
+import { resolve, join } from 'path';
 import FrameworkSupport from '../framework-support';
 import _ from 'lodash';
+import CliCommand from './cli-command';
 
 const logger = buildLogger();
 
-var marked = require('marked');
-var TerminalRenderer = require('marked-terminal');
+class PackQuestionCommand extends CliCommand {
 
-export function match(args) {
-  return args._.indexOf('pack-question') !== -1;
-}
+  constructor() {
+    super(
+      'pack-question',
+      'generate a question package'
+    )
+  }
 
-export let summary = 'pack-question - generate a question package';
+  run(args) {
+    args.clean = args.clean === true || args.clean === 'true';
+    logger.silly('args: ', args);
 
-marked.setOptions({
-  renderer: new TerminalRenderer()
-});
+    let dir = resolve(args.dir || process.cwd());
 
-export let usage = marked(
-  fs.readFileSync(path.join(require.main.filename, '../../docs/pack-question.md'), { encoding: 'utf8' }));
+    args.support = args.support || [];
+    let support = _.isArray(args.support) ? args.support : [args.support];
+    support = _.map(support, (s) => resolve(join(dir, s)));
 
-export function run(args) {
+    logger.silly('support: ', support);
 
-  args.clean = args.clean === true || args.clean === 'true';
-  logger.debug('args: ', args);
+    let frameworkSupport = FrameworkSupport.bootstrap(
+      support.concat([
+        join(__dirname, '../framework-support/frameworks/react'),
+        join(__dirname, '../framework-support/frameworks/less')
+      ]));
 
-  let dir = path.resolve(args.dir || process.cwd());
+    logger.silly('[run] frameworkSupport: ', frameworkSupport);
 
-  args.support = args.support || [];
-  let support = _.isArray(args.support) ? args.support : [args.support];
-  support = _.map(support, (s) => path.resolve(path.join(dir, s)));
-
-  logger.silly('support: ', support);
-
-  let frameworkSupport = FrameworkSupport.bootstrap(
-    support.concat([
-      path.join(__dirname, '../framework-support/frameworks/react'),
-      path.join(__dirname, '../framework-support/frameworks/less')
-    ]));
-
-  logger.silly('[run] frameworkSupport: ', frameworkSupport);
-
-  let question = new Question(dir);
-  let packer = new Packer(question, frameworkSupport);
+    let question = new Question(dir);
+    let packer = new Packer(question, frameworkSupport);
 
 
-  if (args.clean) {
-    return packer.clean(args)
-      .then(() => packer.pack(args));
-  } else {
-    return packer.pack(args);
+    if (args.clean) {
+      return packer.clean(args)
+        .then(() => packer.pack(args));
+    } else {
+      return packer.pack(args);
+    }
   }
 }
+
+let cmd = new PackQuestionCommand();
+export let match = cmd.match.bind(cmd);
+export let usage = cmd.usage;
+export let summary = cmd.summary;
