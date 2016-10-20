@@ -16,7 +16,7 @@ npm install -g pie-cli
 ```bash
 git clone git@github.com:PieLabs/pie-cli.git 
 cd pie-cli 
-npm install -g babel-cli babel-preset-es2015
+npm install -g babel-cli 
 npm install 
 npm run build
 npm link 

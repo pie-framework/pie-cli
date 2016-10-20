@@ -37,6 +37,8 @@ export const NPM_DEPENDENCIES = {
  */
 export function build(question: Question, opts: any) {
 
+  question.unknownClassProperty = 'x'; //will trigger a flow error
+
   opts = _.extend({}, DEFAULT_OPTS(question.dir), opts);
 
   let controllerPath = path.join(question.dir, 'controllers');
