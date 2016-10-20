@@ -58,50 +58,56 @@ describe('npm-dir', () => {
 
     it('skips install if package.json and node_modules exists', (done) => {
 
-      dir._exists
-        .withArgs('package.json').returns(true)
-        .withArgs('node_modules').returns(true);
+      withCloseHandler(() => {
+        dir._exists
+          .withArgs('package.json').returns(true)
+          .withArgs('node_modules').returns(true);
 
-      dir.install({})
-        .then((result) => {
-          expect(result.skipped).to.eql(true);
-          done();
-        })
-        .catch(done);
+        dir.install({})
+          .then((result) => {
+            expect(result.skipped).to.eql(true);
+            done();
+          })
+          .catch(done);
 
-      setTimeout(function () {
-        handlers.close(0);
-      })
+      });
     });
 
     it('writes package.json when installing', (done) => {
 
-      dir.install({})
-        .then(() => {
-          sinon.assert.calledWith(fs.writeJsonSync, path.join(__dirname, 'package.json'), sinon.match.object);
-          done();
-        })
-        .catch(done);
-      //trigger 
-      setTimeout(function () {
-        handlers.close(0);
-      })
+      withCloseHandler(() => {
+        dir.install({})
+          .then(() => {
+            sinon.assert.calledWith(fs.writeJsonSync, path.join(__dirname, 'package.json'), sinon.match.object);
+            done();
+          })
+          .catch(done);
+      });
     });
 
     it('calls \'npm install\' in a child_process', (done) => {
-
-      dir.install({})
-        .then(() => {
-          sinon.assert.calledWith(childProcess.spawn, 'npm', ['install'], { cwd: __dirname });
-          done();
-        })
-        .catch(done);
-
-      setTimeout(function () {
-        handlers.close(0);
+      withCloseHandler(() => {
+        dir.install({})
+          .then(() => {
+            sinon.assert.calledWith(childProcess.spawn, 'npm', ['install'], { cwd: __dirname });
+            done();
+          })
+          .catch(done);
       });
     });
   });
+
+  let withCloseHandler = (bodyFn) => {
+    bodyFn();
+    let close = () => {
+      if (handlers.close) {
+        handlers.close(0);
+      } else {
+        setTimeout(close);
+      }
+    }
+    close();
+  }
 
   describe('installMoreDependencies', () => {
     let dir;
@@ -111,21 +117,24 @@ describe('npm-dir', () => {
     });
 
     it('skips the install if all the dependencies exist', (done) => {
-      dir._exists
-        .withArgs('node_modules/a').returns(true)
-        .withArgs('node_modules/b').returns(true);
 
-      dir.installMoreDependencies({ a: '1.0.0', b: '1.0.0' })
-        .then((result) => {
-          expect(result.skipped).to.eql(true);
-          done();
-        }).catch(done);
+      withCloseHandler(() => {
+        dir._exists
+          .withArgs('node_modules/a').returns(true)
+          .withArgs('node_modules/b').returns(true);
 
-      setTimeout(function () {
-        handlers.close(0);
+        dir.installMoreDependencies({ a: '1.0.0', b: '1.0.0' })
+          .then((result) => {
+            expect(result.skipped).to.eql(true);
+            done();
+          }).catch(done);
+
       });
+    });
 
-      it('calls \'npm install a@1.0.0\'', (done) => {
+    it('calls \'npm install a@1.0.0\'', (done) => {
+
+      withCloseHandler(() => {
         dir._exists
           .withArgs('node_modules/a').returns(false)
           .withArgs('node_modules/b').returns(true);
@@ -136,10 +145,7 @@ describe('npm-dir', () => {
             done();
           }).catch(done);
 
-        setTimeout(function () {
-          handlers.close(0);
-        });
       });
-    })
-  });
+    });
+  })
 });
