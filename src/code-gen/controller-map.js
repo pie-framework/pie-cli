@@ -20,8 +20,7 @@ export let DEFAULT_OPTS = (outputDir) => {
 
 export const NPM_DEPENDENCIES = {
   'babel-core': '^6.17.0',
-  'babel-loader': '^6.2.5',
-  'babel-preset-es2015': '^6.16.0'
+  'babel-loader': '^6.2.5'
 }
 
 /**
@@ -86,18 +85,6 @@ exports['${key}'].version =  '${value}';`
         filename: opts.controllersFilename,
         library: uid,
         libraryTarget: 'umd'
-      },
-      module: {
-        loaders: [
-          {
-            test: /\.js$/,
-            loader: 'babel-loader',
-            query: {
-              presets: [
-                resolve.sync('babel-preset-es2015', { basedir: controllerPath })]
-            }
-          }
-        ]
       },
       resolve: {
         root: path.resolve(path.join(controllerPath, 'node_modules'))
