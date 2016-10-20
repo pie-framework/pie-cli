@@ -95,11 +95,11 @@ export default class Packer {
 
 export let DEFAULT_DEPENDENCIES = (branch) => {
 
-  branch = branch || 'master';
+  branch = branch || 'develop';
 
   let branchSpecific = {
-    'pie-player': `PieLabs/pie-player#${branch}`,
     'pie-controller': `PieLabs/pie-controller#${branch}`,
+    'pie-player': `PieLabs/pie-player#${branch}`,
     'pie-control-panel': `PieLabs/pie-control-panel#${branch}`
   }
 

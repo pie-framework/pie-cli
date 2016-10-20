@@ -26,13 +26,8 @@ export default class CorespringMultipleChoiceVueElement extends HTMLElement {
     this._rerender();
   }
 
-  createdCallback() {
-    this._rerender();
-  }
-
-  attachedCallback() {
-    console.log('attached');
-
+  connectedCallback() {
+    console.log('connected');
     this.dispatchEvent(new CustomEvent('pie.register', { bubbles: true }));
   }
 
