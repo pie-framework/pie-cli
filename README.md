@@ -41,6 +41,15 @@ babel --watch src -d lib
 pie-lib --help
 ```
 
+#### Flow 
+
+Flow is configured (but only a few files have been flowified). To use:
+
+```shell
+npm install -g flow-bin 
+flow
+```
+
 #### Tests
 
 ##### Unit
