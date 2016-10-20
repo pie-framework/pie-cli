@@ -23,4 +23,5 @@ class Cmd extends CliCommand {
 let cmd = new Cmd();
 export let match = cmd.match.bind(cmd);
 export let usage = cmd.usage;
-export let summary = cmd.summary
+export let summary = cmd.summary;
+export let run = cmd.run.bind(cmd);
