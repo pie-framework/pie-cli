@@ -1,3 +1,4 @@
+//@flow 
 import fs from 'fs-extra';
 import path from 'path';
 import { buildLogger } from '../log-factory';
@@ -8,10 +9,11 @@ import webpack from 'webpack';
 import resolve from 'resolve';
 import { writeConfig } from './webpack-write-config';
 import { dependenciesToHash } from '../npm/dependency-helper';
+import Question from '../question';
 
 const logger = buildLogger();
 
-export let DEFAULT_OPTS = (outputDir) => {
+export let DEFAULT_OPTS = (outputDir: string) => {
   return {
     controllersFilename: 'controllers-map.js',
     outputDir: outputDir
@@ -33,7 +35,7 @@ export const NPM_DEPENDENCIES = {
  * window['xxxxxxxxx']['my-pie'].model([], {}, {}).then(function(result){ console.log(result); });
  * ```
  */
-export function build(question, opts) {
+export function build(question: Question, opts: any) {
 
   opts = _.extend({}, DEFAULT_OPTS(question.dir), opts);
 
@@ -125,6 +127,6 @@ exports['${key}'].version =  '${value}';`
     .catch((e) => logger.error(e));
 }
 
-export function clean(root, bundleName) {
+export function clean(root: string, bundleName: string) {
   return removeFiles(root, ['controllers', bundleName]);
 }
