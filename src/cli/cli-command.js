@@ -16,7 +16,7 @@ export default class CliCommand {
 
   constructor(name, summary, usage) {
     this.name = name;
-    this.summary = summary;
+    this.summary = `${name} - ${summary}`;
     this.usage = this._initUsage(usage);
   }
 

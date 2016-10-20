@@ -1,7 +1,26 @@
-export function match(args) {
-  return args._.indexOf('serve-question') !== -1;
+import { buildLogger } from '../log-factory';
+import _ from 'lodash';
+import CliCommand from './cli-command';
+
+const logger = buildLogger()
+
+class Cmd extends CliCommand {
+
+  constructor() {
+    super(
+      'serve-question',
+      'run a dev server'
+    )
+  }
+
+  run(args) {
+    args.clean = args.clean === true || args.clean === 'true';
+    logger.silly('args: ', args);
+    return Promise.reject(new Error('todo...'));
+  }
 }
 
-export let summary = 'serve-question - run a dev server for this question';
-
-export let usage = '';
+let cmd = new Cmd();
+export let match = cmd.match.bind(cmd);
+export let usage = cmd.usage;
+export let summary = cmd.summary

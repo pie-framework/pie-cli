@@ -3,11 +3,13 @@ import Help from './help';
 import * as version from './version';
 import * as packQuestion from './pack-question';
 import * as cleanQuestion from './clean-question';
+import * as serveQuestion from './serve-question';
 
 let commands = [
   version,
   packQuestion,
-  cleanQuestion
+  cleanQuestion,
+  serveQuestion
 ];
 
 export default function (opts) {
