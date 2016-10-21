@@ -1,12 +1,9 @@
-//@flow 
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import fs from 'fs-extra';
 import path from 'path';
 
 const logger = buildLogger();
-
-type NameAndVersions = { name: string, versions: Array<string> };
 
 /** 
  * A representation of a pie question directory,
@@ -15,13 +12,7 @@ type NameAndVersions = { name: string, versions: Array<string> };
  */
 export default class Question {
 
-  _opts: any;
-  _dir: string;
-  _markup: string;
-  _config: any;
-  _dependencies: any;
-
-  constructor(dir: string, opts: mixed) {
+  constructor(dir, opts) {
 
     opts = _.extend({}, {
       configFile: 'config.json',
@@ -39,26 +30,26 @@ export default class Question {
     logger.silly('dependencies', this._dependencies);
   }
 
-  _readJson(n: string): any {
+  _readJson(n) {
     return fs.readJsonSync(path.join(this._dir, n));
   }
 
-  get dir(): string {
+  get dir() {
     return this._dir;
   }
 
-  get config(): any {
+  get config() {
     return this._config;
   }
 
-  get markup(): string {
+  get markup() {
     if (!this._markup) {
       this._markup = fs.readFileSync(path.join(this._dir, this._opts.markupFile));
     }
     return this._markup;
   }
 
-  get npmDependencies(): any {
+  get clientDependencies() {
     return _.reduce(this.pies, (acc, p) => {
       logger.silly('[npmDependencies] p: ', p);
       if (p.localPath) {
@@ -71,7 +62,7 @@ export default class Question {
   /**
    * @return Array[{name:, versions: []}]
    */
-  get pies(): Array<NameAndVersions> {
+  get pies() {
     let rawPies = _.map(this._config.pies, 'pie');
 
     let toUniqueNames = (acc, p) => {
@@ -94,7 +85,7 @@ export default class Question {
     return out;
   }
 
-  get piePackages(): any {
+  get piePackages() {
     let nodeModulesPath = path.join(this._dir, 'node_modules');
 
     if (!fs.existsSync(nodeModulesPath)) {
@@ -107,7 +98,7 @@ export default class Question {
       .value();
   }
 
-  get piePackageDependencies(): Array<any> {
+  get piePackageDependencies() {
     let mergeDependencies = (acc, deps) => {
       return _.reduce(deps, (acc, value, key) => {
         if (acc[key]) {

@@ -39,7 +39,7 @@ export default class Packer {
 
     logger.silly('[pack] opts: ', opts);
 
-    let npmDependencies = _.extend({}, DEFAULT_DEPENDENCIES(opts.pieBranch), this._question.npmDependencies);
+    let npmDependencies = _.extend({}, DEFAULT_DEPENDENCIES(opts.pieBranch), this._question.clientDependencies);
 
     logger.debug('npm dependencies: ', JSON.stringify(npmDependencies));
 
@@ -64,12 +64,12 @@ export default class Packer {
         let pieDependencies = this._question.piePackageDependencies;
         logger.silly('pieDependencies: ', JSON.stringify(pieDependencies));
         let supportConfig = this._frameworkSupport.buildConfigFromPieDependencies(pieDependencies);
-        logger.silly('supportConfig: ', JSON.stringify(supportConfig.npmDependencies));
+        logger.silly('supportConfig: ', JSON.stringify(supportConfig.clientDependencies));
         if (!supportConfig) {
           return Promise.reject(new Error('no support config'));
         }
 
-        return this._npmDir.installMoreDependencies(supportConfig.npmDependencies, { save: true })
+        return this._npmDir.installMoreDependencies(supportConfig.clientDependencies, { save: true })
           .then(() => supportConfig);
       })
       .then(buildElementBundle)
@@ -91,40 +91,4 @@ export default class Packer {
       })
       .then(() => logger.debug('packing completed'));
   }
-}
-
-export let DEFAULT_DEPENDENCIES = (branch) => {
-
-  branch = branch || 'develop';
-
-  let branchSpecific = {
-    'pie-controller': `PieLabs/pie-controller#${branch}`,
-    'pie-player': `PieLabs/pie-player#${branch}`,
-    'pie-control-panel': `PieLabs/pie-control-panel#${branch}`
-  }
-
-  return _.extend({
-    'babel-core': '^6.17.0',
-    'babel-loader': '^6.2.5',
-    'style-loader': '^0.13.1',
-    'css-loader': '^0.25.0',
-    'css-loader': '^0.25.0',
-    'style-loader': '^0.13.1',
-    'webpack': '2.1.0-beta.21'
-
-  }, branchSpecific);
-};
-
-export const DEFAULTS = {
-  configFile: 'config.json',
-  dependenciesFile: 'dependencies.json',
-  markupFile: 'index.html',
-  exampleFile: 'example.html',
-  buildExample: false,
-  clean: false,
-  keepBuildAssets: true,
-  pieJs: 'pie.js',
-  controllersJs: 'controllers.js',
-  fullInstall: false,
-  pieBranch: 'develop'
 }
