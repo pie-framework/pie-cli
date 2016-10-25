@@ -6,6 +6,7 @@ let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
 <!doctype html>
 <html>
   <head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <!-- lodash is one of the supported libs on the controller side -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.2/lodash.js" type="text/javascript"></script>
     <script src="pie.js" type="text/javascript"></script>
