@@ -25,7 +25,12 @@ let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
           player.session = window.pie.session;
           
           var panel = document.querySelector('pie-control-panel');
-          panel.env = window.pie.env; 
+          panel.env = window.pie.env;
+          
+          pieController.getLanguages().then(function(l) {
+            panel.languages = l;  
+          });
+          
           
           panel.addEventListener('envChanged', function(event){
             console.log('envChanged', event.target.env);
