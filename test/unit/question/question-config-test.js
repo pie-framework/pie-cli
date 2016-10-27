@@ -3,11 +3,11 @@ import proxyquire from 'proxyquire';
 import sinon from 'sinon';
 import path from 'path';
 
-describe('Question', () => {
+describe('QuestionConfig', () => {
   let Question, fsExtra;
 
   function proxyQuestion() {
-    return proxyquire('../../../src/question', {
+    return proxyquire('../../../src/question/question-config', {
       'fs-extra': fsExtra
     }).default;
   }
@@ -90,7 +90,7 @@ describe('Question', () => {
           existsSync: sinon.stub().returns(true)
         };
 
-        Question = proxyquire('../../../src/question', {
+        Question = proxyquire('../../../src/question/question-config', {
           'fs-extra': fsExtra
         }).default;
       });

@@ -16,7 +16,7 @@ export class BuildConfig {
 
   get npmDependencies() {
     return _.reduce(this._modules, (acc, c) => {
-      return _.extend(acc, c.clientDependencies);
+      return _.extend(acc, c.npmDependencies);
     }, {});
   }
 

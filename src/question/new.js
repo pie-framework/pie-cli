@@ -4,7 +4,6 @@ import QuestionConfig from './question-config';
 import { join } from 'path';
 import { removeSync } from 'fs-extra';
 
-
 export default class Question {
 
   constructor(dir, clientOpts, controllerOpts) {
