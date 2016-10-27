@@ -84,14 +84,6 @@ function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
   logger.silly(`frameworkLoaders: ${JSON.stringify(frameworkLoaders)}`);
   config.module.loaders = config.module.loaders.concat(frameworkLoaders);
 
-  config.module.loaders = _.map(config.module.loaders, (l) => {
-    let orNames = libraries.join('|');
-    let str = `node_modules/(?!(${orNames})/).*`;
-    logger.debug('regex string: ', str);
-    l.exclude = new RegExp(str);
-    return l;
-  });
-
   logger.silly('webpack config', configToJsString(config));
 
   //TODO: Add a flag for this - can be useful for development.

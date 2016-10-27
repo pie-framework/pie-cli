@@ -6,6 +6,7 @@ let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
 <!doctype html>
 <html>
   <head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <!-- lodash is one of the supported libs on the controller side -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.2/lodash.js" type="text/javascript"></script>
     <script src="pie.js" type="text/javascript"></script>
@@ -25,7 +26,12 @@ let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
           player.session = window.pie.session;
           
           var panel = document.querySelector('pie-control-panel');
-          panel.env = window.pie.env; 
+          panel.env = window.pie.env;
+          
+          pieController.getLanguages().then(function(l) {
+            panel.languages = l;  
+          });
+          
           
           panel.addEventListener('envChanged', function(event){
             console.log('envChanged', event.target.env);
