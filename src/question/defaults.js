@@ -29,3 +29,4 @@ export const DEFAULTS = {
   controllersJs: 'controllers.js',
   fullInstall: false,
   pieBranch: 'develop'
+}

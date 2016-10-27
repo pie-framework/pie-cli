@@ -13,7 +13,7 @@ export function removeFiles(root, files) {
   }));
   return Promise.all(promises)
     .then((results) => {
-      logger.silly(`removed: ${_.map(results, (f) => path.basename(f)).join("\n")}`);
+      logger.silly(`removed: from ${root}: ${_.map(results, (f) => path.basename(f)).join("\n")}`);
       return results;
     });
 }

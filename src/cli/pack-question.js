@@ -1,57 +1,53 @@
 import { buildLogger } from '../log-factory';
-import Question from '../question';
-import Packer from '../question/packer';
-import { resolve, join } from 'path';
-import FrameworkSupport from '../framework-support';
-import _ from 'lodash';
+import Question from '../question/new';
 import CliCommand from './cli-command';
+import { build as buildMarkupExample } from '../code-gen/markup-example';
+import { BuildOpts as ClientBuildOpts } from '../question/client';
+import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
+import { resolve, join } from 'path';
 
 const logger = buildLogger();
 
-class PackQuestionCommand extends CliCommand {
+export class PackQuestionOpts {
+  constructor(dir, clean, buildExample, exampleFile) {
+    this.dir = dir;
+    this.clean = clean;
+    this.buildExample = buildExample;
+    this.exampleFile = exampleFile;
+  }
 
+  static build(args) {
+    return new PackQuestionOpts(args.dir || process.cwd(), args.clean === 'true' || args.clean === true, args.buildExample !== 'false' && args.buildExample !== false, args.exampleFile || 'example.html');
+  }
+}
+
+class PackQuestionCommand extends CliCommand {
   constructor() {
-    super(
-      'pack-question',
-      'generate a question package'
-    )
+    super('pack-question', 'generate a question package');
   }
 
   run(args) {
-    args.clean = args.clean === true || args.clean === 'true';
-    logger.silly('args: ', args);
+    let opts = PackQuestionOpts.build(args);
+    let clientOpts = ClientBuildOpts.build(args);
+    let controllerOpts = ControllersBuildOpts.build(args);
+    let dir = resolve(opts.dir || process.cwd());
+    let question = new Question(dir, clientOpts, controllerOpts);
 
-    let dir = resolve(args.dir || process.cwd());
-
-    args.support = args.support || [];
-    let support = _.isArray(args.support) ? args.support : [args.support];
-    support = _.map(support, (s) => resolve(join(dir, s)));
-
-    logger.silly('support: ', support);
-
-    let frameworkSupport = FrameworkSupport.bootstrap(
-      support.concat([
-        join(__dirname, '../framework-support/frameworks/react'),
-        join(__dirname, '../framework-support/frameworks/less')
-      ]));
-
-    logger.silly('[run] frameworkSupport: ', frameworkSupport);
-
-    let question = new Question(dir);
-    let packer = new Packer(question, frameworkSupport);
-
-
-    if (args.clean) {
-      return packer.clean(args)
-        .then(() => packer.pack(args));
-    } else {
-      return packer.pack(args);
-    }
+    return question.pack(opts.clean)
+      .then((result) => {
+        logger.debug('pack result: ', result);
+        if (opts.buildExample) {
+          return buildMarkupExample(
+            question.config,
+            result.controllers, join(dir, opts.exampleFile)
+          );
+        }
+      });
   }
 }
 
 let cmd = new PackQuestionCommand();
-export let match = cmd.match.bind(cmd);
-export let usage = cmd.usage;
-export let summary = cmd.summary;
-export let run = cmd.run.bind(cmd);
+exports.match = cmd.match.bind(cmd);
+exports.usage = cmd.usage;
+exports.summary = cmd.summary;
+exports.run = cmd.run.bind(cmd);

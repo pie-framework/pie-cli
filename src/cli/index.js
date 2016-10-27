@@ -14,6 +14,10 @@ let commands = [
 
 export default function (opts) {
 
+
+  //bootstrap buildLogger 
+  global.buildLogger = require('../log-factory').buildLogger;
+
   let help = new Help('pie-cli', commands);
 
   let cmd = _.find([help].concat(commands), (cmd) => {
