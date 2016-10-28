@@ -3,15 +3,18 @@ import fs from 'fs-extra';
 import path from 'path';
 import { packExample } from '../integration-test-helper';
 
-describe('Question.pack :: Vue', () => {
+describe('Question.pack :: React + Vue', () => {
 
   let questionPath, question;
 
   before(function (done) {
 
     this.timeout(50000);
+    let support = [
+      path.join(__dirname, '_vue-support')
+    ];
 
-    packExample('index-pack-vue-test', 'vue-question', [])
+    packExample('index-pack-react-and-vue-test', 'react-and-vue-question', support)
       .then((result) => {
         questionPath = result.questionPath;
         done();

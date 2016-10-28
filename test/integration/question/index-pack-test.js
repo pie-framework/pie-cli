@@ -1,34 +1,26 @@
-import Question from '../../../src/question';
-import { BuildOpts as ClientBuildOpts } from '../../../src/question/client';
-import { BuildOpts as ControllersBuildOpts } from '../../../src/question/controllers';
 import { expect } from 'chai';
-import { resolve } from 'path';
 import fs from 'fs-extra';
 import path from 'path';
-import temp from 'temp';
-import { setUpTmpQuestionAndComponents } from '../integration-test-helper';
+import { packExample } from '../integration-test-helper';
 
 describe('Packer.pack', () => {
 
-  let rootDir = resolve('./test/integration/example-questions/one');
-  let componentsDir = resolve('./test/integration/example-components');
-  let questionPath, question, frameworkSupport, packer;
+  let questionPath, question;
 
   before(function (done) {
 
-    this.timeout(50000);
-    let tmpPath = setUpTmpQuestionAndComponents('index-packer-test');
-    console.log('packer-test tmp: ', tmpPath);
-    questionPath = path.join(tmpPath, 'example-questions', 'one');
+    this.timeout(80000);
 
-    question = new Question(questionPath, ClientBuildOpts.build(), ControllersBuildOpts.build());
+    let support = [
+      path.join(__dirname, '_vue-support')
+    ];
 
-    question.pack()
-      .then(() => done())
-      .catch((e) => {
-        console.log(e.stack);
-        done(e)
+    packExample('index-pack-test', 'one', support)
+      .then((result) => {
+        questionPath = result.questionPath;
+        done();
       })
+      .catch((err) => done(err));
   });
 
   it('builds pie.js', () => {
