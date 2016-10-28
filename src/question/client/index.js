@@ -8,7 +8,7 @@ import Entry from './entry';
 import resolve from 'resolve';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import { configToJsString, writeConfig } from '../../code-gen/webpack-write-config';
-
+import { clientDependencies } from './defaults';
 const logger = buildLogger();
 
 const defaultSupport = [
@@ -64,7 +64,9 @@ export class BuildOpts {
     this.pieBranch = pieBranch;
   }
   static build(args) {
-    return new BuildOpts(args.bundleName || 'pie.js', args.pieBranch || 'develop');
+    return new BuildOpts(
+      args.bundleName || 'pie.js',
+      args.pieBranch || 'develop');
   }
 }
 
@@ -136,24 +138,8 @@ export class ClientBuildable {
       });
   }
 
-  _defaultDependencies(branch = 'develop') {
-    let branchSpecific = {
-      'pie-controller': `PieLabs/pie-controller#${branch}`,
-      'pie-player': `PieLabs/pie-player#${branch}`,
-      'pie-control-panel': `PieLabs/pie-control-panel#${branch}`
-    };
-
-    return _.extend({
-      'babel-core': '^6.17.0',
-      'babel-loader': '^6.2.5',
-      'style-loader': '^0.13.1',
-      'css-loader': '^0.25.0',
-      'webpack': '2.1.0-beta.21'
-    }, branchSpecific);
-  }
-
   _install(clean = false) {
-    let dependencies = _.extend({}, this._defaultDependencies(this.opts.pieBranch), this.config.npmDependencies);
+    let dependencies = _.extend({}, clientDependencies(this.opts.pieBranch), this.config.npmDependencies);
     let step = clean ? this.clean() : Promise.resolve();
     return step
       .then(() => this.npmDir.install(dependencies))

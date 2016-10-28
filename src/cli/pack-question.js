@@ -1,5 +1,5 @@
 import { buildLogger } from '../log-factory';
-import Question from '../question/new';
+import Question from '../question';
 import CliCommand from './cli-command';
 import { build as buildMarkupExample } from '../code-gen/markup-example';
 import { BuildOpts as ClientBuildOpts } from '../question/client';
@@ -17,7 +17,16 @@ export class PackQuestionOpts {
   }
 
   static build(args) {
-    return new PackQuestionOpts(args.dir || process.cwd(), args.clean === 'true' || args.clean === true, args.buildExample !== 'false' && args.buildExample !== false, args.exampleFile || 'example.html');
+
+    if (args.keepBuildAssets) {
+      logger.error('TODO: plug keepBuildAssets back in');
+    }
+
+    return new PackQuestionOpts(
+      args.dir || process.cwd(),
+      args.clean === 'true' || args.clean === true,
+      args.buildExample !== 'false' && args.buildExample !== false,
+      args.exampleFile || 'example.html');
   }
 }
 

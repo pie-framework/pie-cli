@@ -1,4 +1,6 @@
-export let CLIENT_DEPENDENCIES = (branch) => {
+import _ from 'lodash';
+
+export let clientDependencies = (branch) => {
   branch = branch || 'develop';
 
   let branchSpecific = {
@@ -17,16 +19,3 @@ export let CLIENT_DEPENDENCIES = (branch) => {
   }, branchSpecific);
 };
 
-export const DEFAULTS = {
-  configFile: 'config.json',
-  dependenciesFile: 'dependencies.json',
-  markupFile: 'index.html',
-  exampleFile: 'example.html',
-  buildExample: false,
-  clean: false,
-  keepBuildAssets: true,
-  pieJs: 'pie.js',
-  controllersJs: 'controllers.js',
-  fullInstall: false,
-  pieBranch: 'develop'
-}
