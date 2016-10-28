@@ -6,10 +6,11 @@ import { removeSync } from 'fs-extra';
 
 export default class Question {
 
-  constructor(dir, clientOpts, controllerOpts) {
+  constructor(dir, clientOpts, controllerOpts, clientFrameworkSupport) {
+    clientFrameworkSupport = clientFrameworkSupport || [];
     this.dir = dir;
     this.config = new QuestionConfig(dir);
-    this.client = new ClientBuildable(this.config, [], clientOpts);
+    this.client = new ClientBuildable(this.config, clientFrameworkSupport, clientOpts);
     this.controllers = new ControllersBuildable(this.config, controllerOpts);
   }
 

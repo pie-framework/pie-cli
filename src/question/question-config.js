@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import fs from 'fs-extra';
-import {join} from 'path';
+import { join } from 'path';
 
 const logger = buildLogger();
 
@@ -71,28 +71,15 @@ export default class QuestionConfig {
 
 
   get piePackages() {
-    let nodeModulesPath = join(this.dir, 'node_modules');
-    if (!fs.existsSync(nodeModulesPath)) {
-      throw new Error('pie packages cant be read until node_modules has been installed');
-    }
-    return _(this.pies)
-      .map('name')
-      .map((name) => this._readJson(join('node_modules', name, 'package.json')))
-      .value();
+    return this.readPackages(_.map(this.pies, 'name'));
   }
 
-  get piePackageDependencies() {
-    let mergeDependencies = (acc, deps) => {
-      return _.reduce(deps, (acc, value, key) => {
-        if (acc[key]) {
-          acc[key].push(value);
-        }
-        else {
-          acc[key] = [value];
-        }
-        return acc;
-      }, acc);
-    };
-    return _(this.piePackages).map('dependencies').reduce(mergeDependencies, {});
+
+  readPackages(names) {
+    let nodeModulesPath = join(this.dir, 'node_modules');
+    if (!fs.existsSync(nodeModulesPath)) {
+      throw new Error('pie packages cant be read until the "node_modules" directory has been installed');
+    }
+    return _.map(names, name => this._readJson(join('node_modules', name, 'package.json')));
   }
 }

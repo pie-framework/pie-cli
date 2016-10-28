@@ -63,7 +63,9 @@ export class BuildOpts {
     this.bundleName = bundleName;
     this.pieBranch = pieBranch;
   }
+
   static build(args) {
+    args = args || {};
     return new BuildOpts(
       args.bundleName || 'pie.js',
       args.pieBranch || 'develop');
@@ -116,8 +118,7 @@ export class ClientBuildable {
       output: { filename: this.opts.bundleName, path: this.dir }
     }, baseConfig(this.dir));
 
-    let buildConfig = this.frameworkSupport.buildConfigFromPieDependencies(this.config.piePackageDependencies);
-    let frameworkLoaders = buildConfig.webpackLoaders((k) => resolve.sync(k, { basedir: this.dir }));
+    let frameworkLoaders = this._supportConfig.webpackLoaders((k) => resolve.sync(k, { basedir: this.dir }));
 
     logger.silly(`frameworkLoaders: ${JSON.stringify(frameworkLoaders)}`);
 
@@ -138,23 +139,52 @@ export class ClientBuildable {
       });
   }
 
+  /**
+   * Initialise _supportConfig for use in later steps;
+   */
+  _buildFrameworkConfig() {
+
+    let mergeDependencies = (acc, deps) => {
+      return _.reduce(deps, (acc, value, key) => {
+        if (acc[key]) {
+          acc[key].push(value);
+        }
+        else {
+          acc[key] = [value];
+        }
+        return acc;
+      }, acc);
+    };
+
+    //Note: we can only read piePackages after an npm install.
+    let allPackages = _.concat(
+      this.config.piePackages,
+      this.config.readPackages(this._entryElements.keys));
+
+    let merged = _(allPackages).map('dependencies').reduce(mergeDependencies, {});
+
+    logger.silly('merged dependencies that need support: ', JSON.stringify(merged));
+    this._supportConfig = this.frameworkSupport.buildConfigFromPieDependencies(merged);
+    return Promise.resolve();
+  }
+
   _install(clean = false) {
     let dependencies = _.extend({}, clientDependencies(this.opts.pieBranch), this.config.npmDependencies);
     let step = clean ? this.clean() : Promise.resolve();
     return step
       .then(() => this.npmDir.install(dependencies))
+      .then(() => this._buildFrameworkConfig())
       .then(() => this._installFrameworkDependencies());
   }
 
   _installFrameworkDependencies() {
-    let pieDependencies = this.config.piePackageDependencies;
-    logger.silly('pieDependencies: ', JSON.stringify(pieDependencies));
-    let supportConfig = this.frameworkSupport.buildConfigFromPieDependencies(pieDependencies);
-    logger.silly('supportConfig: ', JSON.stringify(supportConfig.npmDependencies));
-    if (!supportConfig) {
-      return Promise.reject(new Error('no support config'));
+
+    if (!this._supportConfig) {
+      return Promise.reject(new Error('no support config - has it been initialised?'));
     }
-    return this.npmDir.installMoreDependencies(supportConfig.npmDependencies, { save: true })
-      .then(() => supportConfig);
+
+    logger.silly('supportConfig: ', JSON.stringify(this._supportConfig.npmDependencies));
+
+    return this.npmDir.installMoreDependencies(this._supportConfig.npmDependencies, { save: true });
   }
 }

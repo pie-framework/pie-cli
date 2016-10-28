@@ -18,6 +18,7 @@ export class BuildOpts {
     }
   }
   static build(args) {
+    args = args || {};
     return new BuildOpts(args.controllerFilename || 'controllers.js');
   }
 }

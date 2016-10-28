@@ -20,7 +20,7 @@ export function support(dependencies) {
     webpackLoaders: (resolve) => {
       return [
         {
-          test: /.(jsx)?$/,
+          test: /\.(jsx)?$/,
           loader: 'babel-loader',
           //Don't read in .babelrc files from the dependencies
           query: {
