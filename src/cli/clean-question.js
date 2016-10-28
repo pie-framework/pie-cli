@@ -1,10 +1,12 @@
 const marked = require('marked');
 const TerminalRenderer = require('marked-terminal');
 import Question from '../question';
-import path from 'path';
-import { fileLogger } from '../log-factory';
+import { resolve } from 'path';
+import { buildLogger } from '../log-factory';
+import { BuildOpts as ClientBuildOpts } from '../question/client';
+import { BuildOpts as ControllersBuildOpts } from '../question/controllers'
 
-let logger = fileLogger(__filename);
+let logger = buildLogger();
 
 export function match(args) {
   return args._.indexOf('clean-question') !== -1;
@@ -31,8 +33,9 @@ pie-cli clean-question --dir ../path/to/dir
 
 export function run(args) {
   let dir = resolve(args.dir || process.cwd());
-  let question = new Question(dir, {}, {});
-
+  let clientOpts = ClientBuildOpts.build(args);
+  let controllerOpts = ControllersBuildOpts.build(args);
+  let question = new Question(dir, clientOpts, controllerOpts);
   return question.clean(dir, args)
     .then(() => "clean complete")
 }
