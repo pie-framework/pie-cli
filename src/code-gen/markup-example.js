@@ -37,11 +37,13 @@ let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
             console.log('envChanged', event.target.env);
             player.env = event.target.env;    
             
-            if(event.target.env.mode === 'evaluate'){
-              player.getOutcome().then(function(outcome){
+            if (event.target.env.mode === 'evaluate') {
+              player.getOutcome().then(function(outcome) {
                 console.log('outcome', outcome);
-                panel.score = " &nbsp; " + outcome.summary.percentage + "% (" + outcome.summary.points + "/" + outcome.summary.maxPoints + ") &nbsp; "; 
+                panel.score = ' Score: ' + outcome.summary.percentage + '% Points: ' + outcome.summary.points + '/' + outcome.summary.maxPoints;
               });
+            } else {
+              panel.score = '';
             }
           });
         });
