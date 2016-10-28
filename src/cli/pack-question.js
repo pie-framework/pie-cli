@@ -39,7 +39,7 @@ class PackQuestionCommand extends CliCommand {
     let opts = PackQuestionOpts.build(args);
     let clientOpts = ClientBuildOpts.build(args);
     let controllerOpts = ControllersBuildOpts.build(args);
-    let dir = resolve(opts.dir || process.cwd());
+    let dir = resolve(opts.dir);
     let question = new Question(dir, clientOpts, controllerOpts);
 
     return question.pack(opts.clean)

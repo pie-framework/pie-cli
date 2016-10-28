@@ -56,21 +56,22 @@ export class ControllersBuildable {
 
   get uid() { return dependenciesToHash(this.dependencies); }
 
-  pack(clean) {
-    fs.ensureDirSync(this.controllersDir);
-    logger.debug('dependencies:', this.dependencies);
-    let buildDependencies = _.extend({}, this.dependencies, exports.NPM_DEPENDENCIES);
-    logger.silly('[build] buildDependncies', buildDependencies);
+  prepareWebpackConfig(clean) {
     let firstStep = clean ? this.clean() : Promise.resolve();
+
+    let buildDependencies = _.extend({}, this.dependencies, exports.NPM_DEPENDENCIES);
 
     return firstStep
       .then(() => fs.ensureDirSync(this.controllersDir))
       .then(() => this.npmDir.install(buildDependencies))
       .then(() => this.writeEntryJs(this.dependencies))
-      .then(() => this.webpackConfig())
-      .then((config) => this.bundle(config));
+      .then(() => this.webpackConfig());
   }
 
+  pack(clean) {
+    return this.prepareWebpackConfig(clean)
+      .then((config) => this.bundle(config));
+  }
 
   bundle(config) {
     writeConfig(join(this.controllersDir, 'webpack.config.js'), config);

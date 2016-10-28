@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+
+const spawn = require('child_process').spawn;
+const path = require('path');
+
+// spawn('./node_modules/.bin/babel', ['--watch', 'src', '-d', 'libs'], { stdio: 'inherit' });
+
+const watch = require('node-watch');
+
+
+let pugOnly = (name) => {
+  return path.extname(name) === '.pug';
+}
+
+watch('src/server/views', { filter: pugOnly, recursive: true }, function (filename) {
+  console.log('filename..', filename);
+});

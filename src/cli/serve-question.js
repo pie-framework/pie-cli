@@ -1,8 +1,29 @@
 import { buildLogger } from '../log-factory';
 import _ from 'lodash';
+import Question from '../question';
 import CliCommand from './cli-command';
+import { build as buildMarkupExample } from '../code-gen/markup-example';
+import { BuildOpts as ClientBuildOpts } from '../question/client';
+import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
+import { resolve, join } from 'path';
+import { make as makeAppServer } from '../server';
+import http from 'http';
 
 const logger = buildLogger()
+
+export class ServeQuestionOpts {
+  constructor(dir, clean) {
+    this.dir = dir;
+    this.clean = clean;
+  }
+
+  static build(args) {
+    args = args || {};
+    return new ServeQuestionOpts(
+      args.dir || process.cwd(),
+      args.clean === 'true' || args.clean === true || false)
+  }
+}
 
 class Cmd extends CliCommand {
 
@@ -16,11 +37,37 @@ class Cmd extends CliCommand {
   run(args) {
     args.clean = args.clean === true || args.clean === 'true';
     logger.silly('args: ', args);
-    return Promise.reject(new Error('todo...'));
-    //1. npm install for elements
-    //2. npm install for controllers
-    //3. webpack dev middleware for both 
-    //4. set up a watch from src -> node_modules
+
+    args.port = args.port || 4000;
+
+    let startServer = (app) => {
+      return new Promise((resolve, reject) => {
+        let server = http.createServer(app);
+
+        server.on('error', (e) => {
+          logger.error(e);
+          reject(e);
+        });
+
+        server.on('listening', () => {
+          logger.silly(` > server: listening on ${args.port}`);
+          resolve(server);
+        });
+
+        server.listen(args.port);
+      });
+    }
+
+    let opts = ServeQuestionOpts.build(args);
+    let clientOpts = ClientBuildOpts.build(args);
+    let controllerOpts = ControllersBuildOpts.build(args);
+    let dir = resolve(opts.dir);
+    let question = new Question(dir, clientOpts, controllerOpts);
+
+    return question.prepareWebpackConfigs(opts.clean)
+      .then(configs => makeAppServer(configs, question.controllers.uid))
+      .then(startServer)
+      .then(server => `server listening on ${args.port}`);
   }
 }
 

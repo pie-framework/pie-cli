@@ -3,7 +3,9 @@ import { ControllersBuildable } from './controllers';
 import QuestionConfig from './question-config';
 import { join } from 'path';
 import { removeSync } from 'fs-extra';
+import { buildLogger } from '../log-factory';
 
+const logger = buildLogger();
 export default class Question {
 
   constructor(dir, clientOpts, controllerOpts, clientFrameworkSupport) {
@@ -27,6 +29,21 @@ export default class Question {
         return this.controllers.pack(clean)
           .then((controllers) => {
             return { client: client, controllers: controllers };
+          });
+      });
+  }
+
+  prepareWebpackConfigs(clean = false) {
+    return this.client.prepareWebpackConfig()
+      .then(clientConfig => {
+        logger.debug('[prepareWebpackConfig] got clientConfig:', clientConfig);
+        return this.controllers.prepareWebpackConfig()
+          .then(controllersConfig => {
+            logger.debug('[prepareWebpackConfig] got controllersConfig:', controllersConfig);
+            return {
+              client: clientConfig,
+              controllers: controllersConfig
+            }
           });
       });
   }

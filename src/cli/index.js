@@ -13,8 +13,6 @@ let commands = [
 ];
 
 export default function (opts) {
-
-
   //bootstrap buildLogger 
   global.buildLogger = require('../log-factory').buildLogger;
 
