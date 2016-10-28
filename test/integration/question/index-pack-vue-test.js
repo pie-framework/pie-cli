@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import fs from 'fs-extra';
-import path from 'path';
+import { join } from 'path';
 import { packExample } from '../integration-test-helper';
 
 describe('Question.pack :: Vue', () => {
@@ -10,8 +10,10 @@ describe('Question.pack :: Vue', () => {
   before(function (done) {
 
     this.timeout(50000);
-
-    packExample('index-pack-vue-test', 'vue-question', [])
+    let support = [
+      join(__dirname, '_vue-support')
+    ];
+    packExample('index-pack-vue-test', 'vue-question', support)
       .then((result) => {
         questionPath = result.questionPath;
         done();
@@ -20,6 +22,10 @@ describe('Question.pack :: Vue', () => {
   });
 
   it('builds pie.js', () => {
-    expect(fs.existsSync(path.join(questionPath, 'pie.js'))).to.eql(true);
+    expect(fs.existsSync(join(questionPath, 'pie.js'))).to.eql(true);
+  });
+
+  it('builds controllers.js', () => {
+    expect(fs.existsSync(join(questionPath, 'controllers.js'))).to.eql(true);
   });
 });
