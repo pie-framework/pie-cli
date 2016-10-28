@@ -139,40 +139,5 @@ describe('QuestionConfig', () => {
       });
     });
 
-    describe('piePackageDependencies', () => {
-      beforeEach(() => {
-
-        fsExtra.existsSync = sinon.stub().returns(true);
-
-        fsExtra.readJsonSync
-          .withArgs(path.join(__dirname, 'dependencies.json'))
-          .returns({})
-          .withArgs(path.join(__dirname, 'config.json'))
-          .returns({
-            pies: [{
-              pie: {
-                name: 'my-pie'
-              }
-            }]
-          })
-          .withArgs(path.join(__dirname, 'node_modules/my-pie/package.json'))
-          .returns({
-            dependencies: {
-              react: '15.0.2',
-              less: '2.3.4'
-            }
-          });
-      });
-
-      it('returns the merged dependencies', () => {
-
-        let q = new Question(__dirname, {});
-        expect(q.piePackageDependencies).to.eql({
-          react: ['15.0.2'],
-          less: ['2.3.4']
-        })
-      });
-    });
-
   });
 });

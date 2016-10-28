@@ -59,7 +59,7 @@ npm test
 
 ##### Integration 
 
-> The integration tests are slower than the unit tests cos of all the `npm install` commands.
+> The integration tests are slower than the unit tests cos of all the `npm install` commands. You'll probably want to run the 1 at a time.
 
 ```
 npm run it 
