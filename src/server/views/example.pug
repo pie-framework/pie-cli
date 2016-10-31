@@ -4,9 +4,26 @@ html
     link(href='//fonts.googleapis.com/css?family=Roboto', rel='stylesheet')
     // lodash is one of the supported libs on the controller side
     script(src='//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.2/lodash.js', type='text/javascript')
+    script(src="//cdn.jsdelivr.net/sockjs/1/sockjs.min.js")
     script(src=clientFile, type='text/javascript')
     script(src=controllersFile, type='text/javascript')
     script(type='text/javascript').
+
+      var sock = new SockJS('/sock');
+      sock.onopen = function() {
+        console.log('open');
+      };
+      sock.onmessage = function(e) {
+        console.log('message', e.data);
+        if(e.data === 'reload'){
+          window.location.reload(false);
+        }
+      };
+      sock.onclose = function() {
+        console.log('close');
+      };
+
+
       window.pie = window.pie || {};
       window.pie.env = {mode: 'gather'};
       window.pie.model = !{model};

@@ -8,6 +8,8 @@ import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
 import { resolve, join } from 'path';
 import { make as makeAppServer } from '../server';
 import http from 'http';
+import * as watchMaker from '../watch/watchmaker';
+import { init as initSock } from '../server/sock';
 
 const logger = buildLogger()
 
@@ -25,6 +27,17 @@ export class ServeQuestionOpts {
   }
 }
 
+let _reloadImpl = () => {
+  console.log('not implemented');
+}
+
+let reloadFn = () => {
+  logger.debug('[reloadFn], _reloadImpl? ', _reloadImpl);
+  if (_reloadImpl) {
+    _reloadImpl();
+  }
+};
+
 class Cmd extends CliCommand {
 
   constructor() {
@@ -40,10 +53,15 @@ class Cmd extends CliCommand {
 
     args.port = args.port || 4000;
 
-    let startServer = (app) => {
-      return new Promise((resolve, reject) => {
-        let server = http.createServer(app);
+    let createServer = (app) => {
+      return Promise.resolve({
+        server: http.createServer(app),
+        app: app
+      });
+    }
 
+    let startServer = (server) => {
+      return new Promise((resolve, reject) => {
         server.on('error', (e) => {
           logger.error(e);
           reject(e);
@@ -57,6 +75,7 @@ class Cmd extends CliCommand {
         server.listen(args.port);
       });
     }
+
 
     let opts = ServeQuestionOpts.build(args);
     let clientOpts = ClientBuildOpts.build(args);
@@ -73,9 +92,15 @@ class Cmd extends CliCommand {
           config: question.config.config,
           markup: question.config.markup
         }
-        return makeAppServer(configs, renderOpts);
+        return makeAppServer(configs, renderOpts, reloadFn);
       })
-      .then(startServer)
+      .then(createServer)
+      .then((s) => {
+        _reloadImpl = initSock(s.server);
+        return s;
+      })
+      .then(({server}) => startServer(server))
+      .then(() => watchMaker.init(question.config))
       .then(server => `server listening on ${args.port}`);
   }
 }

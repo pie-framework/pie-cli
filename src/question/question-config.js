@@ -22,6 +22,7 @@ export default class QuestionConfig {
     this._dependencies = this._readJson(this.filenames.dependencies) || {};
     logger.silly('dependencies', this._dependencies);
   }
+
   _readJson(n) {
     return fs.readJsonSync(join(this.dir, n));
   }
@@ -40,6 +41,10 @@ export default class QuestionConfig {
     }
 
     return this._markup;
+  }
+
+  get localDependencies() {
+    return this._dependencies;
   }
 
   get npmDependencies() {

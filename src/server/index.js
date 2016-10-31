@@ -8,7 +8,7 @@ import jsesc from 'jsesc';
 
 const logger = buildLogger();
 
-export function make(configs, renderOpts) {
+export function make(configs, renderOpts, reloadFn) {
 
   logger.info('[make]');
   logger.silly('[make] configs:', configs);
@@ -22,13 +22,36 @@ export function make(configs, renderOpts) {
   app.set('views', join(__dirname, 'views'));
   app.set('view engine', 'pug');
 
-  app.use(webpackMiddleware(webpack(configs.client), {
-    publicPath: '/'
-  }));
+  let clientCompiler = webpack(configs.client);
 
-  app.use(webpackMiddleware(webpack(configs.controllers), {
-    publicPath: '/'
-  }));
+
+  clientCompiler.plugin("done", function (stats) {
+    process.nextTick(() => {
+      logger.info('client - compilation is done!');
+      reloadFn();
+    });
+  });
+
+  let controllersCompiler = webpack(configs.controllers);
+  controllersCompiler.plugin("done", function (stats) {
+    process.nextTick(() => {
+      logger.info('controllers - compilation is done!', app._onCompilationDoneHandler);
+      reloadFn();
+    });
+  });
+
+  let clientMiddleware = webpackMiddleware(clientCompiler, {
+    publicPath: '/',
+    noInfo: true
+  });
+
+  let controllersMiddleware = webpackMiddleware(controllersCompiler, {
+    publicPath: '/',
+    noInfo: true
+  });
+
+  app.use(clientMiddleware);
+  app.use(controllersMiddleware);
 
   app.get('/', function (req, res) {
     res.render('example', params);
