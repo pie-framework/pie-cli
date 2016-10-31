@@ -1,63 +1,25 @@
 import jsesc from 'jsesc';
 import fs from 'fs-extra';
 import { removeFiles } from '../file-helper';
+import pug from 'pug';
+import { join } from 'path';
 
-let mkExampleMarkup = (markup, model, controllerFile, controllerUid) => `
-<!doctype html>
-<html>
-  <head>
-    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-    <!-- lodash is one of the supported libs on the controller side -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.16.2/lodash.js" type="text/javascript"></script>
-    <script src="pie.js" type="text/javascript"></script>
-    <script src="${controllerFile}" type="text/javascript"></script>
-    <script type="text/javascript">
+const compiledFunction = pug.compileFile(join(__dirname, '../server/views/example.pug'));
 
-        window.pie = window.pie || {};
-        window.pie.env = {mode: 'gather'};
-        window.pie.model = ${jsesc(model)};
-        window.pie.session = [];
-        
-        document.addEventListener('pie.player-ready', function(event){
-          var player = event.target;
-          var pieController = new pie.Controller(window.pie.model, window['${controllerUid}']);
-          player.controller = pieController;
-          player.env = window.pie.env;
-          player.session = window.pie.session;
-          
-          var panel = document.querySelector('pie-control-panel');
-          panel.env = window.pie.env;
-          
-          pieController.getLanguages().then(function(l) {
-            panel.languages = l;  
-          });
-          
-          
-          panel.addEventListener('envChanged', function(event){
-            console.log('envChanged', event.target.env);
-            player.env = event.target.env;    
-            
-            if(event.target.env.mode === 'evaluate'){
-              player.getOutcome().then(function(outcome){
-                console.log('outcome', outcome);
-                panel.score = " &nbsp; " + outcome.summary.percentage + "% (" + outcome.summary.points + "/" + outcome.summary.maxPoints + ") &nbsp; "; 
-              });
-            }
-          });
-        });
-    </script>
-  </head>
-  <body>
-    <pie-control-panel></pie-control-panel>
-    <pie-player>
-    ${markup}
-    </pie-player>
-  </body>
-</html>
-`;
+let mkExampleMarkup = (markup, model, controllersFile, controllersUid) => {
+  let escapedModel = jsesc(model);
 
-export function build(question, controller, output) {
-  let example = mkExampleMarkup(question.markup, question.config, controller.filename, controller.library);
+  return compiledFunction({
+    controllersFile: controllersFile,
+    controllersUid: controllersUid,
+    clientFile: 'pie.js',
+    model: escapedModel,
+    markup: markup
+  });
+};
+
+export function build(question, controllers, output) {
+  let example = mkExampleMarkup(question.markup, question.config, controllers.filename, controllers.library);
   return new Promise((resolve, reject) => {
     fs.writeFile(output, example, { encoding: 'utf8' }, (err) => {
       if (err) {

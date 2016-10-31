@@ -65,7 +65,16 @@ class Cmd extends CliCommand {
     let question = new Question(dir, clientOpts, controllerOpts);
 
     return question.prepareWebpackConfigs(opts.clean)
-      .then(configs => makeAppServer(configs, question.controllers.uid))
+      .then(configs => {
+        let renderOpts = {
+          controllersFile: controllerOpts.filename,
+          controllersUid: question.controllers.uid,
+          clientFile: clientOpts.bundleName,
+          config: question.config.config,
+          markup: question.config.markup
+        }
+        return makeAppServer(configs, renderOpts);
+      })
       .then(startServer)
       .then(server => `server listening on ${args.port}`);
   }

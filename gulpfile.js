@@ -1,5 +1,6 @@
 const gulp = require('gulp'),
-  babel = require('gulp-babel');
+  babel = require('gulp-babel'),
+  gutil = require('gulp-util');
 
 gulp.task('pug', () => {
   return gulp.src('src/**/*.pug')
@@ -9,7 +10,12 @@ gulp.task('pug', () => {
 gulp.task('babel', () => {
   return gulp.src('src/**/*.js')
     .pipe(babel())
-    .pipe(gulp.dest('lib'));
+    .on('error', function (e) {
+      console.log(e.stack);
+      gutil.log('babel error', e.stack);
+      this.emit('end');
+    })
+    .pipe(gulp.dest('lib'))
 });
 
 gulp.task('watch-babel', () => {

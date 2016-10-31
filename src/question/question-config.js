@@ -34,6 +34,11 @@ export default class QuestionConfig {
     if (!this._markup) {
       this._markup = fs.readFileSync(join(this.dir, this.filenames.markup), { encoding: 'utf8' });
     }
+
+    if (!this._markup) {
+      throw new Error('cant read in markup');
+    }
+
     return this._markup;
   }
 
