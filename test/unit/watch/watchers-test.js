@@ -40,7 +40,6 @@ describe('watchers', () => {
       chokidar: chokidar,
       'fs-extra': fs
     });
-
   });
 
   describe('BaseWatch', () => {
