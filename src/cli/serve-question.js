@@ -10,7 +10,6 @@ import { make as makeApp } from '../server';
 import http from 'http';
 import * as watchMaker from '../watch/watchmaker';
 import { init as initSock } from '../server/sock';
-import Promise from 'bluebird';
 import webpack from 'webpack';
 
 const logger = buildLogger()
