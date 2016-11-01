@@ -15,7 +15,6 @@ export function init(server) {
     if (!conn) {
       return;
     }
-
     connection = conn;
   });
 

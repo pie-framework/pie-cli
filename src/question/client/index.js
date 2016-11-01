@@ -16,7 +16,6 @@ const defaultSupport = [
   path.join(__dirname, '../../framework-support/frameworks/less')
 ];
 
-
 class EntryElements {
   constructor(elements) {
     this.elements = elements;
@@ -26,7 +25,6 @@ class EntryElements {
     let toKey = (p) => _.isString(p) ? p : p.key;
     return _.map(this.elements, toKey);
   }
-
 }
 
 const pieController = {
@@ -57,7 +55,6 @@ let baseConfig = (root) => {
   };
 };
 
-
 export class BuildOpts {
   constructor(bundleName, pieBranch) {
     this.bundleName = bundleName;
@@ -76,7 +73,6 @@ export class ClientBuildable {
   constructor(config, support, opts) {
     this.config = config;
     this.opts = opts;
-    this.ENTRY_JS = 'entry.js';
     logger.debug('[constructor], support:', support);
     this.frameworkSupport = FrameworkSupport.bootstrap(support.concat(defaultSupport));
     this.npmDir = new NpmDir(this.dir);
@@ -86,7 +82,6 @@ export class ClientBuildable {
   get dir() {
     return this.config.dir;
   }
-
 
   pack(clean) {
     return this.prepareWebpackConfig(clean)
@@ -179,8 +174,8 @@ export class ClientBuildable {
   _install() {
     let dependencies = _.extend({}, clientDependencies(this.opts.pieBranch), this.config.npmDependencies);
     return this.npmDir.install(dependencies)
-      .then(() => this._buildFrameworkConfig())
-      .then(() => this._installFrameworkDependencies());
+      .then(this._buildFrameworkConfig)
+      .then(this._installFrameworkDependencies);
   }
 
   _installFrameworkDependencies() {
