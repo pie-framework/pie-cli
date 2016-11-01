@@ -107,7 +107,7 @@ export class PieClientWatch extends BaseWatch {
 export class PieWatch {
 
   constructor(name, relativePath, rootDir) {
-    logger.info('constructor: ', name, relativePath, rootDir);
+    logger.debug('[PieWatch] constructor: ', name, relativePath, rootDir);
     this.client = new PieClientWatch(name, relativePath, rootDir);
     this.controller = new PieControllerWatch(name, relativePath, rootDir);
   }
