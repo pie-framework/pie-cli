@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
 describe('client', () => {
-  let index, npmDirConstructor, npmDirInstance, entryConstructor, entryInstance;
+  let index, npmDirConstructor, npmDirInstance, entryConstructor, entryInstance, removeFiles;
 
   beforeEach(() => {
     npmDirInstance = {
@@ -17,6 +17,8 @@ describe('client', () => {
 
     entryConstructor = sinon.stub().returns(entryInstance);
     
+    removeFiles = sinon.stub().returns(Promise.resolve());
+
     index = proxyquire('../../../../src/question/client', {
       '../../npm/npm-dir' : {
         default: npmDirConstructor
@@ -25,7 +27,7 @@ describe('client', () => {
         default: entryConstructor
       },
       '../../file-helper' : {
-        removeFiles: sinon.stub().returns(Promise.resolve())
+        removeFiles: removeFiles
       }
     });
   });
@@ -72,7 +74,7 @@ describe('client', () => {
     describe('clean', () => {
 
       beforeEach((done) => {
-        buildable = new ClientBuildable({ dir: 'dir'}, [], {});
+        buildable = new ClientBuildable({ dir: 'dir'}, [], { bundleName: 'pie.js'});
         buildable.clean()
           .then(() => done())
           .catch(done);
@@ -84,6 +86,10 @@ describe('client', () => {
       
       it('calls entry.clean', () => {
         sinon.assert.called(entryInstance.clean);
+      });
+      
+      it('calls removeFile', () => {
+        sinon.assert.calledWith(removeFiles, 'dir', ['pie.js', 'pie.js.map']);
       });
     });
   });
