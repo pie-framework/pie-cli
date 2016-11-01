@@ -46,8 +46,12 @@ describe('watchmaker', () => {
         expect(watchers.length).to.eql(1);
       });
 
-      it('returns calls constructor', () => {
+      it('calls constructor', () => {
         sinon.assert.calledWith(pieWatchConstructor, 'local', dep, '');
+      });
+
+      it('calls start', () => {
+        sinon.assert.called(watcherStub.start);
       });
 
     });
