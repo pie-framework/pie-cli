@@ -9,6 +9,7 @@ import resolve from 'resolve';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import { configToJsString, writeConfig } from '../../code-gen/webpack-write-config';
 import { clientDependencies } from './defaults';
+
 const logger = buildLogger();
 
 const defaultSupport = [

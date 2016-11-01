@@ -7,7 +7,7 @@
     "pie": "bin/pie"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --require babel-register test/unit/**",
+    "test": "./node_modules/.bin/mocha --require babel-register test/unit/**/*",
     "prepublish": "npm run build",
     "build": "gulp build",
     "it": "./node_modules/.bin/mocha --require babel-register test/integration/**",
