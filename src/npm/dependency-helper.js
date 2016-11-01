@@ -5,14 +5,14 @@ import path from 'path';
 import crypto from 'crypto';
 import _ from 'lodash';
 
-export let isGitUrl = (str: string): boolean => {
+export let isGitUrl = (str) => {
   var re = /(?:git|ssh|https?|git@[\w\.]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-/_]+?)$/;
   return re.test(str);
 };
 
-export let isSemver = (str: string): boolean => semver.validRange(str) !== null || semver.valid(str) !== null;
+export let isSemver = (str) => semver.validRange(str) !== null || semver.valid(str) !== null;
 
-export let pathIsDir = (root: string, v: string): boolean => {
+export let pathIsDir = (root, v) => {
   try {
     let resolved = path.resolve(root, v);
     let stat = fs.lstatSync(resolved);
@@ -22,9 +22,7 @@ export let pathIsDir = (root: string, v: string): boolean => {
   }
 };
 
-type StringMap = { [key: string]: string };
-
-export let dependenciesToHash = (dependencies: StringMap) => {
+export let dependenciesToHash = (dependencies) => {
   if (!dependencies || !_.isObject(dependencies) || _.isEmpty(dependencies)) {
     throw new Error('dependencies must be an non empty object');
   }

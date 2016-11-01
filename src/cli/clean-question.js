@@ -32,6 +32,7 @@ pie-cli clean-question --dir ../path/to/dir
 `);
 
 export function run(args) {
+  logger.debug('[run] args: ', args);
   let dir = resolve(args.dir || process.cwd());
   let clientOpts = ClientBuildOpts.build(args);
   let controllerOpts = ControllersBuildOpts.build(args);

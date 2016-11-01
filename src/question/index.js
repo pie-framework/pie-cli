@@ -34,7 +34,7 @@ export default class Question {
   }
 
   prepareWebpackConfigs(clean = false) {
-    return this.client.prepareWebpackConfig()
+    return this.client.prepareWebpackConfig(clean)
       .then(clientConfig => {
         logger.debug('[prepareWebpackConfig] got clientConfig:', clientConfig);
         return this.controllers.prepareWebpackConfig()

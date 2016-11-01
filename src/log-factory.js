@@ -21,7 +21,7 @@ export let init = (log) => {
       if (fs.existsSync(log)) {
         setConfigFromFile(log);
       } else {
-        console.error('can not configure logging using cli param value: ' + argv.log);
+        console.error('can not configure logging using cli param value: ' + log);
       }
     }
   }

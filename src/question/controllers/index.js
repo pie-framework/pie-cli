@@ -76,7 +76,7 @@ export class ControllersBuildable {
   bundle(config) {
     writeConfig(join(this.controllersDir, 'webpack.config.js'), config);
     return buildWebpack(config)
-      .then(({ stats, duration }) => {
+      .then(() => {
         return {
           dir: config.output.path,
           filename: config.output.filename,

@@ -1,6 +1,7 @@
 const gulp = require('gulp'),
   babel = require('gulp-babel'),
-  gutil = require('gulp-util');
+  gutil = require('gulp-util'),
+  eslint = require('gulp-eslint');
 
 gulp.task('pug', () => {
   return gulp.src('src/**/*.pug')
@@ -26,6 +27,13 @@ gulp.task('watch-pug', () => {
   return gulp.watch('src/**/*.pug', ['pug']);
 });
 
-gulp.task('build', ['pug', 'babel']);
+gulp.task('lint', () => {
+  return gulp.src(['src/**/*.js','!node_modules/**'])
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
+});
+
+gulp.task('build', ['lint', 'pug', 'babel']);
 
 gulp.task('dev', ['pug', 'babel', 'watch-pug', 'watch-babel']);

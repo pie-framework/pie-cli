@@ -96,7 +96,7 @@ export class ClientBuildable {
   prepareWebpackConfig(clean) {
     let step = clean ? this.clean() : Promise.resolve();
     return step
-      .then(() => this._install(clean))
+      .then(() => this._install())
       .then(() => this.writeEntryJs())
       .then(() => this.webpackConfig());
   }
@@ -142,7 +142,7 @@ export class ClientBuildable {
     }
 
     return buildWebpack(config)
-      .then(({ stats, duration }) => {
+      .then(() => {
         return config.output.filename;
       });
   }
@@ -176,7 +176,7 @@ export class ClientBuildable {
     return Promise.resolve();
   }
 
-  _install(clean = false) {
+  _install() {
     let dependencies = _.extend({}, clientDependencies(this.opts.pieBranch), this.config.npmDependencies);
     return this.npmDir.install(dependencies)
       .then(() => this._buildFrameworkConfig())

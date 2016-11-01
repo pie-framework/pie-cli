@@ -38,13 +38,13 @@ export class BaseWatch {
       persistent: true
     });
 
-    let onAdd = (path, stats) => {
+    let onAdd = (path) => {
       logger.debug(`File added: ${path} - copy`);
       fs.copy(path, this.getDestination(path));
     };
 
     //TODO: Add file size change detection to prevent unnecessary updates
-    let onChange = (path, stats) => {
+    let onChange = (path) => {
       logger.debug(`File changed: ${path} - copy`);
       fs.copy(path, this.getDestination(path));
     }

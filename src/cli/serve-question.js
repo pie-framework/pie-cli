@@ -1,11 +1,9 @@
 import { buildLogger } from '../log-factory';
-import _ from 'lodash';
 import Question from '../question';
 import CliCommand from './cli-command';
-import { build as buildMarkupExample } from '../code-gen/markup-example';
 import { BuildOpts as ClientBuildOpts } from '../question/client';
 import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
-import { resolve, join } from 'path';
+import { resolve } from 'path';
 import { make as makeApp } from '../server';
 import http from 'http';
 import * as watchMaker from '../watch/watchmaker';
