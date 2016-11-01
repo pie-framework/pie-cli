@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
 describe('client', () => {
-  let index, npmDirConstructor, npmDirInstance, entryConstructor, entryInstance, removeFiles;
+  let index, npmDirConstructor, npmDirInstance, entryConstructor, entryInstance, removeFiles, frameworkSupport;
 
   beforeEach(() => {
     npmDirInstance = {
@@ -20,6 +20,10 @@ describe('client', () => {
 
     removeFiles = sinon.stub().returns(Promise.resolve());
 
+    frameworkSupport = {
+      bootstrap: sinon.stub().returns(frameworkSupport)
+    };
+
     index = proxyquire('../../../../src/question/client', {
       '../../npm/npm-dir': {
         default: npmDirConstructor
@@ -29,6 +33,9 @@ describe('client', () => {
       },
       '../../file-helper': {
         removeFiles: removeFiles
+      },
+      '../../framework-support': {
+        default: frameworkSupport
       }
     });
   });
@@ -153,13 +160,21 @@ describe('client', () => {
       beforeEach((done) => {
         let config = {
           dir: 'dir',
-          piePackages: [],
-          readPackages: sinon.stub().returns([])
+          piePackages: [
+            {
+              name: 'pie-one',
+              dependencies: {
+                a: '1.0.0',
+                b: '1.0.0'
+              }
+            }
+          ],
+          readPackages: sinon.stub().returns([{ dependencies: { a: '2.0.0' } }])
         };
 
         buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' });
         buildable.frameworkSupport = {
-          buildConfigFromPieDependencies: sinon.stub().returns({})
+          buildConfigFromPieDependencies: sinon.stub().returns({ _mockSupportConfig: true })
         }
 
         buildable._buildFrameworkConfig()
@@ -169,12 +184,12 @@ describe('client', () => {
           .catch(done);
       });
 
-      xit('calls buildConfigFromPieDependencies', () => {
-        sinon.assert.calledWith(buildable.frameworkSupport.buildConfigFromPieDependencies, []);
+      it('calls buildConfigFromPieDependencies', () => {
+        sinon.assert.calledWith(buildable.frameworkSupport.buildConfigFromPieDependencies, { a: ['1.0.0', '2.0.0'], b: ['1.0.0'] });
       });
 
-      xit('sets _supportConfig', () => {
-        expect(buildable._supportConfig).to.eql({});
+      it('sets _supportConfig', () => {
+        expect(buildable._supportConfig).to.eql({ _mockSupportConfig: true });
       });
     });
 
