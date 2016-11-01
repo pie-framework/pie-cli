@@ -174,8 +174,8 @@ export class ClientBuildable {
   _install() {
     let dependencies = _.extend({}, clientDependencies(this.opts.pieBranch), this.config.npmDependencies);
     return this.npmDir.install(dependencies)
-      .then(this._buildFrameworkConfig)
-      .then(this._installFrameworkDependencies);
+      .then(() => this._buildFrameworkConfig())
+      .then(() => this._installFrameworkDependencies());
   }
 
   _installFrameworkDependencies() {
