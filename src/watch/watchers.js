@@ -6,6 +6,22 @@ import fs from 'fs-extra';
 
 const logger = buildLogger();
 
+export class FileWatch {
+  constructor(filepath, onChange) {
+    logger.silly('[FileWatch] filepath: ', filepath);
+    this.filepath = filepath;
+    this.onChange = onChange;
+
+    this._watch = chokidar.watch(this.filepath, { ignoreInitial: true });
+    this._watch.on('change', () => {
+      onChange(this.filepath);
+    });
+    this._watch.on('ready', () => {
+      logger.silly('[FileWatch] ready for path: ', filepath);
+    });
+  }
+}
+
 export class BaseWatch {
 
   constructor(ignores) {

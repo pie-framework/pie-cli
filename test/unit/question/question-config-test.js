@@ -14,7 +14,8 @@ describe('QuestionConfig', () => {
 
   beforeEach(() => {
     fsExtra = {
-      readJsonSync: sinon.stub().returns({})
+      readJsonSync: sinon.stub().returns({}),
+      readFileSync: sinon.stub().returns('<html></html>')
     };
 
     Question = proxyQuestion();
@@ -87,6 +88,7 @@ describe('QuestionConfig', () => {
       beforeEach(() => {
         fsExtra = {
           readJsonSync: sinon.stub().returns({}),
+          readFileSync: sinon.stub().returns('<html></html>'),
           existsSync: sinon.stub().returns(true)
         };
 

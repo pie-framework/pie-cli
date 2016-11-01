@@ -13,11 +13,8 @@ export function make(compilers, renderOpts) {
   logger.info('[make]');
   logger.silly('[make] renderOpts:', renderOpts);
 
-  const params = _.extend(renderOpts, {
-    model: jsesc(renderOpts.config)
-  });
-
   const app = express();
+
   app.set('views', join(__dirname, 'views'));
   app.set('view engine', 'pug');
 
@@ -35,6 +32,12 @@ export function make(compilers, renderOpts) {
   app.use(controllersMiddleware);
 
   app.get('/', function (req, res) {
+
+    const params = _.extend(renderOpts, {
+      model: jsesc(renderOpts.questionConfig.readConfig()),
+      markup: renderOpts.questionConfig.readMarkup()
+    });
+
     res.render('example-with-sock', params);
   });
 

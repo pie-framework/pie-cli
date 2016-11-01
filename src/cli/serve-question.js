@@ -89,8 +89,7 @@ class Cmd extends CliCommand {
           controllersFile: controllerOpts.filename,
           controllersUid: question.controllers.uid,
           clientFile: clientOpts.bundleName,
-          config: question.config.config,
-          markup: question.config.markup
+          questionConfig: question.config
         };
 
         let app = makeApp(compilers, renderOpts);
@@ -98,10 +97,13 @@ class Cmd extends CliCommand {
         let sockFunctions = initSock(httpServer);
         linkSockToCompiler('controllers', sockFunctions, compilers.controllers);
         linkSockToCompiler('client', sockFunctions, compilers.client);
-        return { server: httpServer };
+        return { server: httpServer, sockFunctions: sockFunctions };
       })
-      .then(({ server }) => startServer(server))
-      .then(() => watchMaker.init(question.config))
+      .then((s) => {
+        startServer(s.server);
+        return s;
+      })
+      .then(({sockFunctions}) => watchMaker.init(question.config, sockFunctions.reload))
       .then(() => `server listening on ${args.port}`)
       .catch(error => {
         logger.error(error.message);

@@ -17,7 +17,8 @@ export default class QuestionConfig {
     this.filenames = filenames;
     this.filenames = _.extend({}, defaultFilenames, filenames);
     logger.silly('filenames', this.filenames);
-    this._config = this._readJson(this.filenames.config);
+    this._config = this.readConfig();
+    this._markup = this.readMarkup();
     logger.silly('config', this._config);
     this._dependencies = this._readJson(this.filenames.dependencies) || {};
     logger.silly('dependencies', this._dependencies);
@@ -31,15 +32,16 @@ export default class QuestionConfig {
     return this._config;
   }
 
+  readConfig() {
+    return this._readJson(this.filenames.config);
+  }
+
+  readMarkup() {
+    let markupPath = join(this.dir, this.filenames.markup);
+    return fs.readFileSync(markupPath, 'utf8');
+  }
+
   get markup() {
-    if (!this._markup) {
-      this._markup = fs.readFileSync(join(this.dir, this.filenames.markup), { encoding: 'utf8' });
-    }
-
-    if (!this._markup) {
-      throw new Error('cant read in markup');
-    }
-
     return this._markup;
   }
 
