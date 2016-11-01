@@ -107,7 +107,7 @@ export class ClientBuildable {
 
   clean() {
     logger.debug('[clean]...', this.opts);
-    let files = [this.opts.bundleName, this.opts.bundleName + '.map', this.ENTRY_JS];
+    let files = [this.opts.bundleName, this.opts.bundleName + '.map'];
     logger.silly('[clean] files: ', files);
     return this.npmDir.clean()
       .then(() => this.entry.clean())

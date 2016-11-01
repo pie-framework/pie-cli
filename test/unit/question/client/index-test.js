@@ -2,12 +2,20 @@ import {expect} from 'chai';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
 describe('client', () => {
-  let index, npmDirConstructor, npmDirInstance, entryConstructor;
+  let index, npmDirConstructor, npmDirInstance, entryConstructor, entryInstance;
 
   beforeEach(() => {
-    npmDirInstance = {};
+    npmDirInstance = {
+      clean: sinon.stub().returns(Promise.resolve())
+    };
+
     npmDirConstructor = sinon.stub().returns(npmDirInstance);
-    entryConstructor = sinon.stub().returns({});
+
+    entryInstance = {
+      clean: sinon.stub().returns(Promise.resolve())
+    }
+
+    entryConstructor = sinon.stub().returns(entryInstance);
     
     index = proxyquire('../../../../src/question/client', {
       '../../npm/npm-dir' : {
@@ -15,6 +23,9 @@ describe('client', () => {
       },
       './entry' : {
         default: entryConstructor
+      },
+      '../../file-helper' : {
+        removeFiles: sinon.stub().returns(Promise.resolve())
       }
     });
   });
@@ -60,6 +71,20 @@ describe('client', () => {
 
     describe('clean', () => {
 
+      beforeEach((done) => {
+        buildable = new ClientBuildable({ dir: 'dir'}, [], {});
+        buildable.clean()
+          .then(() => done())
+          .catch(done);
+      });
+
+      it('calls npmDir.clean', () => {
+        sinon.assert.called(npmDirInstance.clean);
+      });
+      
+      it('calls entry.clean', () => {
+        sinon.assert.called(entryInstance.clean);
+      });
     });
   });
 
