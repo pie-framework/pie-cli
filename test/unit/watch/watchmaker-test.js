@@ -18,7 +18,10 @@ describe('watchmaker', () => {
     watchmaker = proxyquire('../../../src/watch/watchmaker', {
       './watchers': {
         PieWatch: pieWatchConstructor
-      }
+      },
+      '../npm/dependency-helper': {
+         pathIsDir: sinon.stub().returns(true)
+       }
     });
   });
 
