@@ -148,6 +148,37 @@ describe('client', () => {
     });
 
 
+    describe('_buildFrrameworkConfig', () => {
+      let buildable;
+      beforeEach((done) => {
+        let config = {
+          dir: 'dir',
+          piePackages: [],
+          readPackages: sinon.stub().returns([])
+        };
+
+        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' });
+        buildable.frameworkSupport = {
+          buildConfigFromPieDependencies: sinon.stub().returns({})
+        }
+
+        buildable._buildFrameworkConfig()
+          .then(() => {
+            done();
+          })
+          .catch(done);
+      });
+
+      xit('calls buildConfigFromPieDependencies', () => {
+        sinon.assert.calledWith(buildable.frameworkSupport.buildConfigFromPieDependencies, []);
+      });
+
+      xit('sets _supportConfig', () => {
+        expect(buildable._supportConfig).to.eql({});
+      });
+    });
+
+
     describe('webpackConfig', () => {
 
       let buildable, loader, config;
