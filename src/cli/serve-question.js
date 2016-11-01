@@ -29,17 +29,6 @@ export class ServeQuestionOpts {
   }
 }
 
-let _reloadImpl = () => {
-  console.log('not implemented');
-}
-
-let reloadFn = () => {
-  logger.debug('[reloadFn], _reloadImpl? ', _reloadImpl);
-  if (_reloadImpl) {
-    _reloadImpl();
-  }
-};
-
 class Cmd extends CliCommand {
 
   constructor() {
