@@ -102,7 +102,11 @@ class Cmd extends CliCommand {
       })
       .then(({ server }) => startServer(server))
       .then(() => watchMaker.init(question.config))
-      .then(() => `server listening on ${args.port}`);
+      .then(() => `server listening on ${args.port}`)
+      .catch(error => {
+        logger.error(error.message);
+        logger.error(error.stack);
+      });
   }
 }
 
