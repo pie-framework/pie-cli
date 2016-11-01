@@ -6,10 +6,12 @@ import { build as buildMarkupExample } from '../code-gen/markup-example';
 import { BuildOpts as ClientBuildOpts } from '../question/client';
 import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
 import { resolve, join } from 'path';
-import { make as makeAppServer } from '../server';
+import { make as makeApp } from '../server';
 import http from 'http';
 import * as watchMaker from '../watch/watchmaker';
 import { init as initSock } from '../server/sock';
+import Promise from 'bluebird';
+import webpack from 'webpack';
 
 const logger = buildLogger()
 
@@ -53,29 +55,35 @@ class Cmd extends CliCommand {
 
     args.port = args.port || 4000;
 
-    let createServer = (app) => {
-      return Promise.resolve({
-        server: http.createServer(app),
-        app: app
+    let startServer = (server) => new Promise((resolve, reject) => {
+      server.on('error', (e) => {
+        logger.error(e);
+        reject(e);
       });
-    }
 
-    let startServer = (server) => {
-      return new Promise((resolve, reject) => {
-        server.on('error', (e) => {
-          logger.error(e);
-          reject(e);
-        });
-
-        server.on('listening', () => {
-          logger.silly(` > server: listening on ${args.port}`);
-          resolve(server);
-        });
-
-        server.listen(args.port);
+      server.on('listening', () => {
+        logger.silly(`[startServer] listening on ${args.port}`);
+        resolve(server);
       });
-    }
 
+      server.listen(args.port);
+    });
+
+    let linkSockToCompiler = (name, fns, compiler) => {
+      compiler.plugin('done', (stats) => {
+        process.nextTick(() => {
+          if (stats.hasErrors()) {
+            logger.error('recompile failed');
+            let info = stats.toJson('errors-only');
+            logger.error(info.errors);
+            fns.error(name, info.errors);
+          } else {
+            logger.debug(`${name}: reload!`);
+            fns.reload(name);
+          }
+        });
+      });
+    };
 
     let opts = ServeQuestionOpts.build(args);
     let clientOpts = ClientBuildOpts.build(args);
@@ -83,25 +91,32 @@ class Cmd extends CliCommand {
     let dir = resolve(opts.dir);
     let question = new Question(dir, clientOpts, controllerOpts);
 
-    return question.prepareWebpackConfigs(opts.clean)
-      .then(configs => {
+    question.prepareWebpackConfigs(opts.clean)
+      .then(({ client, controllers }) => {
+        return {
+          client: webpack(client),
+          controllers: webpack(controllers)
+        };
+      })
+      .then(compilers => {
         let renderOpts = {
           controllersFile: controllerOpts.filename,
           controllersUid: question.controllers.uid,
           clientFile: clientOpts.bundleName,
           config: question.config.config,
           markup: question.config.markup
-        }
-        return makeAppServer(configs, renderOpts, reloadFn);
+        };
+
+        let app = makeApp(compilers, renderOpts);
+        let httpServer = http.createServer(app);
+        let sockFunctions = initSock(httpServer);
+        linkSockToCompiler('controllers', sockFunctions, compilers.controllers);
+        linkSockToCompiler('client', sockFunctions, compilers.client);
+        return { server: httpServer };
       })
-      .then(createServer)
-      .then((s) => {
-        _reloadImpl = initSock(s.server);
-        return s;
-      })
-      .then(({server}) => startServer(server))
+      .then(({ server }) => startServer(server))
       .then(() => watchMaker.init(question.config))
-      .then(server => `server listening on ${args.port}`);
+      .then(() => `server listening on ${args.port}`);
   }
 }
 

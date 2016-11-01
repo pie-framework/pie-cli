@@ -17,24 +17,23 @@ export function init(server) {
     }
 
     connection = conn;
-
-    connection.on('close', function () {
-      //connection.close();
-    });
-
-    conn.on('data', function (message) {
-      conn.write(message);
-    });
   });
 
   sockServer.installHandlers(server, { prefix: '/sock' });
 
-  let reloadFn = () => {
-    logger.info('trigger a reload...');
+  let reloadFn = (name) => {
+    logger.silly(name, 'trigger a reload.');
     if (connection) {
-      connection.write('reload');
+      connection.write(JSON.stringify({ type: 'reload' }));
+    }
+  };
+
+  let errorFn = (name, errors) => {
+    logger.silly(name, 'trigger a reload.');
+    if (connection) {
+      connection.write(JSON.stringify({ type: 'error', errors: errors }));
     }
   }
-  logger.debug('reloadFn: ', reloadFn);
-  return reloadFn;
+
+  return { reload: reloadFn, error: errorFn };
 }

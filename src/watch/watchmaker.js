@@ -6,48 +6,25 @@ import fs from 'fs-extra';
 
 const logger = buildLogger();
 
-export class LocalWatch {
+export class BaseWatch {
 
-  constructor(name, relativePath, rootDir) {
-    logger.info('constructor: ', name, relativePath, rootDir);
-    this.name = name;
-    this.relativePath = relativePath;
-    this.rootDir = rootDir;
-  }
-
-  get resolvedPath() {
-    return resolve(join(this.rootDir, this.relativePath));
-  }
-
-  get targetRoot() {
-    return resolve(join(this.rootDir, 'node_modules', this.name));
+  constructor(ignores) {
+    this.ignores = ignores;
   }
 
   getDestination(path) {
-    let relativePath = relative(this.rootDir, path);
-    let destination = join(this.targetRoot, 'node_modules', this.name, relativePath);
-    logger.silly(`[getDestination], path: ${path}, destination: ${destination}`);
+    let relativePath = relative(this.srcRoot, path);
+    let destination = join(this.targetRoot, relativePath);
+    logger.silly(`[BaseWatch] [getDestination], path: ${path}, relativePath: ${relativePath}, destination: ${destination}`);
     return destination;
   }
 
   start() {
 
-    /** 
-     * TODO: How do we configure what to watch for client + controller?
-     * Option: use webpack stats to find out which files are needed: could mean that we'd have to recompile webpack if something is added?
-     * 
-     * For now allow the src to be specified in `dependencies.json`?
-     * 
-     * {
-     *   corespring-multiple-choice-react: {
-     *     client: src,
-     *     controller: /
-     *   }
-     * }
-     */
+    logger.debug('[BaseWatch] [start] srcRoot: ', this.srcRoot);
 
-    this._watcher = chokidar.watch(this.resolvedPath, {
-      ignored: [
+    this._watcher = chokidar.watch(this.srcRoot, {
+      ignored: _.concat(this.ignores, [
         /package\.json/,
         /[\/\\]\./,
         /.*node_modules.*/,
@@ -56,17 +33,17 @@ export class LocalWatch {
         /.*\.d\.ts/,
         /typings/,
         /jsconfig\.json/
-      ],
+      ]),
       ignoreInitial: true,
       persistent: true
     });
-
 
     let onAdd = (path, stats) => {
       logger.info(`File added: ${path} - copy`);
       fs.copy(path, this.getDestination(path));
     };
 
+    //TODO: Add file size change detection to prevent unnecessary updates
     let onChange = (path, stats) => {
       logger.debug(`File changed: ${path} - copy`);
       fs.copy(path, this.getDestination(path));
@@ -79,8 +56,8 @@ export class LocalWatch {
 
     let onError = (e) => logger.error(e);
     let onReady = () => {
-      logger.info(`Watcher for ${this.resolvedPath} - Ready`);
-      logger.info(this._watcher.getWatched());
+      logger.info(`Watcher for ${this.srcRoot} - Ready`);
+      logger.silly('watched: \n', this._watcher.getWatched());
     }
 
     this._watcher
@@ -92,15 +69,62 @@ export class LocalWatch {
   }
 }
 
+export class PieControllerWatch extends BaseWatch {
+
+  constructor(name, relativePieRoot, questionRoot) {
+    super([]);
+    this.name = name;
+    this.relativePieRoot = relativePieRoot;
+    this.questionRoot = questionRoot;
+  }
+
+  get srcRoot() {
+    return resolve(join(this.questionRoot, this.relativePieRoot, 'controller'));
+  }
+
+  get targetRoot() {
+    return resolve(join(this.questionRoot, 'controllers', 'node_modules', `${this.name}-controller`));
+  }
+}
+
+export class PieClientWatch extends BaseWatch {
+  constructor(name, relativePieRoot, questionRoot) {
+    super([/.*controller.*/]);
+    this.name = name;
+    this.relativePieRoot = relativePieRoot;
+    this.questionRoot = questionRoot;
+  }
+
+  get srcRoot() {
+    return resolve(this.questionRoot, this.relativePieRoot);
+  }
+
+  get targetRoot() {
+    return resolve(join(this.questionRoot, 'node_modules', this.name));
+  }
+}
+
+export class PieWatch {
+
+  constructor(name, relativePath, rootDir) {
+    logger.info('constructor: ', name, relativePath, rootDir);
+    this.client = new PieClientWatch(name, relativePath, rootDir);
+    this.controller = new PieControllerWatch(name, relativePath, rootDir);
+  }
+
+  start() {
+    this.client.start();
+    this.controller.start();
+  }
+}
+
 export function init(questionConfig) {
 
   logger.debug('[init] questionConfig: ', questionConfig.localDependencies);
 
-  let watchers = _.map(questionConfig.localDependencies, (value, key) => {
-    return new LocalWatch(key, value, questionConfig.dir);
+  return _.map(questionConfig.localDependencies, (value, key) => {
+    let w = new PieWatch(key, value, questionConfig.dir);
+    w.start();
+    return w;
   });
-
-  _.forEach(watchers, w => w.start());
-
-  return watchers;
 }
