@@ -39,7 +39,7 @@ export class BaseWatch {
     });
 
     let onAdd = (path, stats) => {
-      logger.info(`File added: ${path} - copy`);
+      logger.debug(`File added: ${path} - copy`);
       fs.copy(path, this.getDestination(path));
     };
 
