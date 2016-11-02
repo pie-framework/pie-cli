@@ -2,9 +2,14 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
 describe('client', () => {
-  let index, npmDirConstructor, npmDirInstance, entryConstructor, entryInstance, removeFiles, frameworkSupport;
+  let index, npmDirConstructor, npmDirInstance, entryInstance, removeFiles, frameworkSupport, emptyApp;
 
   beforeEach(() => {
+
+    emptyApp = {
+      frameworkSupport: sinon.stub().returns([])
+    }
+
     npmDirInstance = {
       clean: sinon.stub().returns(Promise.resolve())
     };
@@ -16,8 +21,6 @@ describe('client', () => {
       name: 'entry.js'
     }
 
-    entryConstructor = sinon.stub().returns(entryInstance);
-
     removeFiles = sinon.stub().returns(Promise.resolve());
 
     frameworkSupport = {
@@ -27,9 +30,6 @@ describe('client', () => {
     index = proxyquire('../../../../src/question/client', {
       '../../npm/npm-dir': {
         default: npmDirConstructor
-      },
-      './entry': {
-        default: entryConstructor
       },
       '../../file-helper': {
         removeFiles: removeFiles
@@ -67,22 +67,19 @@ describe('client', () => {
 
     describe('constructor', () => {
       beforeEach(() => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], {});
+        buildable = new ClientBuildable({ dir: 'dir' }, [], {}, emptyApp);
       });
 
       it('calls new NpmDir', () => {
         sinon.assert.calledWith(npmDirConstructor, 'dir');
       });
 
-      it('calls new Entry', () => {
-        sinon.assert.calledWith(entryConstructor, 'dir');
-      });
     });
 
     describe('clean', () => {
 
       beforeEach((done) => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' });
+        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
         buildable.clean()
           .then(() => done())
           .catch(done);
@@ -92,19 +89,15 @@ describe('client', () => {
         sinon.assert.called(npmDirInstance.clean);
       });
 
-      it('calls entry.clean', () => {
-        sinon.assert.called(entryInstance.clean);
-      });
-
       it('calls removeFile', () => {
-        sinon.assert.calledWith(removeFiles, 'dir', ['pie.js', 'pie.js.map']);
+        sinon.assert.calledWith(removeFiles, 'dir', ['pie.js', 'pie.js.map', 'entry.js']);
       });
     });
 
     describe('pack', () => {
       let buildable;
       beforeEach(() => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' });
+        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
         buildable.prepareWebpackConfig = sinon.stub().returns(Promise.resolve());
         buildable.bundle = sinon.stub().returns(Promise.resolve());
       });
@@ -128,7 +121,7 @@ describe('client', () => {
     describe('prepareWebpackConfig', () => {
       let buildable;
       beforeEach(() => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' });
+        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
         buildable.clean = sinon.stub().returns(Promise.resolve());
         buildable._install = sinon.stub().returns(Promise.resolve());
         buildable.writeEntryJs = sinon.stub().returns(Promise.resolve());
@@ -172,7 +165,7 @@ describe('client', () => {
           readPackages: sinon.stub().returns([{ dependencies: { a: '2.0.0' } }])
         };
 
-        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' });
+        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' }, emptyApp);
         buildable.frameworkSupport = {
           buildConfigFromPieDependencies: sinon.stub().returns({ _mockSupportConfig: true })
         }
@@ -201,7 +194,7 @@ describe('client', () => {
       beforeEach((done) => {
         loader = { test: /Iamaloader/ };
 
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' });
+        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
         buildable._supportConfig = {
           webpackLoaders: sinon.stub().returns([loader])
         }
