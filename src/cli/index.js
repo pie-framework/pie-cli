@@ -23,7 +23,7 @@ export default function (opts) {
   }) || help;
 
   let result = cmd.run(opts);
-  (result || Promise.resolve('done'))
+  (result || Promise.resolve('done!'))
     .then((result) => {
       if (result) {
         console.log(result);

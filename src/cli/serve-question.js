@@ -7,6 +7,8 @@ import { resolve } from 'path';
 import * as watchMaker from '../watch/watchmaker';
 import webpack from 'webpack';
 import ExampleApp from '../example-app';
+import _ from 'lodash';
+import { join } from 'path';
 
 const logger = buildLogger()
 
@@ -57,17 +59,18 @@ class Cmd extends CliCommand {
     let clientOpts = ClientBuildOpts.build(args);
     let controllerOpts = ControllersBuildOpts.build(args);
     let dir = resolve(opts.dir);
-    let clientFrameworkSupport = [];
-    logger.warn('TODO: need to plug in client framework support back in');
-    let app = new ExampleApp();
-    let question = new Question(dir, clientOpts, controllerOpts, clientFrameworkSupport, app);
+    let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
+    support = _.map(support, (s) => resolve(join(dir, s)));
 
-    question.prepareWebpackConfigs(opts.clean)
+    let app = new ExampleApp();
+    let question = new Question(dir, clientOpts, controllerOpts, support, app);
+
+    return question.prepareWebpackConfigs(opts.clean)
       .then(({ client, controllers }) => {
-        return {
+        return Promise.resolve({
           client: webpack(client),
           controllers: webpack(controllers)
-        };
+        });
       })
       .then(compilers => {
         let opts = {

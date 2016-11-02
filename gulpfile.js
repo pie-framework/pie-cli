@@ -1,7 +1,8 @@
 const gulp = require('gulp'),
   babel = require('gulp-babel'),
   gutil = require('gulp-util'),
-  eslint = require('gulp-eslint');
+  eslint = require('gulp-eslint'),
+  sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('pug', () => {
   return gulp.src('src/**/*.pug')
@@ -10,12 +11,14 @@ gulp.task('pug', () => {
 
 gulp.task('babel', () => {
   return gulp.src('src/**/*.js')
+    .pipe(sourcemaps.init())
     .pipe(babel())
     .on('error', function (e) {
       console.log(e.stack);
       gutil.log('babel error', e.stack);
       this.emit('end');
     })
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest('lib'))
 });
 
@@ -28,7 +31,7 @@ gulp.task('watch-pug', () => {
 });
 
 gulp.task('lint', () => {
-  return gulp.src(['src/**/*.js','!node_modules/**'])
+  return gulp.src(['src/**/*.js', '!node_modules/**'])
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());

@@ -7,6 +7,7 @@ import { resolve, join } from 'path';
 import ExampleApp from '../example-app';
 import { writeIfDoesntExist } from '../question/client/io';
 import { removeSync } from 'fs-extra';
+import _ from 'lodash';
 
 const logger = buildLogger();
 
@@ -42,11 +43,11 @@ class PackQuestionCommand extends CliCommand {
     let clientOpts = ClientBuildOpts.build(args);
     let controllerOpts = ControllersBuildOpts.build(args);
     let dir = resolve(opts.dir);
-    logger.warn('TODO: not plugging in framwork support from args');
-    let clientFrameworkSupport = [];
+    let support = _.isArray(args.support) ? args.support : [args.support];
+    support = _.map(support, (s) => resolve(join(dir, s)));
     let exampleApp = new ExampleApp();
     logger.silly('[run] exampleApp: ', exampleApp);
-    let question = new Question(dir, clientOpts, controllerOpts, clientFrameworkSupport, exampleApp);
+    let question = new Question(dir, clientOpts, controllerOpts, support, exampleApp);
 
     return question.pack(opts.clean)
       .then((result) => {
