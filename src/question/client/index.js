@@ -1,56 +1,34 @@
-import path from 'path';
+import { join, resolve as pathResolve } from 'path';
 import FrameworkSupport from '../../framework-support';
 import { buildLogger } from '../../log-factory';
 import { removeFiles } from '../../file-helper';
 import NpmDir from '../../npm/npm-dir';
 import _ from 'lodash';
-import Entry from './entry';
+import { writeIfDoesntExist } from './io';
 import resolve from 'resolve';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import { configToJsString, writeConfig } from '../../code-gen/webpack-write-config';
-import { clientDependencies } from './defaults';
 
 const logger = buildLogger();
 
-const defaultSupport = [
-  path.join(__dirname, '../../framework-support/frameworks/react'),
-  path.join(__dirname, '../../framework-support/frameworks/less')
-];
-
-class EntryElements {
-  constructor(elements) {
-    this.elements = elements;
-  }
-
-  get keys() {
-    let toKey = (p) => _.isString(p) ? p : p.key;
-    return _.map(this.elements, toKey);
-  }
-}
-
-const pieController = {
-  key: 'pie-controller',
-  initSrc: `
-        import Controller from 'pie-controller';
-        window.pie = window.pie || {};
-        window.pie.Controller = Controller;`
+let clientDependencies = {
+  'babel-core': '^6.17.0',
+  'babel-loader': '^6.2.5',
+  'style-loader': '^0.13.1',
+  'css-loader': '^0.25.0',
+  'webpack': '2.1.0-beta.21'
 };
 
 let baseConfig = (root) => {
   return {
     module: {
-      loaders: [
-        {
-          test: /\.css$/,
-          loader: 'style!css'
-        }
-      ]
+      loaders: [],
     },
     resolveLoader: {
-      root: path.resolve(path.join(root, 'node_modules')),
+      root: pathResolve(join(root, 'node_modules')),
     },
     resolve: {
-      root: path.resolve(path.join(root, 'node_modules')),
+      root: pathResolve(join(root, 'node_modules')),
       extensions: ['', '.js', '.jsx']
     }
   };
@@ -71,13 +49,12 @@ export class BuildOpts {
 }
 
 export class ClientBuildable {
-  constructor(config, support, opts) {
+  constructor(config, support, opts, app) {
     this.config = config;
     this.opts = opts;
-    logger.debug('[constructor], support:', support);
-    this.frameworkSupport = FrameworkSupport.bootstrap(support.concat(defaultSupport));
+    this.app = app;
+    this.frameworkSupport = FrameworkSupport.bootstrap(support.concat(app.frameworkSupport()));
     this.npmDir = new NpmDir(this.dir);
-    this.entry = new Entry(this.dir);
   }
 
   get dir() {
@@ -97,28 +74,30 @@ export class ClientBuildable {
       .then(() => this.webpackConfig());
   }
 
-  writeEntryJs() {
-    return this.entry.write(this._entryElements.elements);
+  get entryJsPath() {
+    return join(this.dir, 'entry.js');
   }
 
-  get _entryElements() {
-    let names = _.map(this.config.pies, (nv) => nv.name);
-    return new EntryElements([pieController, 'pie-player', 'pie-control-panel'].concat(names));
+  writeEntryJs() {
+    let pieNames = _.map(this.config.pies, 'name');
+    logger.silly('[writeEntryJs] pieNames: ', pieNames);
+    let js = this.app.entryJs(_.map(this.config.pies, 'name'));
+    logger.silly('[writeEntryJs] js: ', js);
+    return writeIfDoesntExist(this.entryJsPath, js);
   }
 
   clean() {
     logger.debug('[clean]...', this.opts);
-    let files = [this.opts.bundleName, this.opts.bundleName + '.map'];
+    let files = [this.opts.bundleName, this.opts.bundleName + '.map', 'entry.js'];
     logger.silly('[clean] files: ', files);
     return this.npmDir.clean()
-      .then(() => this.entry.clean())
       .then(() => removeFiles(this.dir, files));
   }
 
   webpackConfig() {
     let config = _.extend({
       context: this.dir,
-      entry: path.join(this.dir, this.entry.name),
+      entry: this.entryJsPath,
       output: { filename: this.opts.bundleName, path: this.dir }
     }, baseConfig(this.dir));
 
@@ -134,7 +113,7 @@ export class ClientBuildable {
     logger.silly('webpack config', configToJsString(config));
 
     if (process.env.WRITE_WEBPACK_CONFIG) {
-      writeConfig(path.join(this.dir, 'webpack.config.js'), config);
+      writeConfig(join(this.dir, 'webpack.config.js'), config);
     }
 
     return buildWebpack(config)
@@ -163,7 +142,7 @@ export class ClientBuildable {
     //Note: we can only read piePackages after an npm install.
     let allPackages = _.concat(
       this.config.piePackages,
-      this.config.readPackages(this._entryElements.keys));
+      this.config.readPackages(_.keys(this.app.dependencies(this.opts.pieBranch))));
 
     let merged = _(allPackages).map('dependencies').reduce(mergeDependencies, {});
 
@@ -173,7 +152,13 @@ export class ClientBuildable {
   }
 
   _install() {
-    let dependencies = _.extend({}, clientDependencies(this.opts.pieBranch), this.config.npmDependencies);
+    let dependencies = _.extend({},
+      clientDependencies,
+      this.config.npmDependencies,
+      this.app.dependencies(this.opts.pieBranch));
+
+    logger.silly('[_install] dependencies: ', dependencies);
+
     return this.npmDir.install(dependencies)
       .then(() => this._buildFrameworkConfig())
       .then(() => this._installFrameworkDependencies());

@@ -4,8 +4,12 @@ import { copySync } from 'fs-extra';
 import Question from '../../src/question';
 import { BuildOpts as ClientBuildOpts } from '../../src/question/client';
 import { BuildOpts as ControllersBuildOpts } from '../../src/question/controllers';
-import { build as buildExample } from '../../src/code-gen/markup-example';
+import ExampleApp from '../../src/example-app';
 import path from 'path';
+import { writeFileSync } from 'fs-extra';
+import { buildLogger } from '../../src/log-factory';
+
+const logger = buildLogger();
 
 export function setUpTmpQuestionAndComponents(name) {
   let questionsSrc = resolve('./test/integration/example-questions');
@@ -22,10 +26,27 @@ export function setUpTmpQuestionAndComponents(name) {
 export function packExample(testName, exampleQuestion, support) {
   let tmpPath = setUpTmpQuestionAndComponents(testName);
   let questionPath = join(tmpPath, `example-questions/${exampleQuestion}`);
-  let question = new Question(questionPath, ClientBuildOpts.build(), ControllersBuildOpts.build(), support);
+  let example = new ExampleApp();
+  let question = new Question(questionPath, ClientBuildOpts.build(), ControllersBuildOpts.build(), support, example);
   return question.pack()
     .then((result) => {
-      return buildExample(question.config, result.controllers, path.join(questionPath, 'example.html'));
+      let paths = {
+        controllers: result.controllers.filename,
+        client: result.client
+      }
+
+      let ids = {
+        controllers: result.controllers.library
+      }
+
+      logger.info('result: ', JSON.stringify(result, null, '  '));
+
+      let markup = example.staticMarkup(paths, ids, question.config.markup, question.config.config);
+
+      logger.info('markup: \n', markup);
+
+      let examplePath = path.join(questionPath, 'example.html');
+      writeFileSync(examplePath, markup, 'utf8');
     })
     .then(() => {
       return {

@@ -2,22 +2,19 @@ doctype html
 html
   head
     link(href='//fonts.googleapis.com/css?family=Roboto', rel='stylesheet')
-    script(src=clientFile, type='text/javascript')
-    script(src=controllersFile, type='text/javascript')
+    script(src=paths.client, type='text/javascript')
+    script(src=paths.controllers, type='text/javascript')
 
     script(type='text/javascript').
 
       window.pie = window.pie || {};
       window.pie.env = {mode: 'gather'};
       window.pie.model = !{model};
-      
-      let controllersUid = '#{controllersUid}';
-      
       window.pie.session = [];
       
       document.addEventListener('pie.player-ready', function(event){
         var player = event.target;
-        var pieController = new pie.Controller(window.pie.model, window[controllersUid]);
+        var pieController = new pie.Controller(window.pie.model, window['#{ids.controllers}']);
         
         player.controller = pieController;
         player.env = window.pie.env;

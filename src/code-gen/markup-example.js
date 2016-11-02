@@ -2,9 +2,13 @@ import jsesc from 'jsesc';
 import fs from 'fs-extra';
 import { removeFiles } from '../file-helper';
 import pug from 'pug';
-import { join } from 'path';
+import { join, resolve } from 'path';
+import { buildLogger } from '../../log-factory';
+const logger = buildLogger();
 
-const compiledFunction = pug.compileFile(join(__dirname, '../server/views/example.pug'));
+const templatePath = resolve(join(__dirname, './server/views/blah.pug'));
+logger.info('templatePath: ', templatePath);
+const compiledFunction = pug.compileFile(templatePath);
 
 let mkExampleMarkup = (markup, model, controllersFile, controllersUid) => {
   let escapedModel = jsesc(model);

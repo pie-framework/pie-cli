@@ -5,7 +5,7 @@ block head-extras
   script(src="//cdn.jsdelivr.net/sockjs/1/sockjs.min.js")
   script(type='text/javascript').
 
-    var sock = new SockJS('/sock');
+    var sock = new SockJS('#{paths.sock}');
     
     sock.onopen = function() {
       console.log('sock is open');

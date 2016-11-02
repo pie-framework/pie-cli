@@ -4,11 +4,9 @@ import CliCommand from './cli-command';
 import { BuildOpts as ClientBuildOpts } from '../question/client';
 import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
 import { resolve } from 'path';
-import { make as makeApp } from '../server';
-import http from 'http';
 import * as watchMaker from '../watch/watchmaker';
-import { init as initSock } from '../server/sock';
 import webpack from 'webpack';
+import ExampleApp from '../example-app';
 
 const logger = buildLogger()
 
@@ -55,27 +53,14 @@ class Cmd extends CliCommand {
       server.listen(args.port);
     });
 
-    let linkSockToCompiler = (name, fns, compiler) => {
-      compiler.plugin('done', (stats) => {
-        process.nextTick(() => {
-          if (stats.hasErrors()) {
-            logger.error('recompile failed');
-            let info = stats.toJson('errors-only');
-            logger.error(info.errors);
-            fns.error(name, info.errors);
-          } else {
-            logger.debug(`${name}: reload!`);
-            fns.reload(name);
-          }
-        });
-      });
-    };
-
     let opts = ServeQuestionOpts.build(args);
     let clientOpts = ClientBuildOpts.build(args);
     let controllerOpts = ControllersBuildOpts.build(args);
     let dir = resolve(opts.dir);
-    let question = new Question(dir, clientOpts, controllerOpts);
+    let clientFrameworkSupport = [];
+    logger.warn('TODO: need to plug in client framework support back in');
+    let app = new ExampleApp();
+    let question = new Question(dir, clientOpts, controllerOpts, clientFrameworkSupport, app);
 
     question.prepareWebpackConfigs(opts.clean)
       .then(({ client, controllers }) => {
@@ -85,25 +70,25 @@ class Cmd extends CliCommand {
         };
       })
       .then(compilers => {
-        let renderOpts = {
-          controllersFile: controllerOpts.filename,
-          controllersUid: question.controllers.uid,
-          clientFile: clientOpts.bundleName,
-          questionConfig: question.config
+        let opts = {
+          paths: {
+            controllers: controllerOpts.filename,
+            client: clientOpts.bundleName
+          },
+          ids: {
+            controllers: question.controllers.uid
+          },
+          markup: () => question.config.readMarkup(),
+          model: () => question.config.readConfig()
         };
 
-        let app = makeApp(compilers, renderOpts);
-        let httpServer = http.createServer(app);
-        let sockFunctions = initSock(httpServer);
-        linkSockToCompiler('controllers', sockFunctions, compilers.controllers);
-        linkSockToCompiler('client', sockFunctions, compilers.client);
-        return { server: httpServer, sockFunctions: sockFunctions };
+        return app.server(compilers, opts);
       })
-      .then((s) => {
-        startServer(s.server);
-        return s;
+      .then(server => {
+        startServer(server);
+        return server;
       })
-      .then(({sockFunctions}) => watchMaker.init(question.config, sockFunctions.reload))
+      .then(server => watchMaker.init(question.config, (n) => server.reload(n)))
       .then(() => `server listening on ${args.port}`)
       .catch(error => {
         logger.error(error.message);

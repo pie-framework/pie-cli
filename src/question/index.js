@@ -8,11 +8,11 @@ import { buildLogger } from '../log-factory';
 const logger = buildLogger();
 export default class Question {
 
-  constructor(dir, clientOpts, controllerOpts, clientFrameworkSupport) {
+  constructor(dir, clientOpts, controllerOpts, clientFrameworkSupport, app) {
     clientFrameworkSupport = clientFrameworkSupport || [];
     this.dir = dir;
     this.config = new QuestionConfig(dir);
-    this.client = new ClientBuildable(this.config, clientFrameworkSupport, clientOpts);
+    this.client = new ClientBuildable(this.config, clientFrameworkSupport, clientOpts, app);
     this.controllers = new ControllersBuildable(this.config, controllerOpts);
   }
 

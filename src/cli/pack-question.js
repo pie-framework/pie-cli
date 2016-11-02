@@ -1,10 +1,12 @@
 import { buildLogger } from '../log-factory';
 import Question from '../question';
 import CliCommand from './cli-command';
-import { build as buildMarkupExample } from '../code-gen/markup-example';
 import { BuildOpts as ClientBuildOpts } from '../question/client';
 import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
 import { resolve, join } from 'path';
+import ExampleApp from '../example-app';
+import { writeIfDoesntExist } from '../question/client/io';
+import { removeSync } from 'fs-extra';
 
 const logger = buildLogger();
 
@@ -40,16 +42,37 @@ class PackQuestionCommand extends CliCommand {
     let clientOpts = ClientBuildOpts.build(args);
     let controllerOpts = ControllersBuildOpts.build(args);
     let dir = resolve(opts.dir);
-    let question = new Question(dir, clientOpts, controllerOpts);
+    logger.warn('TODO: not plugging in framwork support from args');
+    let clientFrameworkSupport = [];
+    let exampleApp = new ExampleApp();
+    logger.silly('[run] exampleApp: ', exampleApp);
+    let question = new Question(dir, clientOpts, controllerOpts, clientFrameworkSupport, exampleApp);
 
     return question.pack(opts.clean)
       .then((result) => {
         logger.debug('pack result: ', result);
+
         if (opts.buildExample) {
-          return buildMarkupExample(
-            question.config,
-            result.controllers, join(dir, opts.exampleFile)
-          );
+          let paths = {
+            client: result.client,
+            controllers: result.controllers.filename
+          }
+
+          let ids = {
+            controllers: result.controllers.library
+          }
+
+          let markup = exampleApp.staticMarkup(paths, ids, question.config.markup, question.config.config);
+
+          logger.silly('markup: ', markup);
+
+          let examplePath = join(dir, opts.exampleFile);
+
+          if (opts.clean) {
+            removeSync(examplePath);
+          }
+
+          return writeIfDoesntExist(examplePath, markup);
         }
       });
   }
