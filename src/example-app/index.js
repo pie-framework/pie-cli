@@ -14,7 +14,6 @@ const templatePath = join(__dirname, 'views/example.pug');
 
 logger.silly('[templatePath]: ', templatePath);
 
-
 const pieController = {
   key: 'pie-controller',
   initSrc: `

@@ -5,11 +5,11 @@ import { packExample } from '../integration-test-helper';
 
 describe('Question.pack :: React + Vue', () => {
 
-  let questionPath, question;
+  let questionPath;
 
   before(function (done) {
 
-    this.timeout(50000);
+    this.timeout(100000);
     let support = [
       join(__dirname, '_vue-support')
     ];

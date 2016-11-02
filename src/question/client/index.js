@@ -1,10 +1,9 @@
 import { join, resolve as pathResolve } from 'path';
 import FrameworkSupport from '../../framework-support';
 import { buildLogger } from '../../log-factory';
-import { removeFiles } from '../../file-helper';
+import { removeFiles, softWrite } from '../../file-helper';
 import NpmDir from '../../npm/npm-dir';
 import _ from 'lodash';
-import { writeIfDoesntExist } from './io';
 import resolve from 'resolve';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import { configToJsString, writeConfig } from '../../code-gen/webpack-write-config';
@@ -83,7 +82,7 @@ export class ClientBuildable {
     logger.silly('[writeEntryJs] pieNames: ', pieNames);
     let js = this.app.entryJs(_.map(this.config.pies, 'name'));
     logger.silly('[writeEntryJs] js: ', js);
-    return writeIfDoesntExist(this.entryJsPath, js);
+    return softWrite(this.entryJsPath, js);
   }
 
   clean() {

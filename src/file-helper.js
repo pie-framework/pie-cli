@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import path from 'path';
 import fs from 'fs-extra';
-
+import { existsSync, writeFile } from 'fs-extra';
 import { buildLogger } from './log-factory';
 
 const logger = buildLogger();
@@ -16,4 +16,20 @@ export function removeFiles(root, files) {
       logger.silly(`removed: from ${root}: ${_.map(results, (f) => path.basename(f)).join("\n")}`);
       return results;
     });
+}
+
+export function softWrite(path, src) {
+  if (existsSync(path)) {
+    return Promise.resolve(path);
+  } else {
+    return new Promise((resolve, reject) => {
+      writeFile(path, src, 'utf8', (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(path);
+        }
+      });
+    });
+  }
 }
