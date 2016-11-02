@@ -8,7 +8,6 @@ require('babel-register')({
   plugins: [resolve.sync('babel-plugin-transform-es2015-modules-commonjs', { basedir: join(__dirname, '../..') })]
 });
 
-
 let logger = buildLogger();
 
 export class BuildConfig {

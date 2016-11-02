@@ -36,7 +36,15 @@ export function run(args) {
   let dir = resolve(args.dir || process.cwd());
   let clientOpts = ClientBuildOpts.build(args);
   let controllerOpts = ControllersBuildOpts.build(args);
-  let question = new Question(dir, clientOpts, controllerOpts);
+
+  //Note: we don't need an app when cleaning
+  let emptyApp = {
+    frameworkSupport: () => []
+  };
+
+  //Note: we don't need framework support for a clean
+  let noExternalSupport = [];
+  let question = new Question(dir, clientOpts, controllerOpts, noExternalSupport, emptyApp);
   return question.clean(dir, args)
     .then(() => "clean complete")
 }
