@@ -1,9 +1,13 @@
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import resolve from 'resolve';
+import { join } from 'path';
 
 //add babel require hook
-require('babel-register');
+require('babel-register')({
+  plugins: [resolve.sync('babel-plugin-transform-es2015-modules-commonjs', { basedir: join(__dirname, '../..') })]
+});
+
 
 let logger = buildLogger();
 
