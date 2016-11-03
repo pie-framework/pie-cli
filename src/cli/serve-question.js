@@ -11,19 +11,19 @@ import { join } from 'path';
 const logger = buildLogger()
 
 export class ServeQuestionOpts {
-    constructor(dir, clean, port) {
-        this.dir = dir;
-        this.clean = clean;
-        this.port = port;
-    }
+  constructor(dir, clean, port) {
+    this.dir = dir;
+    this.clean = clean;
+    this.port = port;
+ }
 
-    static build(args) {
-        args = args || {};
-        return new ServeQuestionOpts(
-            args.dir || process.cwd(),
-            args.clean === 'true' || args.clean === true || false,
-            args.port || 4000)
-    }
+ static build(args) {
+    args = args || {};
+    return new ServeQuestionOpts(
+      args.dir || process.cwd(),
+      args.clean === 'true' || args.clean === true || false,
+      args.port || 4000)
+  }
 }
 
 class Cmd extends CliCommand {
