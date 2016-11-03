@@ -73,7 +73,6 @@ export default class ExampleApp {
   }
 
   staticMarkup(paths, ids, markup, model) {
-    logger.silly('jsesc: ', jsesc);
     let escapedModel = jsesc(model);
     return this._staticExample({
       paths: paths,

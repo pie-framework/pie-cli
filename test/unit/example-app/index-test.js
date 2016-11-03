@@ -4,29 +4,45 @@ import proxyquire from 'proxyquire';
 import { resolve } from 'path';
 import { parse } from 'acorn';
 import { buildLogger } from '../../../src/log-factory';
-import sinon from 'sinon';
+import { assert, stub, spy, match } from 'sinon';
+import { join } from 'path';
 
 const logger = buildLogger();
 
 describe('ExampleApp', () => {
-  let ExampleApp, app, jsesc, serverInstance, serverConstructor;
+  let ExampleApp, app, jsesc, serverInstance, serverConstructor, express, expressInstance, webpackDevMiddleware;
 
   beforeEach(() => {
 
-    jsesc = sinon.stub();
+    jsesc = spy(function (model) {
+      logger.silly('[spy:jsesc] >>>> model: ', model);
+      return model || { jsescModel: true };
+    });
 
     serverInstance = {
     }
 
-    serverConstructor = sinon.stub().returns(serverInstance);
+    serverConstructor = stub().returns(serverInstance);
 
     serverConstructor.SOCK_PREFIX = () => '/sock';
+
+    expressInstance = {
+      set: stub(),
+      use: stub(),
+      get: stub()
+    }
+
+    express = stub().returns(expressInstance);
+
+    webpackDevMiddleware = stub().returns({});
 
     ExampleApp = proxyquire('../../../src/example-app', {
       jsesc: jsesc,
       './server': {
         default: serverConstructor
-      }
+      },
+      'express': express,
+      'webpack-dev-middleware': webpackDevMiddleware
     }).default;
     app = new ExampleApp();
   });
@@ -133,30 +149,32 @@ describe('ExampleApp', () => {
         controllers: 'controllers'
       }
 
-      ids: {
+      ids = {
         controllers: 'id'
       }
 
-      markup: '<div></div>';
-      model: {
+      markup = '<div></div>';
+      model = {
         pies: []
       }
 
-      app._staticExample = sinon.stub().returns('stubbed');
+      app._staticExample = stub().returns('stubbed');
+
+      logger.silly(paths, ids, markup, model);
       app.staticMarkup(paths, ids, markup, model);
     });
 
     it('calls _staticExample', () => {
-      sinon.assert.calledWith(app._staticExample, {
+      assert.calledWith(app._staticExample, {
         paths: paths,
         ids: ids,
         model: model,
         markup: markup
-      })
+      });
     });
 
     it('calls jsesc', () => {
-      sinon.assert.calledWith(jsesc, model);
+      assert.calledWith(jsesc, model);
     });
   });
 
@@ -165,20 +183,20 @@ describe('ExampleApp', () => {
     beforeEach(() => {
       registeredHandlers = {};
       compiler = {
-        plugin: sinon.spy((key, handler) => {
+        plugin: spy((key, handler) => {
           registeredHandlers[key] = handler;
         })
       }
 
       handlers = {
-        error: sinon.stub(),
-        reload: sinon.stub()
+        error: stub(),
+        reload: stub()
       }
       app._linkCompilerToServer('name', compiler, handlers);
     });
 
     it('calls compiler.plugin', () => {
-      sinon.assert.calledWith(compiler.plugin, 'done', sinon.match.func);
+      assert.calledWith(compiler.plugin, 'done', match.func);
     });
 
     it('done handler calls reload', (done) => {
@@ -187,7 +205,7 @@ describe('ExampleApp', () => {
       });
 
       process.nextTick(() => {
-        sinon.assert.calledWith(handlers.reload, 'name');
+        assert.calledWith(handlers.reload, 'name');
         done();
       })
     });
@@ -195,11 +213,11 @@ describe('ExampleApp', () => {
     it('done handler calls error', (done) => {
       registeredHandlers['done']({
         hasErrors: () => true,
-        toJson: sinon.stub().returns({ errors: [] })
+        toJson: stub().returns({ errors: [] })
       });
 
       process.nextTick(() => {
-        sinon.assert.calledWith(handlers.error, 'name', []);
+        assert.calledWith(handlers.error, 'name', []);
         done();
       })
     });
@@ -219,25 +237,25 @@ describe('ExampleApp', () => {
           client: 'pie.js'
         }
       }
-      app._linkCompilerToServer = sinon.stub();
-      app._mkApp = sinon.stub().returns({});
+      app._linkCompilerToServer = stub();
+      app._mkApp = stub().returns({});
       result = app.server(compilers, opts)
     });
 
     it('calls _mkApp', () => {
-      sinon.assert.calledWith(app._mkApp, compilers, opts);
+      assert.calledWith(app._mkApp, compilers, opts);
     });
 
     it('calls new ExampleAppServer', () => {
-      sinon.assert.called(serverConstructor);
+      assert.called(serverConstructor);
     });
 
     it('calls _linkCompilerToServer for controllers', () => {
-      sinon.assert.calledWith(app._linkCompilerToServer, 'controllers', compilers.controllers, serverInstance);
+      assert.calledWith(app._linkCompilerToServer, 'controllers', compilers.controllers, serverInstance);
     });
 
     it('calls _linkCompilerToServer for client', () => {
-      sinon.assert.calledWith(app._linkCompilerToServer, 'client', compilers.controllers, serverInstance);
+      assert.calledWith(app._linkCompilerToServer, 'client', compilers.controllers, serverInstance);
     });
 
     it('returns the instance', () => {
@@ -247,8 +265,92 @@ describe('ExampleApp', () => {
 
   describe('_mkApp', () => {
 
-    it('throws an error if paths is not defined', () => {
-      app._mkApp({}, {})
+    describe('errors', () => {
+      it('throws an error if opts is not defined', () => {
+        expect(() => app._mkApp({}, undefined)).to.throw('opts and opts.paths must be defined');
+      });
+
+      it('throws an error if opts.paths is not defined', () => {
+        expect(() => app._mkApp({}, {})).to.throw('opts and opts.paths must be defined');
+      });
+    });
+
+    describe('no errors', () => {
+      let result, compilers, getHandler, opts;
+
+      beforeEach(() => {
+
+        expressInstance.get = spy((path, handler) => {
+          getHandler = handler;
+        });
+
+        compilers = {
+          client: {
+            output: {
+              filename: 'pie.js'
+            }
+          },
+          controllers: {
+            output: {
+              filename: 'controllers.js'
+            }
+          }
+        }
+
+        opts = {
+          paths: {
+            client: 'pie.js',
+            controllers: 'controllers.js'
+          },
+          ids: {
+            controllers: '1234'
+          },
+          model: stub().returns({ stubModel: true }),
+          markup: stub().returns('<div>stub</div>')
+        }
+        result = app._mkApp(compilers, opts);
+      });
+
+      it('returns the app', () => {
+        expect(result).to.eql(expressInstance);
+      });
+
+      it('calls express', () => {
+        assert.called(express);
+      });
+
+      it('sets the view engine', () => {
+        assert.calledWith(expressInstance.set, 'view engine', 'pug');
+      });
+
+      it('sets the views dir', () => {
+        assert.calledWith(expressInstance.set, 'views', resolve(join(__dirname, '../../../src/example-app/views')));
+      });
+
+      it('calls webpackDevMiddleware for controllers', () => {
+        assert.calledWith(webpackDevMiddleware, compilers.controllers, { publicPath: '/', noInfo: true });
+      });
+
+      it('calls webpackDevMiddleware for client', () => {
+        assert.calledWith(webpackDevMiddleware, compilers.client, { publicPath: '/', noInfo: true });
+      });
+
+      it('calls app.use twice', () => {
+        assert.calledTwice(expressInstance.use);
+      });
+
+      it('calls render on GET /', () => {
+        let res = {
+          render: stub()
+        }
+        getHandler({}, res);
+
+        assert.calledWith(
+          res.render,
+          'example-with-sock',
+          { paths: opts.paths, ids: opts.ids, model: opts.model(), markup: opts.markup() });
+      });
+
     });
   });
 
