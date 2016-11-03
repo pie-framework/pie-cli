@@ -4,14 +4,30 @@ import proxyquire from 'proxyquire';
 import { resolve } from 'path';
 import { parse } from 'acorn';
 import { buildLogger } from '../../../src/log-factory';
+import sinon from 'sinon';
 
 const logger = buildLogger();
 
 describe('ExampleApp', () => {
-  let ExampleApp, app;
+  let ExampleApp, app, jsesc, serverInstance, serverConstructor;
 
   beforeEach(() => {
-    ExampleApp = proxyquire('../../../src/example-app', {}).default;
+
+    jsesc = sinon.stub();
+
+    serverInstance = {
+    }
+
+    serverConstructor = sinon.stub().returns(serverInstance);
+
+    serverConstructor.SOCK_PREFIX = () => '/sock';
+
+    ExampleApp = proxyquire('../../../src/example-app', {
+      jsesc: jsesc,
+      './server': {
+        default: serverConstructor
+      }
+    }).default;
     app = new ExampleApp();
   });
 
@@ -105,6 +121,128 @@ describe('ExampleApp', () => {
     assertDefinesCustomElement('a');
     assertDefinesCustomElement('pie-player');
     assertDefinesCustomElement('pie-control-panel');
-
   });
+
+  describe('staticMarkup', () => {
+
+    let paths, ids, markup, model;
+    beforeEach(() => {
+
+      paths = {
+        client: 'client',
+        controllers: 'controllers'
+      }
+
+      ids: {
+        controllers: 'id'
+      }
+
+      markup: '<div></div>';
+      model: {
+        pies: []
+      }
+
+      app._staticExample = sinon.stub().returns('stubbed');
+      app.staticMarkup(paths, ids, markup, model);
+    });
+
+    it('calls _staticExample', () => {
+      sinon.assert.calledWith(app._staticExample, {
+        paths: paths,
+        ids: ids,
+        model: model,
+        markup: markup
+      })
+    });
+
+    it('calls jsesc', () => {
+      sinon.assert.calledWith(jsesc, model);
+    });
+  });
+
+  describe('_linkCompilerToServer', () => {
+    let compiler, handlers, registeredHandlers;
+    beforeEach(() => {
+      registeredHandlers = {};
+      compiler = {
+        plugin: sinon.spy((key, handler) => {
+          registeredHandlers[key] = handler;
+        })
+      }
+
+      handlers = {
+        error: sinon.stub(),
+        reload: sinon.stub()
+      }
+      app._linkCompilerToServer('name', compiler, handlers);
+    });
+
+    it('calls compiler.plugin', () => {
+      sinon.assert.calledWith(compiler.plugin, 'done', sinon.match.func);
+    });
+
+    it('done handler calls reload', (done) => {
+      registeredHandlers['done']({
+        hasErrors: () => false
+      });
+
+      process.nextTick(() => {
+        sinon.assert.calledWith(handlers.reload, 'name');
+        done();
+      })
+    });
+
+    it('done handler calls error', (done) => {
+      registeredHandlers['done']({
+        hasErrors: () => true,
+        toJson: sinon.stub().returns({ errors: [] })
+      });
+
+      process.nextTick(() => {
+        sinon.assert.calledWith(handlers.error, 'name', []);
+        done();
+      })
+    });
+  });
+
+  describe('server', () => {
+    let compilers, opts, result;
+    beforeEach(() => {
+
+      compilers = {
+        client: {},
+        controllers: {}
+      }
+      opts = {
+        paths: {
+          controllers: 'controllers.js',
+          client: 'pie.js'
+        }
+      }
+      app._linkCompilerToServer = sinon.stub();
+      app._mkApp = sinon.stub().returns({});
+      result = app.server(compilers, opts)
+    });
+
+    it('calls _mkApp', () => {
+      sinon.assert.calledWith(app._mkApp, compilers, opts);
+    });
+
+    it('calls new ExampleAppServer', () => {
+      sinon.assert.called(serverConstructor);
+    });
+
+    it('calls _linkCompilerToServer for controllers', () => {
+      sinon.assert.calledWith(app._linkCompilerToServer, 'controllers', compilers.controllers, serverInstance);
+    });
+
+    it('calls _linkCompilerToServer for client', () => {
+      sinon.assert.calledWith(app._linkCompilerToServer, 'client', compilers.controllers, serverInstance);
+    });
+
+    it('returns the instance', () => {
+      expect(result).to.eql(serverInstance);
+    })
+  });
+
 });
