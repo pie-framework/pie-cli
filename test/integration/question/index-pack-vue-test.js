@@ -5,7 +5,7 @@ import { packExample } from '../integration-test-helper';
 
 describe('Question.pack :: Vue', () => {
 
-  let questionPath, question;
+  let questionPath;
 
   before(function (done) {
 
