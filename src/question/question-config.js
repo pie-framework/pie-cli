@@ -5,17 +5,27 @@ import { join } from 'path';
 
 const logger = buildLogger();
 
-let defaultFilenames = {
-  config: 'config.json',
-  dependencies: 'dependencies.json',
-  markup: 'index.html'
-};
+export class BuildOpts {
 
-export default class QuestionConfig {
-  constructor(dir, filenames) {
+  constructor(config = 'config.json', dependencies = 'dependencies.json', markup = 'index.html') {
+    this.config = config;
+    this.dependencies = dependencies;
+    this.markup = markup;
+  }
+
+  static build(args) {
+    new BuildOpts(
+      args['question-config-file'],
+      args['question-dependencies-file'],
+      args['question-markup-file'])
+  }
+}
+
+export class QuestionConfig {
+  constructor(dir, opts) {
+    opts = opts || new BuildOpts();
     this.dir = dir;
-    this.filenames = filenames;
-    this.filenames = _.extend({}, defaultFilenames, filenames);
+    this.filenames = opts;
     logger.silly('filenames', this.filenames);
     this._config = this.readConfig();
     this._markup = this.readMarkup();

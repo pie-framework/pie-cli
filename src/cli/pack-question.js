@@ -1,8 +1,6 @@
 import { buildLogger } from '../log-factory';
 import Question from '../question';
 import CliCommand from './cli-command';
-import { BuildOpts as ClientBuildOpts } from '../question/client';
-import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
 import { resolve, join } from 'path';
 import ExampleApp from '../example-app';
 import { softWrite } from '../file-helper';
@@ -39,21 +37,21 @@ class PackQuestionCommand extends CliCommand {
   }
 
   run(args) {
-    let opts = PackQuestionOpts.build(args);
-    let clientOpts = ClientBuildOpts.build(args);
-    let controllerOpts = ControllersBuildOpts.build(args);
-    let dir = resolve(opts.dir);
+    let packOpts = PackQuestionOpts.build(args);
+    let dir = resolve(packOpts.dir);
     let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
     support = _.map(support, (s) => resolve(join(dir, s)));
     let exampleApp = new ExampleApp();
     logger.silly('[run] exampleApp: ', exampleApp);
-    let question = new Question(dir, clientOpts, controllerOpts, support, exampleApp);
 
-    return question.pack(opts.clean)
+    let questionOpts = Question.buildOpts(args);
+    let question = new Question(dir, questionOpts, support, exampleApp);
+
+    return question.pack(packOpts.clean)
       .then((result) => {
         logger.debug('pack result: ', result);
 
-        if (opts.buildExample) {
+        if (packOpts.buildExample) {
           let paths = {
             client: result.client,
             controllers: result.controllers.filename
@@ -67,9 +65,9 @@ class PackQuestionCommand extends CliCommand {
 
           logger.silly('markup: ', markup);
 
-          let examplePath = join(dir, opts.exampleFile);
+          let examplePath = join(dir, packOpts.exampleFile);
 
-          if (opts.clean) {
+          if (packOpts.clean) {
             removeSync(examplePath);
           }
 

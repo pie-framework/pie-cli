@@ -38,7 +38,7 @@ export default class CliCommand {
     let mdFile = getMdFilename();
 
     if (mdFile) {
-      return readFileSync(path.join(__dirname, `../../docs/${mdFile}`), { encoding: 'utf8' });
+      return readFileSync(path.join(__dirname, mdFile), { encoding: 'utf8' });
     } else {
       return usageValue;
     }

@@ -4,10 +4,15 @@ const gulp = require('gulp'),
   eslint = require('gulp-eslint'),
   sourcemaps = require('gulp-sourcemaps');
 
-gulp.task('pug', () => {
-  return gulp.src('src/**/*.pug')
-    .pipe(gulp.dest('lib'));
-});
+
+let glue = suffix => gulp.src(`src/**/*.${suffix}`).pipe(gulp.dest('lib'));
+let watch = (suffix, tasks) => {
+  tasks = tasks ? tasks : [suffix];
+  return gulp.watch(`src/**/*.${suffix}`, tasks);
+}
+
+gulp.task('pug', () => glue('pug'));
+gulp.task('md', () => glue('md'));
 
 gulp.task('babel', () => {
   return gulp.src('src/**/*.js')
@@ -22,13 +27,9 @@ gulp.task('babel', () => {
     .pipe(gulp.dest('lib'))
 });
 
-gulp.task('watch-babel', () => {
-  return gulp.watch('src/**/*.js', ['babel']);
-});
-
-gulp.task('watch-pug', () => {
-  return gulp.watch('src/**/*.pug', ['pug']);
-});
+gulp.task('watch-babel', () => watch('js', ['babel']));
+gulp.task('watch-pug', () => watch('pug'));
+gulp.task('watch-md', () => watch('md'));
 
 gulp.task('lint', () => {
   return gulp.src(['src/**/*.js', '!node_modules/**'])
@@ -37,6 +38,6 @@ gulp.task('lint', () => {
     .pipe(eslint.failAfterError());
 });
 
-gulp.task('build', ['lint', 'pug', 'babel']);
+gulp.task('build', ['lint', 'md', 'pug', 'babel']);
 
-gulp.task('dev', ['pug', 'babel', 'watch-pug', 'watch-babel']);
+gulp.task('dev', ['md', 'pug', 'babel', 'watch-md', 'watch-pug', 'watch-babel']);

@@ -1,8 +1,6 @@
 import { buildLogger } from '../log-factory';
 import Question from '../question';
 import CliCommand from './cli-command';
-import { BuildOpts as ClientBuildOpts } from '../question/client';
-import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
 import { resolve } from 'path';
 import * as watchMaker from '../watch/watchmaker';
 import webpack from 'webpack';
@@ -13,91 +11,90 @@ import { join } from 'path';
 const logger = buildLogger()
 
 export class ServeQuestionOpts {
-  constructor(dir, clean) {
-    this.dir = dir;
-    this.clean = clean;
-  }
+    constructor(dir, clean) {
+        this.dir = dir;
+        this.clean = clean;
+    }
 
-  static build(args) {
-    args = args || {};
-    return new ServeQuestionOpts(
-      args.dir || process.cwd(),
-      args.clean === 'true' || args.clean === true || false)
-  }
+    static build(args) {
+        args = args || {};
+        return new ServeQuestionOpts(
+            args.dir || process.cwd(),
+            args.clean === 'true' || args.clean === true || false)
+    }
 }
 
 class Cmd extends CliCommand {
 
-  constructor() {
-    super(
-      'serve-question',
-      'run a dev server'
-    )
-  }
+    constructor() {
+        super(
+            'serve-question',
+            'run a dev server'
+        )
+    }
 
-  run(args) {
-    args.clean = args.clean === true || args.clean === 'true';
-    logger.silly('args: ', args);
+    run(args) {
+        args.clean = args.clean === true || args.clean === 'true';
+        logger.silly('args: ', args);
 
-    args.port = args.port || 4000;
+        args.port = args.port || 4000;
 
-    let startServer = (server) => new Promise((resolve, reject) => {
-      server.on('error', (e) => {
-        logger.error(e);
-        reject(e);
-      });
+        let startServer = (server) => new Promise((resolve, reject) => {
+            server.on('error', (e) => {
+                logger.error(e);
+                reject(e);
+            });
 
-      server.on('listening', () => {
-        logger.silly(`[startServer] listening on ${args.port}`);
-        resolve(server);
-      });
+            server.on('listening', () => {
+                logger.silly(`[startServer] listening on ${args.port}`);
+                resolve(server);
+            });
 
-      server.listen(args.port);
-    });
-
-    let opts = ServeQuestionOpts.build(args);
-    let clientOpts = ClientBuildOpts.build(args);
-    let controllerOpts = ControllersBuildOpts.build(args);
-    let dir = resolve(opts.dir);
-    let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
-    support = _.map(support, (s) => resolve(join(dir, s)));
-
-    let app = new ExampleApp();
-    let question = new Question(dir, clientOpts, controllerOpts, support, app);
-
-    return question.prepareWebpackConfigs(opts.clean)
-      .then(({ client, controllers }) => {
-        return Promise.resolve({
-          client: webpack(client),
-          controllers: webpack(controllers)
+            server.listen(args.port);
         });
-      })
-      .then(compilers => {
-        let opts = {
-          paths: {
-            controllers: controllerOpts.filename,
-            client: clientOpts.bundleName
-          },
-          ids: {
-            controllers: question.controllers.uid
-          },
-          markup: () => question.config.readMarkup(),
-          model: () => question.config.readConfig()
-        };
 
-        return app.server(compilers, opts);
-      })
-      .then(server => {
-        startServer(server);
-        return server;
-      })
-      .then(server => watchMaker.init(question.config, (n) => server.reload(n)))
-      .then(() => `server listening on ${args.port}`)
-      .catch(error => {
-        logger.error(error.message);
-        logger.error(error.stack);
-      });
-  }
+        let opts = ServeQuestionOpts.build(args);
+        let dir = resolve(opts.dir);
+        let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
+        support = _.map(support, (s) => resolve(join(dir, s)));
+
+        let app = new ExampleApp();
+        let questionOpts = Question.buildOpts(args);
+        let question = new Question(dir, questionOpts, support, app);
+
+        return question.prepareWebpackConfigs(opts.clean)
+            .then(({ client, controllers }) => {
+                return Promise.resolve({
+                    client: webpack(client),
+                    controllers: webpack(controllers)
+                });
+            })
+            .then(compilers => {
+                let opts = {
+                    paths: {
+                        controllers: questionOpts.controllers.filename,
+                        client: questionOpts.client.bundleName
+                    },
+                    ids: {
+                        controllers: question.controllers.uid
+                    },
+                    markup: () => question.config.readMarkup(),
+                    model: () => question.config.readConfig()
+                };
+
+                return app.server(compilers, opts);
+            })
+            .then(server => {
+                startServer(server);
+                return server;
+            })
+            .then(server => watchMaker.init(question.config, (n) => server.reload(n)))
+            .then(() => `server listening on ${args.port}`)
+            .catch(error => {
+                logger.error(error.message);
+                logger.error(error.stack);
+            });
+    }
 }
 
 let cmd = new Cmd();

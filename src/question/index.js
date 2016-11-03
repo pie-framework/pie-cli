@@ -1,6 +1,6 @@
-import { ClientBuildable } from './client';
-import { ControllersBuildable } from './controllers';
-import QuestionConfig from './question-config';
+import { ClientBuildable, BuildOpts as ClientBuildOpts } from './client';
+import { ControllersBuildable, BuildOpts as ControllersBuildOpts } from './controllers';
+import { QuestionConfig, BuildOpts as QuestionConfigBuildOpts } from './question-config';
 import { join } from 'path';
 import { removeSync } from 'fs-extra';
 import { buildLogger } from '../log-factory';
@@ -8,12 +8,20 @@ import { buildLogger } from '../log-factory';
 const logger = buildLogger();
 export default class Question {
 
-  constructor(dir, clientOpts, controllerOpts, clientFrameworkSupport, app) {
+  static buildOpts(args) {
+    return {
+      client: ClientBuildOpts.build(args),
+      controllers: ControllersBuildOpts.build(args),
+      question: QuestionConfigBuildOpts.build(args)
+    }
+  }
+
+  constructor(dir, opts, clientFrameworkSupport, app) {
     clientFrameworkSupport = clientFrameworkSupport || [];
     this.dir = dir;
-    this.config = new QuestionConfig(dir);
-    this.client = new ClientBuildable(this.config, clientFrameworkSupport, clientOpts, app);
-    this.controllers = new ControllersBuildable(this.config, controllerOpts);
+    this.config = new QuestionConfig(dir, opts.question);
+    this.client = new ClientBuildable(this.config, clientFrameworkSupport, opts.client, app);
+    this.controllers = new ControllersBuildable(this.config, opts.controllers);
   }
 
   clean() {

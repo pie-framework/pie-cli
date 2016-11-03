@@ -1,10 +1,9 @@
-const marked = require('marked');
-const TerminalRenderer = require('marked-terminal');
 import Question from '../question';
 import { resolve } from 'path';
 import { buildLogger } from '../log-factory';
-import { BuildOpts as ClientBuildOpts } from '../question/client';
-import { BuildOpts as ControllersBuildOpts } from '../question/controllers'
+
+const marked = require('marked');
+const TerminalRenderer = require('marked-terminal');
 
 let logger = buildLogger();
 
@@ -34,8 +33,6 @@ pie-cli clean-question --dir ../path/to/dir
 export function run(args) {
   logger.debug('[run] args: ', args);
   let dir = resolve(args.dir || process.cwd());
-  let clientOpts = ClientBuildOpts.build(args);
-  let controllerOpts = ControllersBuildOpts.build(args);
 
   //Note: we don't need an app when cleaning
   let emptyApp = {
@@ -44,7 +41,8 @@ export function run(args) {
 
   //Note: we don't need framework support for a clean
   let noExternalSupport = [];
-  let question = new Question(dir, clientOpts, controllerOpts, noExternalSupport, emptyApp);
+  let questionOpts = Question.buildOpts(args);
+  let question = new Question(dir, questionOpts, noExternalSupport, emptyApp);
   return question.clean(dir, args)
     .then(() => "clean complete")
 }
