@@ -18,6 +18,7 @@ export class PackQuestionOpts {
     this.buildExample = buildExample;
     this.exampleFile = exampleFile;
   }
+  
   static build(args) {
 
     if (args.keepBuildAssets) {

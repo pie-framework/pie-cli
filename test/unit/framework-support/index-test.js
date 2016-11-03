@@ -7,7 +7,7 @@ describe('framework-support', () => {
 
   describe('bootstrap', () => {
 
-    let FrameworkSupport, support, fsExtra, resolve, mockRequire;
+    let FrameworkSupport, support, fsExtra, resolve, mockRequire, babelRegister;
 
     beforeEach(() => {
 
@@ -29,10 +29,19 @@ describe('framework-support', () => {
         sync: sinon.spy(function (p) { return p; })
       }
 
+      babelRegister = sinon.stub();
+
       FrameworkSupport = proxyquire('../../../src/framework-support', {
         'fs-extra': fsExtra,
-        resolve: resolve
+        resolve: resolve,
+        'babel-register': babelRegister
       }).default;
+    });
+
+    it('calls babelRegister w/ plugins', () => {
+      sinon.assert.calledWith(babelRegister, {
+        plugins: ['babel-plugin-transform-es2015-modules-commonjs']
+      });
     });
 
     it('reads in modules from the dir', () => {

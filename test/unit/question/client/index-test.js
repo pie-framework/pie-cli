@@ -191,7 +191,7 @@ describe('client', () => {
         expect(buildable._supportConfig).to.eql({ _mockSupportConfig: true });
       });
 
-      it('call app.dependencies with keys', () => {
+      it('call app.dependencies with pieBranch', () => {
         sinon.assert.calledWith(emptyApp.dependencies, 'develop');
       })
     });
