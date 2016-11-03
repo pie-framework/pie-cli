@@ -245,4 +245,11 @@ describe('ExampleApp', () => {
     })
   });
 
+  describe('_mkApp', () => {
+
+    it('throws an error if paths is not defined', () => {
+      app._mkApp({}, {})
+    });
+  });
+
 });
