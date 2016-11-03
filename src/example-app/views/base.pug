@@ -31,12 +31,14 @@ html
           
           player.env = event.target.env;
           
-          if(event.target.env.mode === 'evaluate'){
-            player.getOutcome().then(function(outcome){
-              console.log('outcome', outcome);
-              panel.score = " &nbsp; " + outcome.summary.percentage + "% (" + outcome.summary.points + "/" + outcome.summary.maxPoints + ") &nbsp; ";
+          if (event.target.env.mode === 'evaluate') {
+            player.getOutcome().then(function(outcome) {
+              panel.score = ' Score: ' + outcome.summary.percentage + '% Points: ' + outcome.summary.points + '/' + outcome.summary.maxPoints;
             });
+          } else {
+            panel.score = '';
           }
+
         });
       });
     

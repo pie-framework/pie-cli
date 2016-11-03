@@ -62,9 +62,4 @@ npm run it
 npm run build
 ```
 
-### get pie on npm
-
-https://www.npmjs.com/package/pie
-
-Seems like it's not in use anymore?
 
