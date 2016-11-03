@@ -2,6 +2,10 @@ import { expect } from 'chai';
 import _ from 'lodash';
 import proxyquire from 'proxyquire';
 import { resolve } from 'path';
+import { parse } from 'acorn';
+import { buildLogger } from '../../../src/log-factory';
+
+const logger = buildLogger();
 
 describe('ExampleApp', () => {
   let ExampleApp, app;
@@ -51,8 +55,56 @@ describe('ExampleApp', () => {
     });
   });
 
-
   describe('entryJs', () => {
-    xit('coming..', () => { });
+    let ast;
+
+    let findImport = (name) => {
+      return _.find(ast.body, (n) => {
+        return n.type === 'ImportDeclaration' && n.source.value === name;
+      });
+    }
+
+    let findSpecifier = (decl) => {
+      return _.find(decl.specifiers, s => s.type === 'ImportDefaultSpecifier');
+    };
+
+    let expressions = () => _.filter(ast.body, n => n.type === 'ExpressionStatement');
+
+    let callExpressions = () => _.filter(expressions(), n => n.expression.type === 'CallExpression');
+
+    let findCustomElementsDefine = (variableId) => {
+      let exprs = _.filter(callExpressions(), n => {
+        return n.expression.callee.object.name === 'customElements' &&
+          n.expression.callee.property.name === 'define';
+      });
+
+      return _.find(exprs, n => {
+        return n.expression.arguments[1].name === variableId;
+      });
+    };
+
+    let definesCustomElement = (name) => {
+      let i = findImport(name);
+      let variableId = findSpecifier(i).local.name;
+      let defineStatement = findCustomElementsDefine(variableId);
+      logger.silly('[definesCustomElement]', defineStatement);
+      return defineStatement !== undefined;
+    };
+
+    beforeEach(() => {
+      let js = app.entryJs('a');
+      ast = parse(js, { ecmaVersion: 6, sourceType: 'module' });
+    });
+
+    let assertDefinesCustomElement = (name) => {
+      it(`defines ${name}`, () => {
+        expect(definesCustomElement(name)).to.eql(true);
+      });
+    }
+
+    assertDefinesCustomElement('a');
+    assertDefinesCustomElement('pie-player');
+    assertDefinesCustomElement('pie-control-panel');
+
   });
 });
