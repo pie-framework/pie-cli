@@ -5,7 +5,7 @@ import { BuildOpts as ClientBuildOpts } from '../question/client';
 import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
 import { resolve, join } from 'path';
 import ExampleApp from '../example-app';
-import { softWrite } from '../file-helper'; 
+import { softWrite } from '../file-helper';
 import { removeSync } from 'fs-extra';
 import _ from 'lodash';
 
@@ -18,7 +18,7 @@ export class PackQuestionOpts {
     this.buildExample = buildExample;
     this.exampleFile = exampleFile;
   }
-  
+
   static build(args) {
 
     if (args.keepBuildAssets) {
@@ -43,7 +43,7 @@ class PackQuestionCommand extends CliCommand {
     let clientOpts = ClientBuildOpts.build(args);
     let controllerOpts = ControllersBuildOpts.build(args);
     let dir = resolve(opts.dir);
-    let support = _.isArray(args.support) ? args.support : [args.support];
+    let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
     support = _.map(support, (s) => resolve(join(dir, s)));
     let exampleApp = new ExampleApp();
     logger.silly('[run] exampleApp: ', exampleApp);
