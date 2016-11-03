@@ -5,7 +5,7 @@ import { BuildOpts as ClientBuildOpts } from '../question/client';
 import { BuildOpts as ControllersBuildOpts } from '../question/controllers';
 import { resolve, join } from 'path';
 import ExampleApp from '../example-app';
-import { softWrite } from '../../file-helper'; 
+import { softWrite } from '../file-helper'; 
 import { removeSync } from 'fs-extra';
 import _ from 'lodash';
 

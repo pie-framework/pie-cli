@@ -139,13 +139,16 @@ export class ClientBuildable {
     };
 
     //Note: we can only read piePackages after an npm install.
-    let allPackages = _.concat(
-      this.config.piePackages,
-      this.config.readPackages(_.keys(this.app.dependencies(this.opts.pieBranch))));
+    let appDependencyKeys = _.keys(this.app.dependencies(this.opts.pieBranch));
+    logger.silly('[_buildFrameworkConfig] appDependencyKeys: ', appDependencyKeys);
+    let appPackages = this.config.readPackages(appDependencyKeys);
+    logger.silly('[_buildFrameworkConfig] appPackages: ', appPackages);
+    let allPackages = _.concat( this.config.piePackages, appPackages);
+    logger.silly('[_buildFrameworkConfig] allPackages: ', allPackages);
 
     let merged = _(allPackages).map('dependencies').reduce(mergeDependencies, {});
 
-    logger.silly('merged dependencies that need support: ', JSON.stringify(merged));
+    logger.silly('[_buildFrameworkConfig] merged dependencies that need support: ', JSON.stringify(merged));
     this._supportConfig = this.frameworkSupport.buildConfigFromPieDependencies(merged);
     return Promise.resolve();
   }

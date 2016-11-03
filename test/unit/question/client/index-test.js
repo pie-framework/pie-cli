@@ -1,13 +1,16 @@
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
+import _ from 'lodash';
+
 describe('client', () => {
-  let index, npmDirConstructor, npmDirInstance, entryInstance, removeFiles, frameworkSupport, emptyApp;
+  let index, npmDirConstructor, npmDirInstance, removeFiles, frameworkSupport, emptyApp;
 
   beforeEach(() => {
 
     emptyApp = {
-      frameworkSupport: sinon.stub().returns([])
+      frameworkSupport: sinon.stub().returns([]),
+      dependencies: () => []
     }
 
     npmDirInstance = {
@@ -15,11 +18,6 @@ describe('client', () => {
     };
 
     npmDirConstructor = sinon.stub().returns(npmDirInstance);
-
-    entryInstance = {
-      clean: sinon.stub().returns(Promise.resolve()),
-      name: 'entry.js'
-    }
 
     removeFiles = sinon.stub().returns(Promise.resolve());
 
@@ -162,10 +160,18 @@ describe('client', () => {
               }
             }
           ],
-          readPackages: sinon.stub().returns([{ dependencies: { a: '2.0.0' } }])
+          readPackages: sinon.spy(keys => {
+            return _.map(keys, k => {
+              let o = { dependencies: {}}
+              o.dependencies[k] = '1.0.0';
+              return o;
+            });
+          })
         };
 
-        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' }, emptyApp);
+        emptyApp.dependencies = sinon.stub().returns({appDependency: '1.0.0'});
+
+        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js', pieBranch: 'develop' }, emptyApp);
         buildable.frameworkSupport = {
           buildConfigFromPieDependencies: sinon.stub().returns({ _mockSupportConfig: true })
         }
@@ -178,12 +184,16 @@ describe('client', () => {
       });
 
       it('calls buildConfigFromPieDependencies', () => {
-        sinon.assert.calledWith(buildable.frameworkSupport.buildConfigFromPieDependencies, { a: ['1.0.0', '2.0.0'], b: ['1.0.0'] });
+        sinon.assert.calledWith(buildable.frameworkSupport.buildConfigFromPieDependencies, { a: ['1.0.0'],  b: ['1.0.0'], appDependency: ['1.0.0'] });
       });
 
       it('sets _supportConfig', () => {
         expect(buildable._supportConfig).to.eql({ _mockSupportConfig: true });
       });
+
+      it('call app.dependencies with keys', () => {
+        sinon.assert.calledWith(emptyApp.dependencies, 'develop');
+      })
     });
 
 
@@ -227,7 +237,7 @@ describe('client', () => {
       });
 
       it('returns config.module.loaders[1]', () => {
-        expect(config.module.loaders[1]).to.eql(loader);
+        expect(config.module.loaders[0]).to.eql(loader);
       });
     });
   });
