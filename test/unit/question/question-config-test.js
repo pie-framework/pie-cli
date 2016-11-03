@@ -23,6 +23,37 @@ describe('QuestionConfig', () => {
     BuildOpts = mod.BuildOpts;
   });
 
+  describe('BuildOpts.build', () => {
+
+    it('builds the defaults from undefined', () => {
+      expect(BuildOpts.build()).to.eql({
+        config: 'config.json',
+        dependencies: 'dependencies.json',
+        markup: 'index.html'
+      });
+    });
+
+    it('builds the defaults from an empty object', () => {
+      expect(BuildOpts.build({})).to.eql({
+        config: 'config.json',
+        dependencies: 'dependencies.json',
+        markup: 'index.html'
+      });
+    });
+
+    it('builds from arg values', () => {
+      expect(BuildOpts.build({
+        'questionConfigFile' : 'c.json',
+        'questionDependenciesFile' : 'd.json',
+        'questionMarkupFile' : 'i.html'
+      })).to.eql({
+        config: 'c.json',
+        dependencies: 'd.json',
+        markup: 'i.html'
+      });
+    })
+  });
+
   describe('constructor', () => {
 
     it('throws an error if the dir does not contain a config.json', () => {

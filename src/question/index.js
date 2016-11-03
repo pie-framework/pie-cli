@@ -6,6 +6,7 @@ import { removeSync } from 'fs-extra';
 import { buildLogger } from '../log-factory';
 
 const logger = buildLogger();
+
 export default class Question {
 
   static buildOpts(args) {
@@ -18,6 +19,9 @@ export default class Question {
 
   constructor(dir, opts, clientFrameworkSupport, app) {
     clientFrameworkSupport = clientFrameworkSupport || [];
+
+    logger.silly('[constructor] opts: ', JSON.stringify(opts));
+
     this.dir = dir;
     this.config = new QuestionConfig(dir, opts.question);
     this.client = new ClientBuildable(this.config, clientFrameworkSupport, opts.client, app);
@@ -28,6 +32,7 @@ export default class Question {
     return this.client.clean()
       .then(() => this.controllers.clean())
       .then(() => removeSync(this.controllers.controllersDir))
+      //TODO - does this belong here? We don't build the example in Question'
       .then(() => removeSync(join(this.dir, 'example.html')));
   }
 
@@ -45,7 +50,7 @@ export default class Question {
     return this.client.prepareWebpackConfig(clean)
       .then(clientConfig => {
         logger.debug('[prepareWebpackConfig] got clientConfig:', clientConfig);
-        return this.controllers.prepareWebpackConfig()
+        return this.controllers.prepareWebpackConfig(clean)
           .then(controllersConfig => {
             logger.debug('[prepareWebpackConfig] got controllersConfig:', controllersConfig);
             return {

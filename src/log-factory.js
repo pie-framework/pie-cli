@@ -7,7 +7,9 @@ import stackTrace from 'stack-trace';
 let config = {
   'default': 'info'
 };
+
 export let init = (log) => {
+
   if (!log) {
     return;
   }
@@ -16,6 +18,7 @@ export let init = (log) => {
   } else {
     try {
       let config = JSON.parse(log);
+      console.log('parsed log: ', log);
       setConfig(config);
     } catch (e) {
       if (fs.existsSync(log)) {
@@ -30,7 +33,7 @@ export let init = (log) => {
 function addLogger(label, level) {
 
   level = level ? level : config['default'] || 'info';
-  
+
   let cfg = {
     console: {
       colorize: true,
@@ -60,20 +63,20 @@ export let setDefaultLevel = (l) => {
   config['default'] = l;
 };
 
-export let setConfigFromFile = (configPath)  => {
+export let setConfigFromFile = (configPath) => {
   var cfg = fs.readJsonSync(configPath);
   console.log(cfg);
   setConfig(cfg);
 };
 
-export let setConfig =  (cfg)  => {
+export let setConfig = (cfg) => {
   config = cfg;
   _.forIn(cfg, (value, key) => {
     addLogger(key, value);
   });
 };
 
-export let getLogger = (id)  => {
+export let getLogger = (id) => {
   var existing = winston.loggers.has(id);
 
   if (existing) {
@@ -97,8 +100,9 @@ export let fileLogger = (filename) => {
 }
 
 
-export function buildLogger(){
+export function buildLogger() {
   let trace = stackTrace.get();
-  return fileLogger(trace[1].getFileName())
+  let name = trace[1].getFileName();
+  return fileLogger(name);
 }
 

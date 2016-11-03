@@ -4,7 +4,7 @@ import * as version from './version';
 import * as packQuestion from './pack-question';
 import * as cleanQuestion from './clean-question';
 import * as serveQuestion from './serve-question';
-
+import {normalizeOpts} from './helper';
 let commands = [
   version,
   packQuestion,
@@ -13,8 +13,8 @@ let commands = [
 ];
 
 export default function (opts) {
-  //bootstrap buildLogger 
-  global.buildLogger = require('../log-factory').buildLogger;
+
+  opts = normalizeOpts(opts);
 
   let help = new Help('pie-cli', commands);
 

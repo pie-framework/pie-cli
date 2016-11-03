@@ -11,16 +11,18 @@ import { join } from 'path';
 const logger = buildLogger()
 
 export class ServeQuestionOpts {
-    constructor(dir, clean) {
+    constructor(dir, clean, port) {
         this.dir = dir;
         this.clean = clean;
+        this.port = port;
     }
 
     static build(args) {
         args = args || {};
         return new ServeQuestionOpts(
             args.dir || process.cwd(),
-            args.clean === 'true' || args.clean === true || false)
+            args.clean === 'true' || args.clean === true || false,
+            args.port || 4000)
     }
 }
 
@@ -34,10 +36,7 @@ class Cmd extends CliCommand {
     }
 
     run(args) {
-        args.clean = args.clean === true || args.clean === 'true';
         logger.silly('args: ', args);
-
-        args.port = args.port || 4000;
 
         let startServer = (server) => new Promise((resolve, reject) => {
             server.on('error', (e) => {

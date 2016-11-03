@@ -14,10 +14,12 @@ export class BuildOpts {
   }
 
   static build(args) {
-    new BuildOpts(
-      args['question-config-file'],
-      args['question-dependencies-file'],
-      args['question-markup-file'])
+    args = args || {};
+
+    return new BuildOpts(
+      args['questionConfigFile'],
+      args['questionDependenciesFile'],
+      args['questionMarkupFile'])
   }
 }
 
