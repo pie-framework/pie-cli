@@ -88,7 +88,9 @@ function webpackBundle(root, entryJs, libraries, bundleName, getLoaders) {
     let orNames = libraries.join('|');
     let str = `node_modules/(?!(${orNames})/).*`;
     logger.debug('regex string: ', str);
-    l.exclude = new RegExp(str);
+    if(l.addExclude) {
+      l.exclude = new RegExp(str);
+    }
     return l;
   });
 
