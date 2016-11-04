@@ -16,7 +16,7 @@ npm install -g pie-cli
 ```bash
 git clone git@github.com:PieLabs/pie-cli.git 
 cd pie-cli 
-npm install -g babel-cli babel-preset-es2015
+npm install -g babel-cli 
 npm install 
 npm run build
 npm link 
@@ -36,7 +36,7 @@ If you want to play with the cli while developing you can watch the src, then li
 
 ```
 npm link
-babel --watch src -d lib
+npm run dev # runs -> 'gulp dev'
 # in some other dir 
 pie-lib --help
 ```
@@ -50,7 +50,7 @@ npm test
 
 ##### Integration 
 
-> The integration tests are slower than the unit tests cos of all the `npm install` commands.
+> The integration tests are slower than the unit tests cos of all the `npm install` commands. You'll probably want to run the 1 at a time.
 
 ```
 npm run it 

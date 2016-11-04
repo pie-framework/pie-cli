@@ -1,3 +1,4 @@
+//@flow
 import semver from 'semver';
 import fs from 'fs-extra';
 import path from 'path';
@@ -32,5 +33,4 @@ export let dependenciesToHash = (dependencies) => {
   }, '');
 
   return crypto.createHash('md5').update(raw).digest('hex');
-
 };

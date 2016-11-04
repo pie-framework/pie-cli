@@ -1,178 +1,207 @@
 import { expect } from 'chai';
+import { stub, assert } from 'sinon';
 import proxyquire from 'proxyquire';
-import sinon from 'sinon';
-import path from 'path';
 
 describe('Question', () => {
-  let Question, fsExtra;
-
-  function proxyQuestion() {
-    return proxyquire('../../../src/question', {
-      'fs-extra': fsExtra
-    }).default;
-  }
+  let q, Question, controllers, client, questionConfig, app, fs;
 
   beforeEach(() => {
-    fsExtra = {
-      readJsonSync: sinon.stub().returns({})
+
+    app = {
+      frameworkSupport: stub()
+    }
+
+    client = new function () {
+      this.BuildOpts = {
+        build: stub().returns({ client: true })
+      }
+
+      this.webpackConfig = {
+        output: {
+          filename: 'pie.js'
+        }
+      }
+
+      this.instance = {
+        clean: stub().returns(Promise.resolve()),
+        pack: stub().returns(Promise.resolve({ clientResult: true })),
+        prepareWebpackConfig: stub().returns(Promise.resolve(this.webpackConfig))
+      }
+
+      this.ClientBuildable = stub().returns(this.instance);
+    }
+
+    controllers = new function () {
+      this.BuildOpts = {
+        build: stub().returns({ controllers: true })
+      }
+
+      this.webpackConfig = {
+        output: {
+          filename: 'controllers.js'
+        }
+      }
+
+      this.instance = {
+        clean: stub().returns(Promise.resolve()),
+        pack: stub().returns(Promise.resolve({ controllersResult: true })),
+        controllersDir: 'controllersDir',
+        prepareWebpackConfig: stub().returns(Promise.resolve(this.webpackConfig))
+      }
+
+      this.ControllersBuildable = stub().returns(this.instance);
+    }
+
+
+    questionConfig = new function () {
+      this.BuildOpts = {
+        build: stub().returns({ questionConfig: true })
+      };
+      this.instance = {};
+
+      this.QuestionConfig = stub().returns(this.instance);
     };
 
-    Question = proxyQuestion();
+    fs = {
+      removeSync: stub().returns(Promise.resolve())
+    }
+
+    let proxied = proxyquire('../../../src/question', {
+      'fs-extra': fs,
+      './client': client,
+      './controllers': controllers,
+      './question-config': questionConfig
+    });
+
+    Question = proxied.default;
+    q = new Question('dir', Question.buildOpts({}), [], app);
+  });
+
+  describe('buildOpts', () => {
+
+    let opts;
+
+    beforeEach(() => {
+      opts = Question.buildOpts({});
+    });
+
+    it('builds the client opts', () => {
+      expect(opts.client).to.eql(client.BuildOpts.build())
+    });
+
+    it('builds the controller opts', () => {
+      expect(opts.controllers).to.eql(controllers.BuildOpts.build())
+    });
+
+    it('builds the questionConfig opts', () => {
+      expect(opts.question).to.eql(questionConfig.BuildOpts.build())
+    });
   });
 
   describe('constructor', () => {
 
-    it('throws an error if the dir does not contain a config.json', () => {
-      fsExtra.readJsonSync = sinon.stub().throws(new Error('config.json'));
-      expect(() => new Question(__dirname, {})).to.throw(Error, /config\.json/);
+    it('calls new QuestionConfig', () => {
+      assert.calledWith(questionConfig.QuestionConfig, 'dir', questionConfig.BuildOpts.build());
     });
 
-    it('throws an error if the dir does not contain a dependencies.json', () => {
-      fsExtra.readJsonSync = sinon.stub();
-      fsExtra.readJsonSync.withArgs(path.join(__dirname, 'config.json')).returns({});
-      fsExtra.readJsonSync.withArgs(path.join(__dirname, 'dependencies.json')).throws(new Error('dependencies.json'));
-      expect(() => new Question(__dirname, {})).to.throw(Error, /dependencies\.json/);
+    it('calls new ClientBuildable', () => {
+      assert.calledWith(client.ClientBuildable, questionConfig.instance, [], client.BuildOpts.build());
     });
 
-    it('not throw an error if the dir contains config.json + dependencies.json', () => {
-      expect(() => new Question(__dirname, {})).not.to.throw(Error);
+    it('calls new ControllersBuildable', () => {
+      assert.calledWith(controllers.ControllersBuildable, questionConfig.instance, controllers.BuildOpts.build());
+    });
+  });
+
+  describe('clean', () => {
+
+    beforeEach((done) => {
+      q.clean()
+        .then(() => done())
+        .catch(done);
+    });
+
+    it('calls client.clean', () => {
+      assert.called(client.instance.clean);
+    });
+
+    it('calls controllers.clean', () => {
+      assert.called(controllers.instance.clean);
+    });
+
+    it('calls removeSync on controllersDir', () => {
+      assert.calledWith(fs.removeSync, 'controllersDir');
+    });
+
+    it('calls removeSync on example.html', () => {
+      assert.calledWith(fs.removeSync, 'dir/example.html');
     });
 
   });
 
-  describe('methods', () => {
-    let config, dependencies;
+  describe('pack', () => {
+    let result;
 
-    beforeEach(() => {
-      dependencies = {
-        'my-pie': '../..'
-      };
-      config = {
-        pies: [
-          {
-            pie: {
-              name: 'my-pie',
-              version: '1.0.0'
-            }
-          },
-          {
-            pie: {
-              name: 'my-other-pie',
-              version: '1.0.0'
-            }
-          }]
-      }
-      fsExtra.readJsonSync.withArgs(path.join(__dirname, 'config.json')).returns(config);
-      fsExtra.readJsonSync.withArgs(path.join(__dirname, 'dependencies.json')).returns(dependencies);
-    });
+    let checks = (cleanParam) => {
 
-    describe('npmDependencies', () => {
-      it('returns an object with any pie with local path as the key:value', () => {
-        let q = new Question(__dirname, {});
-        expect(q.npmDependencies).to.eql({ 'my-pie': '../..' });
-      });
-    });
-
-    describe('get pies', () => {
-      it('returns 2 pie', () => {
-        let q = new Question(__dirname, {});
-        expect(q.pies).to.eql([
-          { name: 'my-pie', versions: ['1.0.0'], localPath: '../..', installedPath: path.join(__dirname, 'node_modules/my-pie') },
-          { name: 'my-other-pie', versions: ['1.0.0'], localPath: undefined, installedPath: path.join(__dirname, 'node_modules/my-other-pie') }
-        ]);
-      });
-    });
-
-    describe('get piePackages', () => {
-      beforeEach(() => {
-        fsExtra = {
-          readJsonSync: sinon.stub().returns({}),
-          existsSync: sinon.stub().returns(true)
-        };
-
-        Question = proxyquire('../../../src/question', {
-          'fs-extra': fsExtra
-        }).default;
-      });
-
-      it('returns an empty array for an empty config', () => {
-        let q = new Question(__dirname, {});
-        expect(q.piePackages).to.eql([]);
-      });
-
-      it('throws an error if node_modules does not exist', () => {
-        fsExtra.existsSync = sinon.stub().withArgs(path.join(__dirname, 'node_modules')).returns(false);
-        let q = new Question(__dirname, {});
-        expect(() => q.piePackages).to.throw(Error);
-      });
-
-      it('returns the package.json for 1 pie', () => {
-
-        fsExtra.existsSync = sinon.stub().returns(true);
-        fsExtra.readJsonSync.withArgs(
-          path.join(__dirname, 'node_modules', 'my-pie', 'package.json'))
-          .returns({
-            name: 'my-pie',
-            dependencies: {
-              lodash: '*'
-            }
-          });
-        fsExtra.readJsonSync.withArgs(
-          path.join(__dirname, 'config.json'))
-          .returns({
-            pies: [
-              {
-                pie: {
-                  name: 'my-pie',
-                  version: '1.0.0'
-                }
-              }
-            ]
-          });
-        let q = new Question(__dirname, {});
-        expect(q.piePackages).to.eql([{
-          name: 'my-pie',
-          dependencies: {
-            lodash: '*'
-          }
-        }]);
-      });
-    });
-
-    describe('piePackageDependencies', () => {
-      beforeEach(() => {
-
-        fsExtra.existsSync = sinon.stub().returns(true);
-
-        fsExtra.readJsonSync
-          .withArgs(path.join(__dirname, 'dependencies.json'))
-          .returns({})
-          .withArgs(path.join(__dirname, 'config.json'))
-          .returns({
-            pies: [{
-              pie: {
-                name: 'my-pie'
-              }
-            }]
+      beforeEach((done) => {
+        q.pack(cleanParam)
+          .then((r) => {
+            result = r;
+            done();
           })
-          .withArgs(path.join(__dirname, 'node_modules/my-pie/package.json'))
-          .returns({
-            dependencies: {
-              react: '15.0.2',
-              less: '2.3.4'
-            }
-          });
+          .catch(done);
       });
 
-      it('returns the merged dependencies', () => {
-
-        let q = new Question(__dirname, {});
-        expect(q.piePackageDependencies).to.eql({
-          react: ['15.0.2'],
-          less: ['2.3.4']
-        })
+      it(`calls client.pack(${cleanParam})`, () => {
+        assert.calledWith(client.instance.pack, cleanParam);
       });
-    });
+
+      it(`calls controllers.pack(${cleanParam})`, () => {
+        assert.calledWith(controllers.instance.pack, cleanParam);
+      });
+
+      it(`returns the results when called with ${cleanParam}`, () => {
+        expect(result).to.eql({ client: { clientResult: true }, controllers: { controllersResult: true } });
+      });
+    }
+
+    checks(false);
+    checks(true);
+  });
+
+  describe('prepareWebpackConfigs', () => {
+    let result;
+
+    let checks = (cleanParam) => {
+
+      beforeEach((done) => {
+        q.prepareWebpackConfigs(cleanParam)
+          .then((r) => {
+            result = r;
+            done();
+          })
+          .catch(done);
+      });
+
+      it(`calls client.prepareWebpackConfig(${cleanParam})`, () => {
+        assert.calledWith(client.instance.prepareWebpackConfig, cleanParam);
+      });
+
+      it(`calls controllers.prepareWebpackConfig(${cleanParam})`, () => {
+        assert.calledWith(controllers.instance.prepareWebpackConfig, cleanParam);
+      });
+
+      it(`returns the results with ${cleanParam}`, () => {
+        expect(result).to.eql({
+          client: client.webpackConfig,
+          controllers: controllers.webpackConfig
+        });
+      });
+    }
+
+    checks(false);
+    checks(true);
 
   });
 });

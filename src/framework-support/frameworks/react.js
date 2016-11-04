@@ -17,16 +17,16 @@ export function support(dependencies) {
     npmDependencies: {
       'babel-preset-react': '~6.16.0'
     },
-    webpackLoaders: () => {
+    webpackLoaders: (resolve) => {
       return [
         {
-          test: /.(jsx)?$/,
+          test: /\.(jsx)?$/,
           loader: 'babel-loader',
           //Don't read in .babelrc files from the dependencies
           query: {
             babelrc: false,
             presets: [
-              'babel-preset-react'
+              resolve('babel-preset-react')
             ]
           }
         }

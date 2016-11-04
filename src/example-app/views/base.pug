@@ -1,0 +1,50 @@
+doctype html
+html
+  head
+    link(href='//fonts.googleapis.com/css?family=Roboto', rel='stylesheet')
+    script(src=paths.client, type='text/javascript')
+    script(src=paths.controllers, type='text/javascript')
+
+    script(type='text/javascript').
+
+      window.pie = window.pie || {};
+      window.pie.env = {mode: 'gather'};
+      window.pie.model = !{model};
+      window.pie.session = [];
+      
+      document.addEventListener('pie.player-ready', function(event){
+        var player = event.target;
+        var pieController = new pie.Controller(window.pie.model, window['#{ids.controllers}']);
+        
+        player.controller = pieController;
+        player.env = window.pie.env;
+        player.session = window.pie.session;
+        
+        var panel = document.querySelector('pie-control-panel');
+        panel.env = window.pie.env;
+        
+        pieController.getLanguages().then(function(l) {
+          panel.languages = l;
+        });
+
+        panel.addEventListener('envChanged', function(event){
+          
+          player.env = event.target.env;
+          
+          if (event.target.env.mode === 'evaluate') {
+            player.getOutcome().then(function(outcome) {
+              panel.score = ' Score: ' + outcome.summary.percentage + '% Points: ' + outcome.summary.points + '/' + outcome.summary.maxPoints;
+            });
+          } else {
+            panel.score = '';
+          }
+
+        });
+      });
+    
+    block head-extras
+
+  body
+    pie-control-panel
+    pie-player
+      | !{markup}

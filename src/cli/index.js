@@ -3,14 +3,18 @@ import Help from './help';
 import * as version from './version';
 import * as packQuestion from './pack-question';
 import * as cleanQuestion from './clean-question';
-
+import * as serveQuestion from './serve-question';
+import {normalizeOpts} from './helper';
 let commands = [
   version,
   packQuestion,
-  cleanQuestion
+  cleanQuestion,
+  serveQuestion
 ];
 
 export default function (opts) {
+
+  opts = normalizeOpts(opts);
 
   let help = new Help('pie-cli', commands);
 
@@ -19,7 +23,7 @@ export default function (opts) {
   }) || help;
 
   let result = cmd.run(opts);
-  (result || Promise.resolve('done'))
+  (result || Promise.resolve('done!'))
     .then((result) => {
       if (result) {
         console.log(result);

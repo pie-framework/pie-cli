@@ -7,11 +7,12 @@
     "pie": "bin/pie"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --require babel-register test/unit/**",
+    "test": "./node_modules/.bin/mocha --require babel-register test/unit/**/*",
     "prepublish": "npm run build",
-    "build": "./node_modules/.bin/babel src -d lib",
+    "build": "gulp build",
     "it": "./node_modules/.bin/mocha --require babel-register test/integration/**",
-    "postinstall": "./bin/postinstall"
+    "postinstall": "./dev/bin/postinstall",
+    "dev": "./node_modules/.bin/gulp dev"
   },
   "repository": {
     "type": "git",
@@ -32,10 +33,22 @@
   },
   "homepage": "https://github.com/PieLabs/pie-cli#readme",
   "devDependencies": {
+    "acorn": "^4.0.3",
     "babel-cli": "^6.14.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
+    "babel-plugin-transform-flow-strip-types": "^6.14.0",
+    "babel-watch": "^2.0.3",
     "chai": "^3.5.0",
+    "eslint": "^3.9.1",
+    "eslint-plugin-react": "^6.4.1",
     "expand-home-dir": "0.0.3",
+    "flow": "^0.2.3",
+    "flow-bin": "^0.33.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-eslint": "^3.0.1",
+    "gulp-sourcemaps": "^2.2.0",
+    "gulp-util": "^3.0.7",
     "minimist": "^1.2.0",
     "mocha": "^3.1.0",
     "proxyquire": "^1.7.10",
@@ -47,16 +60,22 @@
     "babel-loader": "^6.2.5",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.18.0",
     "babel-register": "^6.16.3",
+    "change-case": "^3.0.0",
+    "chokidar": "^1.6.1",
     "commander": "^2.9.0",
+    "express": "^4.14.0",
     "fs-extra": "^0.30.0",
     "jsesc": "^2.2.0",
     "lodash": "^4.16.2",
     "marked": "^0.3.6",
     "marked-terminal": "^1.6.2",
+    "pug": "^2.0.0-beta6",
     "resolve": "^1.1.7",
     "semver": "^5.3.0",
+    "sockjs": "^0.3.18",
     "stack-trace": "0.0.9",
     "webpack": "2.1.0-beta.21",
+    "webpack-dev-middleware": "^1.8.4",
     "winston": "^2.2.0"
   }
 }
