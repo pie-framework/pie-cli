@@ -13,7 +13,7 @@ describe('webpack-builder', () => {
     }
 
     mod = proxyquire('../../../src/code-gen/webpack-builder', {
-      webpack: spy((config, done) => {
+      webpack: spy(function (config, done) {
         done(null, stats);
       })
     })
@@ -34,7 +34,7 @@ describe('webpack-builder', () => {
 
       let expected = _.cloneDeep(config);
       expected.module.loaders.splice(1);
-      expect(mod.normalizeConfig(config)).to.eql({});
+      expect(mod.normalizeConfig(config)).to.eql(expected);
     });
   });
 });
