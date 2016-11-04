@@ -15,9 +15,9 @@ export class ServeQuestionOpts {
     this.dir = dir;
     this.clean = clean;
     this.port = port;
- }
+  }
 
- static build(args) {
+  static build(args) {
     args = args || {};
     return new ServeQuestionOpts(
       args.dir || process.cwd(),
@@ -28,73 +28,73 @@ export class ServeQuestionOpts {
 
 class Cmd extends CliCommand {
 
-    constructor() {
-        super(
-            'serve-question',
-            'run a dev server'
-        )
-    }
+  constructor() {
+    super(
+      'serve-question',
+      'run a dev server'
+    )
+  }
 
-    run(args) {
-        args = args || {};
-        logger.silly('args: ', args);
+  run(args) {
+    args = args || {};
+    logger.silly('args: ', args);
 
-        let startServer = (server) => new Promise((resolve, reject) => {
-            server.on('error', (e) => {
-                logger.error(e);
-                reject(e);
-            });
+    let startServer = (server) => new Promise((resolve, reject) => {
+      server.on('error', (e) => {
+        logger.error(e);
+        reject(e);
+      });
 
-            server.on('listening', () => {
-                logger.silly(`[startServer] listening on ${opts.port}`);
-                resolve(server);
-            });
+      server.on('listening', () => {
+        logger.silly(`[startServer] listening on ${opts.port}`);
+        resolve(server);
+      });
 
-            server.listen(opts.port);
+      server.listen(opts.port);
+    });
+
+    let opts = ServeQuestionOpts.build(args);
+    let dir = resolve(opts.dir);
+    let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
+    support = _.map(support, (s) => resolve(join(dir, s)));
+
+    let app = new ExampleApp();
+    let questionOpts = Question.buildOpts(args);
+    let question = new Question(dir, questionOpts, support, app);
+
+    return question.prepareWebpackConfigs(opts.clean)
+      .then(({ client, controllers }) => {
+        return Promise.resolve({
+          client: webpack(client),
+          controllers: webpack(controllers)
         });
+      })
+      .then(compilers => {
+        let opts = {
+          paths: {
+            controllers: questionOpts.controllers.filename,
+            client: questionOpts.client.bundleName
+          },
+          ids: {
+            controllers: question.controllers.uid
+          },
+          markup: () => question.config.readMarkup(),
+          model: () => question.config.readConfig()
+        };
 
-        let opts = ServeQuestionOpts.build(args);
-        let dir = resolve(opts.dir);
-        let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
-        support = _.map(support, (s) => resolve(join(dir, s)));
-
-        let app = new ExampleApp();
-        let questionOpts = Question.buildOpts(args);
-        let question = new Question(dir, questionOpts, support, app);
-
-        return question.prepareWebpackConfigs(opts.clean)
-            .then(({ client, controllers }) => {
-                return Promise.resolve({
-                    client: webpack(client),
-                    controllers: webpack(controllers)
-                });
-            })
-            .then(compilers => {
-                let opts = {
-                    paths: {
-                        controllers: questionOpts.controllers.filename,
-                        client: questionOpts.client.bundleName
-                    },
-                    ids: {
-                        controllers: question.controllers.uid
-                    },
-                    markup: () => question.config.readMarkup(),
-                    model: () => question.config.readConfig()
-                };
-
-                return app.server(compilers, opts);
-            })
-            .then(server => {
-                startServer(server);
-                return server;
-            })
-            .then(server => watchMaker.init(question.config, (n) => server.reload(n)))
-            .then(() => `server listening on ${opts.port}`)
-            .catch(error => {
-                logger.error(error.message);
-                logger.error(error.stack);
-            });
-    }
+        return app.server(compilers, opts);
+      })
+      .then(server => {
+        startServer(server);
+        return server;
+      })
+      .then(server => watchMaker.init(question.config, (n) => server.reload(n)))
+      .then(() => `server listening on ${opts.port}`)
+      .catch(error => {
+        logger.error(error.message);
+        logger.error(error.stack);
+      });
+  }
 }
 
 let cmd = new Cmd();
