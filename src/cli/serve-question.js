@@ -36,6 +36,7 @@ class Cmd extends CliCommand {
     }
 
     run(args) {
+        args = args || {};
         logger.silly('args: ', args);
 
         let startServer = (server) => new Promise((resolve, reject) => {
@@ -45,11 +46,11 @@ class Cmd extends CliCommand {
             });
 
             server.on('listening', () => {
-                logger.silly(`[startServer] listening on ${args.port}`);
+                logger.silly(`[startServer] listening on ${opts.port}`);
                 resolve(server);
             });
 
-            server.listen(args.port);
+            server.listen(opts.port);
         });
 
         let opts = ServeQuestionOpts.build(args);
@@ -88,7 +89,7 @@ class Cmd extends CliCommand {
                 return server;
             })
             .then(server => watchMaker.init(question.config, (n) => server.reload(n)))
-            .then(() => `server listening on ${args.port}`)
+            .then(() => `server listening on ${opts.port}`)
             .catch(error => {
                 logger.error(error.message);
                 logger.error(error.stack);
