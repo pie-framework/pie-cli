@@ -59,7 +59,19 @@ describe('loaders', () => {
     describe('merge', () => {
       it('throws an error if the loaders do not match', () => {
 
-        let one = new mod.Loader()
+        let one = new mod.Loader({
+          test: /\.less$/,
+          loader: 'less'
+        });
+
+        let two = new mod.Loader({
+          test: /\.css$/,
+          loader: 'css'
+        });
+
+        expect(() => {
+          one.merge(two)
+        }).to.throw(one.loadersDontMatchError(two).message);
       });
     });
   });
