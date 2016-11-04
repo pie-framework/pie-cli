@@ -4,6 +4,10 @@ import _ from 'lodash';
 
 const logger = buildLogger();
 
+export function normalizeConfig(config) {
+  return config;
+}
+
 export function build(config) {
   return new Promise((resolve, reject) => {
     webpack(config, (err, stats) => {
