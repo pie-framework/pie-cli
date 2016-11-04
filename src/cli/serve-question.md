@@ -12,7 +12,7 @@ Run a server to serve this question. Any changes to the `pie` source code, the `
   `--pieBranch` - what branch of the pie dependencies (pie-player, pie-control-panel, etc) to use: default: `develop`
   `--support` - a js file to load to add support for a build type. See below.
   `--questionConfigFile` - the name of the pie data file - default `config.json`
-  `--questionDependenciesFile` - the name of the pie data file - default `config.json`
+  `--questionDependenciesFile` - the name of the pie data file - default `dependencies.json`
   `--questionMarkupFile` - the name of layout file - default `index.html`
   
 ### Examples
