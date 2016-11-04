@@ -83,6 +83,30 @@ describe('serve-question', () => {
         port: 4000
       });
     });
+
+    describe('custom opts', () => {
+      let opts;
+
+      before(()=> {
+        opts = ServeQuestionOpts.build({
+          port: 3000,
+          clean: true,
+          dir: 'dir'
+        })
+      });
+
+      it('sets port to 3000', () => {
+        expect(opts.port).to.eql(3000);
+      });
+      
+      it('sets clean to true', () => {
+        expect(opts.clean).to.eql(true);
+      });
+      
+      it('sets dir to dir', () => {
+        expect(opts.dir).to.eql('dir');
+      });
+    });
   });
 
   describe('run', () => {
