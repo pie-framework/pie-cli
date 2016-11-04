@@ -8,7 +8,7 @@ import ExampleApp from '../example-app';
 import _ from 'lodash';
 import { join } from 'path';
 
-const logger = buildLogger()
+const logger = buildLogger();
 
 export class ServeQuestionOpts {
   constructor(dir, clean, port) {
