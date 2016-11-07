@@ -45,9 +45,9 @@ export default class CliCommand {
         let ejsSrc = readFileSync(ejsPath, 'utf8');
         return ejs.render(ejsSrc, {
           loadFile: (p) => {
-            logger.debug('load path: ', p);
+            logger.silly('load path: ', p);
             let rel = resolve(join(dirname(ejsPath), p));
-            logger.debug('relative path: ', rel);
+            logger.silly('relative path: ', rel);
             return readFileSync(rel, 'utf8');
           }
         });
