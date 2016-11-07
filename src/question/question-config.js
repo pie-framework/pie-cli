@@ -45,6 +45,7 @@ export class QuestionConfig {
   }
 
   readConfig() {
+    //todo - add error check here...
     return this._readJson(this.filenames.config);
   }
 
