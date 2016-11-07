@@ -1,15 +1,42 @@
 
 ## Support 
 You can point to a js file to add support for a framework that has been added to a pie's `dependencies` object in the `package.json`.
-The module should (if it wants to support what's in the dependencies) an object that contains `npmDependencies : Object` and `webpackLoaders : (resolve) => Object`. Under the hood we use webpack to build the bundle and so these dependencies are what you'd use if you were doing your own webpack build.
+
+
+
+The module should return an object that contains `npmDependencies : Object` and `webpackLoaders : (resolve) => Object`. 
+
+The module may have the following exports: 
+
+* export a default object `export default { npmDependencies: {}, webpackLoaders: () => {}}`
+* export a default function `export default function support(dependencies){ }`
+* export a function named `support`: `export function support(dependencies){}`
+
+Under the hood we use webpack to build the bundle and so these dependencies are what you'd use if you were doing your own webpack build.
+
+Here are some examples: 
+
 
 ```javascript
+//default object 
 
+export default {
+  npmDependencies: {
+    a: '1.0.0'
+  },
+  webpackLoaders: (resolve) => {
+    return {
+      'my-loader': '1.0.0'
+    }
+  }
+}
+
+//function  
 /**
  * @param dependencies - an object containing the dependency name and an array of versions:
  * { react: ['15.0.2'] }
  */
-export function support(dependencies){ 
+export /*default*/ function support(dependencies){ 
   if(!dependencies['my-cool-framework']){
     return;
   }
