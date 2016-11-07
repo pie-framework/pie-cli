@@ -60,11 +60,11 @@ describe('framework-support', () => {
 
   describe('buildConfigFromPieDependencies', () => {
 
-    let frameworkSupport, FrameworkSupport;
+    let frameworkSupport, FrameworkSupport, supportArray;
 
     beforeEach(() => {
       FrameworkSupport = require('../../../src/framework-support').default;
-      frameworkSupport = new FrameworkSupport([{
+      supportArray = [{
         support: (deps) => {
           if (deps.react) {
             return {
@@ -79,26 +79,112 @@ describe('framework-support', () => {
             }
           }
         }
-      }]);
+      }];
     });
 
-    it('returns a build config with npmDependencies', () => {
-      let config = frameworkSupport.buildConfigFromPieDependencies(
-        {
+    let assertNpmDependencies = (expected) => {
+      it('returns a build config with npmDependencies', () => {
+        let config = frameworkSupport.buildConfigFromPieDependencies(
+          {
+            react: ['1.2.3']
+          }
+        );
+        expect(config.npmDependencies).to.eql(expected);
+      });
+    }
+
+    let assertWebpackLoaders = (expected) => {
+      it('returns the webpack loaders', () => {
+        let config = frameworkSupport.buildConfigFromPieDependencies({
           react: ['1.2.3']
-        }
-      );
-      expect(config.npmDependencies).to.eql({
-        'babel-preset-react': '1.0'
+        });
+        expect(config.webpackLoaders()).to.eql([expected]);
       });
+    }
+
+    describe('with support function', () => {
+      beforeEach(() => {
+        frameworkSupport = new FrameworkSupport(supportArray);
+      });
+
+      assertNpmDependencies({ 'babel-preset-react': '1.0' });
+      assertWebpackLoaders({ test: 'test' });
     });
 
-    it('returns a config with webpackLoaders', () => {
-      let config = frameworkSupport.buildConfigFromPieDependencies({
-        react: ['1.2.3']
+    describe('with default function', () => {
+      beforeEach(() => {
+        frameworkSupport = new FrameworkSupport([function () {
+          return {
+            npmDependencies: {
+              'babel-preset-react': '1.0'
+            },
+            webpackLoaders: () => {
+              return { test: 'test' };
+            }
+          }
+        }]);
       });
-      expect(config.webpackLoaders()).to.eql([{ test: 'test' }]);
+
+      assertNpmDependencies({ 'babel-preset-react': '1.0' });
+      assertWebpackLoaders({ test: 'test' });
+    });
+
+    describe('with object', () => {
+      beforeEach(() => {
+        frameworkSupport = new FrameworkSupport([
+          {
+            npmDependencies: {
+              'babel-preset-react': '1.0'
+            },
+            webpackLoaders: () => {
+              return { test: 'test' };
+            }
+          }
+        ]);
+      });
+
+      assertNpmDependencies({ 'babel-preset-react': '1.0' });
+      assertWebpackLoaders({ test: 'test' });
+    });
+
+    describe('with default export', () => {
+      beforeEach(() => {
+        frameworkSupport = new FrameworkSupport([
+          {
+            default: {
+              npmDependencies: {
+                'babel-preset-react': '1.0'
+              },
+              webpackLoaders: () => {
+                return { test: 'test' };
+              }
+            }
+          }
+        ]);
+      });
+
+      assertNpmDependencies({ 'babel-preset-react': '1.0' });
+      assertWebpackLoaders({ test: 'test' });
+
+    });
+
+    describe('with null', () => {
+      let config;
+      beforeEach(() => {
+        frameworkSupport = new FrameworkSupport([null]);
+
+        config = frameworkSupport.buildConfigFromPieDependencies({
+          react: ['1.2.3']
+        });
+      });
+
+      it('returns an empty npm dependency object', () => {
+        expect(config.npmDependencies).to.eql({});
+      });
+
+      it('returns an empty webpack loaders array', () => {
+        expect(config.webpackLoaders()).to.eql([]);
+      });
     });
   });
-
 });

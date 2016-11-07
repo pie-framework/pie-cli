@@ -40,7 +40,25 @@ export default class FrameworkSupport {
   }
 
   buildConfigFromPieDependencies(dependencies) {
-    let rawModules = _(this.frameworks).map((f) => f.support(dependencies)).compact().value();
+
+    let readSupport = (framework) => {
+      if (!framework) {
+        return;
+      }
+
+      //accomodate a possible `default` export.
+      let o = framework.default ? framework.default : framework;
+
+      if (_.isFunction(o)) {
+        return o(dependencies);
+      } else if (_.isFunction(o.support)) {
+        return o.support(dependencies);
+      } else if (_.isObject(o)) {
+        return o;
+      }
+    }
+
+    let rawModules = _(this.frameworks).map(readSupport).compact().value();
     return new BuildConfig(rawModules);
   }
 
