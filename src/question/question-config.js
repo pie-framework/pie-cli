@@ -30,14 +30,29 @@ export class QuestionConfig {
     this.filenames = opts;
     logger.silly('filenames', this.filenames);
     this._config = this.readConfig();
-    this._markup = this.readMarkup();
     logger.silly('config', this._config);
-    this._dependencies = this._readJson(this.filenames.dependencies) || {};
+    this._markup = this.readMarkup();
+    logger.silly('markup', this._markup);
+
+    this._dependencies = this._readJson(
+      this.filenames.dependencies,
+      `failed to load the dependencies file: ${this.filenames.dependencies}`);
+
     logger.silly('dependencies', this._dependencies);
   }
 
-  _readJson(n) {
-    return fs.readJsonSync(join(this.dir, n));
+  static fileError(name) {
+    return new Error(`failed to load file: ${name}`);
+  }
+
+  _readJson(n, errMsg) {
+    try {
+      return fs.readJsonSync(join(this.dir, n));
+    } catch (e) {
+
+      logger.silly('[_readJson] e: ', e);
+      throw errMsg ? QuestionConfig.fileError(n) : e;
+    }
   }
 
   get config() {
@@ -45,13 +60,17 @@ export class QuestionConfig {
   }
 
   readConfig() {
-    //todo - add error check here...
-    return this._readJson(this.filenames.config);
+    return this._readJson(this.filenames.config, `failed to load the configuration file: ${this.filenames.config}`);
   }
+
 
   readMarkup() {
     let markupPath = join(this.dir, this.filenames.markup);
-    return fs.readFileSync(markupPath, 'utf8');
+    try {
+      return fs.readFileSync(markupPath, 'utf8');
+    } catch (e) {
+      throw QuestionConfig.fileError(this.filenames.markup);
+    }
   }
 
   get markup() {
