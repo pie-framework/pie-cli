@@ -35,43 +35,15 @@ describe('loaders', () => {
       it('returns 2 names', () => {
         expect(new mod.LoaderNames('a!b').normalized).to.eql('a-loader!b-loader');
       });
-
-
-    });
-
-    describe('query', () => {
-
-      it('returns an empty query object', () => {
-        expect(new mod.LoaderNames('a').query).to.eql({});
-      });
-
-      it('returns a query object', () => {
-        expect(new mod.LoaderNames('a?foo=bar&baz=moo').query).to.eql({
-          foo: 'bar',
-          baz: 'moo'
-        });
-      });
     });
   });
 
   describe('Loader', () => {
 
-    describe('merge', () => {
-      it('throws an error if the loaders do not match', () => {
+    describe('normalizedName', () => {
 
-        let one = new mod.Loader({
-          test: /\.less$/,
-          loader: 'less'
-        });
-
-        let two = new mod.Loader({
-          test: /\.css$/,
-          loader: 'css'
-        });
-
-        expect(() => {
-          one.merge(two)
-        }).to.throw(one.loadersDontMatchError(two).message);
+      it('returns the name', () => {
+        expect(new mod.Loader({ loader: 'a!b!c' }).normalizedName).to.eql('a-loader!b-loader!c-loader')
       });
     });
   });

@@ -1,61 +1,107 @@
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import _ from 'lodash';
-import { stub, spy } from 'sinon';
+import { assert, match, stub, spy } from 'sinon';
 import { buildLogger } from '../../../src/log-factory';
 
 const logger = buildLogger();
 
 describe('webpack-builder', () => {
 
-  let mod, stats;
+  let mod, stats, duplicateLoadersCtr, duplicateLoadersInstance, webpack;
   beforeEach(() => {
 
-    stats = {
-      hasError: stub().returns(false)
+    duplicateLoadersInstance = {
+      present: false,
+      error: new Error('duplicate errror')
     }
 
+    duplicateLoadersCtr = stub().returns(duplicateLoadersInstance);
+    duplicateLoadersCtr['@noCallThru'] = true;
+    duplicateLoadersCtr.fromConfig = stub().returns(duplicateLoadersInstance);
+
+    stats = {
+      hasErrors: stub().returns(false),
+      compilation: {
+        errors: []
+      }
+    }
+
+    webpack = spy(function (config, done) {
+      done(null, stats);
+    });
+
     mod = proxyquire('../../../src/code-gen/webpack-builder', {
-      webpack: spy(function (config, done) {
-        done(null, stats);
-      })
+      webpack: webpack,
+      './duplicate-loaders': duplicateLoadersCtr
     })
   });
 
-  describe('normalizeConfig', () => {
-    let config, result, expected;
+  describe('build', () => {
 
-    beforeEach(() => {
-      config = {
-        module: {
-          loaders: [
-            { loader: 'less', test: /\.less$/ },
-            { loader: 'less', test: /\.less$/ },
-            { loader: 'less-loader', test: /\.less$/ },
-            { loader: 'path/to/less-loader.js', test: /\.less$/ }
-          ]
+    it('returns a rejected promise if duplicate.present = true', (done) => {
+      duplicateLoadersInstance.present = true;
+      mod.build({})
+        .then(() => done(new Error('should have failed')))
+        .catch((e) => {
+          expect(e.message).to.eql(duplicateLoadersInstance.error.message)
+          done()
+        });
+    });
+
+    it('calls webpack', (done) => {
+      mod.build({})
+        .then(() => {
+          assert.calledWith(webpack, {}, match.func);
+          done();
+        })
+        .catch(done);
+    });
+
+    it('Promise is rejected if webpack fails', (done) => {
+
+      webpack = spy(function (config, done) {
+        done(new Error('e'));
+      });
+
+      mod = proxyquire('../../../src/code-gen/webpack-builder', {
+        webpack: webpack,
+        './duplicate-loaders': duplicateLoadersCtr
+      });
+
+      mod.build({})
+        .then(() => done(new Error('should have failed')))
+        .catch(e => {
+          expect(e.message).to.eql('e');
+          done()
+        });
+    });
+
+    it('Promise is rejected if webpack stats.hasErrors returns true', (done) => {
+
+      let badStats = {
+        hasErrors: stub().returns(true),
+        compilation: {
+          errors: []
         }
-      }
+      };
 
-      expected = _.cloneDeep(config);
-      expected.module.loaders.splice(1, 3);
-      result = mod.normalizeConfig(config);
-    });
-
-    describe('single loader name', () => {
-      it('normalized has no duplicate loaders', () => {
-        expect(result.normalized).to.eql(expected);
+      webpack = spy(function (config, done) {
+        done(null, badStats);
       });
 
-
-      it('duplicates contains the duplicates', () => {
-        logger.silly('config: ', config);
-        let duplicates = _.cloneDeep(config.module.loaders).splice(1, 3);
-        logger.silly('duplicates: ', JSON.stringify(duplicates));
-        logger.silly('result.duplicates: ', JSON.stringify(result.duplicates));
-        expect(result.duplicates).to.eql({ 'less-loader': duplicates });
+      mod = proxyquire('../../../src/code-gen/webpack-builder', {
+        webpack: webpack,
+        './duplicate-loaders': duplicateLoadersCtr
       });
-    });
 
+      mod.build({})
+        .then(() => done(new Error('should have failed')))
+        .catch(e => {
+          expect(e.message).to.eql('Webpack build errors - see the logs');
+          done();
+        });
+    });
   });
+
 });

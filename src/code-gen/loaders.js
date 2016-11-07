@@ -8,20 +8,6 @@ export class Loader {
     this._names = new LoaderNames(obj.loader);
   }
 
-  merge(other) {
-    if (!(other instanceof Loader)) {
-      throw new Error('this is not a loader');
-    }
-
-    if (other.normalizedName !== this.normalizedName) {
-      throw this.loadersDontMatchError(other);
-    }
-  }
-
-  loadersDontMatchError(other) {
-    return new Error(`only loaders of the same loader type can be merged this: ${this.normalizedName}, other: ${other.normalizedName}`);
-  }
-
   get normalizedName() {
     return this._names.normalized;
   }
@@ -61,5 +47,6 @@ export class LoaderName {
     }
   }
 }
+
 
 
