@@ -19,7 +19,10 @@ describe('QuestionConfig', () => {
 
     get m() {
       return proxyquire('../../../src/question/question-config', {
-        'fs-extra': fsExtra
+        'fs-extra': fsExtra,
+        './config-validator': {
+          validate: stub().returns({ valid: true, errors: [] })
+        }
       });
     }
 
@@ -85,12 +88,10 @@ describe('QuestionConfig', () => {
     });
 
     it('throws an error if the dir does not contain a dependencies.json', () => {
-
       fsExtra.readJsonSync.withArgs(join(__dirname, 'dependencies.json')).throws(new Error('dependencies.json'));
       expect(() => new proxy.QuestionConfig(__dirname, new BuildOpts()))
         .to.throw(Error, proxy.QuestionConfig.fileError('dependencies.json'));
     });
-
 
     it('throws an error if markup file can not be found', () => {
       fsExtra.readFileSync.withArgs(join(__dirname, 'index.html')).throws(new Error('!!'));
@@ -114,12 +115,14 @@ describe('QuestionConfig', () => {
       config = {
         pies: [
           {
+            id: '1',
             pie: {
               name: 'my-pie',
               version: '1.0.0'
             }
           },
           {
+            id: '2',
             pie: {
               name: 'my-other-pie',
               version: '1.0.0'

@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import fs from 'fs-extra';
 import { join } from 'path';
+import { validate as validateConfig } from './config-validator';
 
 const logger = buildLogger();
 
@@ -60,7 +61,14 @@ export class QuestionConfig {
   }
 
   readConfig() {
-    return this._readJson(this.filenames.config, `failed to load the configuration file: ${this.filenames.config}`);
+    let json = this._readJson(this.filenames.config, `failed to load the configuration file: ${this.filenames.config}`);
+    let result = validateConfig(json);
+    if (result.valid) {
+      return json;
+    } else {
+      logger.error(`config.json validation.errors: ${JSON.stringify(result.errors, null, '  ')}`);
+      throw new Error('config.json has an invalid schema');
+    }
   }
 
 
