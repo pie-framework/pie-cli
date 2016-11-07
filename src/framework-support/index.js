@@ -2,13 +2,20 @@ import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import resolve from 'resolve';
 import { join } from 'path';
+let logger = buildLogger();
+
+let es2015ModulesToCommonJsPlugin = resolve.sync('babel-plugin-transform-es2015-modules-commonjs', { basedir: join(__dirname, '../..') });
+
+logger.debug('resolved plugin: ', es2015ModulesToCommonJsPlugin);
 
 //add babel require hook
 require('babel-register')({
-  plugins: [resolve.sync('babel-plugin-transform-es2015-modules-commonjs', { basedir: join(__dirname, '../..') })]
+  //don't ignore files in a `node_modules` dir
+  plugins: [
+    es2015ModulesToCommonJsPlugin
+  ]
 });
 
-let logger = buildLogger();
 
 export class BuildConfig {
 

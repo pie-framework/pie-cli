@@ -21,7 +21,12 @@ let clientDependencies = {
 let baseConfig = (root) => {
   return {
     module: {
-      loaders: [],
+      loaders: [
+        {
+          test: /\.css$/,
+          loader: 'style!css'
+        }
+      ]
     },
     resolveLoader: {
       root: pathResolve(join(root, 'node_modules')),
@@ -143,7 +148,7 @@ export class ClientBuildable {
     logger.silly('[_buildFrameworkConfig] appDependencyKeys: ', appDependencyKeys);
     let appPackages = this.config.readPackages(appDependencyKeys);
     logger.silly('[_buildFrameworkConfig] appPackages: ', appPackages);
-    let allPackages = _.concat( this.config.piePackages, appPackages);
+    let allPackages = _.concat(this.config.piePackages, appPackages);
     logger.silly('[_buildFrameworkConfig] allPackages: ', allPackages);
 
     let merged = _(allPackages).map('dependencies').reduce(mergeDependencies, {});
