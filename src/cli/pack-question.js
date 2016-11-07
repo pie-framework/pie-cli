@@ -42,7 +42,6 @@ class PackQuestionCommand extends CliCommand {
     let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
     support = _.map(support, (s) => resolve(join(dir, s)));
     let exampleApp = new ExampleApp();
-    logger.silly('[run] exampleApp: ', exampleApp);
 
     let questionOpts = Question.buildOpts(args);
     let question = new Question(dir, questionOpts, support, exampleApp);
