@@ -1,7 +1,8 @@
-import path from 'path';
-import { readFileSync } from 'fs-extra';
+import { resolve, dirname, extname, join } from 'path';
+import { existsSync, readFileSync } from 'fs-extra';
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
+import ejs from 'ejs';
 
 const logger = buildLogger();
 
@@ -30,7 +31,7 @@ export default class CliCommand {
     let getMdFilename = () => {
       if (!usageValue) {
         return `${this.name}.md`;
-      } else if (path.extname(usageValue) === '.md') {
+      } else if (extname(usageValue) === '.md') {
         return usageValue;
       }
     }
@@ -38,7 +39,21 @@ export default class CliCommand {
     let mdFile = getMdFilename();
 
     if (mdFile) {
-      return readFileSync(path.join(__dirname, mdFile), { encoding: 'utf8' });
+      let mdPath = join(__dirname, mdFile);
+      let ejsPath = `${mdPath}.ejs`;
+      if (existsSync(ejsPath)) {
+        let ejsSrc = readFileSync(ejsPath, 'utf8');
+        return ejs.render(ejsSrc, {
+          loadFile: (p) => {
+            logger.silly('load path: ', p);
+            let rel = resolve(join(dirname(ejsPath), p));
+            logger.silly('relative path: ', rel);
+            return readFileSync(rel, 'utf8');
+          }
+        });
+      } else {
+        return readFileSync(mdPath, 'utf8');
+      }
     } else {
       return usageValue;
     }
