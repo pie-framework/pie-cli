@@ -63,6 +63,7 @@
     "change-case": "^3.0.0",
     "chokidar": "^1.6.1",
     "commander": "^2.9.0",
+    "ejs": "^2.5.2",
     "express": "^4.14.0",
     "fs-extra": "^0.30.0",
     "jsesc": "^2.2.0",

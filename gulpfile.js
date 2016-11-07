@@ -13,6 +13,7 @@ let watch = (suffix, tasks) => {
 
 gulp.task('pug', () => glue('pug'));
 gulp.task('md', () => glue('md'));
+gulp.task('ejs', () => glue('ejs'));
 
 gulp.task('babel', () => {
   return gulp.src('src/**/*.js')
@@ -29,6 +30,7 @@ gulp.task('babel', () => {
 
 gulp.task('watch-babel', () => watch('js', ['babel']));
 gulp.task('watch-pug', () => watch('pug'));
+gulp.task('watch-ejs', () => watch('ejs'));
 gulp.task('watch-md', () => watch('md'));
 
 gulp.task('lint', () => {
@@ -38,6 +40,6 @@ gulp.task('lint', () => {
     .pipe(eslint.failAfterError());
 });
 
-gulp.task('build', ['lint', 'md', 'pug', 'babel']);
+gulp.task('build', ['lint', 'md', 'ejs', 'pug', 'babel']);
 
-gulp.task('dev', ['md', 'pug', 'babel', 'watch-md', 'watch-pug', 'watch-babel']);
+gulp.task('dev', ['md', 'pug', 'babel', 'watch-md', 'watch-ejs', 'watch-pug', 'watch-babel']);
