@@ -1,5 +1,5 @@
 import proxyquire from 'proxyquire';
-import { stub, assert, spy } from 'sinon';
+import { stub, spy } from 'sinon';
 import { expect } from 'chai';
 
 describe('framework-support', () => {
@@ -7,7 +7,7 @@ describe('framework-support', () => {
 
   describe('bootstrap', () => {
 
-    let FrameworkSupport, support, fsExtra, resolve, supportModule, supportModuleResult;
+    let FrameworkSupport, support, fsExtra, resolve, supportModule;
 
     beforeEach(() => {
 
