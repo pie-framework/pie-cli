@@ -1,5 +1,5 @@
 import proxyquire from 'proxyquire';
-import sinon from 'sinon';
+import { stub, spy } from 'sinon';
 import { expect } from 'chai';
 
 describe('framework-support', () => {
@@ -7,55 +7,60 @@ describe('framework-support', () => {
 
   describe('bootstrap', () => {
 
-    let FrameworkSupport, support, fsExtra, resolve, mockRequire, babelRegister;
+    let FrameworkSupport, support, fsExtra, resolve, supportModule;
 
     beforeEach(() => {
 
-      mockRequire = sinon.stub().returns({
-        support: sinon.stub().returns({
-          npmDependencies: {},
-          webpackLoaders: (/*resolve*/) => {
-            return []
-          }
-        })
-      });
-
-      fsExtra = {
-        readdirSync: sinon.stub().returns(['support.js']),
-        lstatSync: sinon.stub().returns({ isFile: sinon.stub().returns(true) })
+      let supportModuleResult = {
+        npmDependencies: {},
+        webpackLoaders: (/*resolve*/) => {
+          return []
+        }
       };
 
-      resolve = {
-        sync: sinon.spy(function (p) { return p; })
+      fsExtra = {
+        readdirSync: stub().returns(['support.js']),
+        lstatSync: stub().returns({ isFile: stub().returns(true) })
+      };
+
+      supportModule = {
+        mkFromPath: stub().returns(supportModuleResult)
       }
 
-      babelRegister = sinon.stub();
+      resolve = {
+        sync: spy(function (p) { return p; })
+      }
 
       FrameworkSupport = proxyquire('../../../src/framework-support', {
         'fs-extra': fsExtra,
         resolve: resolve,
-        'babel-register': babelRegister
+        './support-module': supportModule
       }).default;
     });
 
-    it('calls babelRegister w/ plugins', () => {
-      sinon.assert.calledWith(babelRegister, {
-        plugins: ['babel-plugin-transform-es2015-modules-commonjs']
-      });
-    });
-
     it('reads in modules from the dir', () => {
-      support = FrameworkSupport.bootstrap(['path/to/support.js'], mockRequire);
+      support = FrameworkSupport.bootstrap(['path/to/support.js']);
       expect(support.frameworks.length).to.eql(1);
     });
 
     it('reads in 2 modules from the dir', () => {
       support = FrameworkSupport.bootstrap([
         'path/to/support.js',
-        'some/other/path.js'], mockRequire);
+        'some/other/path.js']);
       expect(support.frameworks.length).to.eql(2);
     });
 
+    it('uses module from support-module', () => {
+      supportModule.mkFromPath.returns({
+        npmDependencies: {
+          a: '1.0.0'
+        }
+      })
+
+      support = FrameworkSupport.bootstrap(['some/other/path.js']);
+      let config = support.buildConfigFromPieDependencies({});
+      expect(config.npmDependencies).to.eql({ a: '1.0.0' });
+    });
   });
 
   describe('buildConfigFromPieDependencies', () => {
@@ -147,26 +152,6 @@ describe('framework-support', () => {
       assertWebpackLoaders({ test: 'test' });
     });
 
-    describe('with default export', () => {
-      beforeEach(() => {
-        frameworkSupport = new FrameworkSupport([
-          {
-            default: {
-              npmDependencies: {
-                'babel-preset-react': '1.0'
-              },
-              webpackLoaders: () => {
-                return { test: 'test' };
-              }
-            }
-          }
-        ]);
-      });
-
-      assertNpmDependencies({ 'babel-preset-react': '1.0' });
-      assertWebpackLoaders({ test: 'test' });
-
-    });
 
     describe('with null', () => {
       let config;

@@ -1,20 +1,8 @@
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import resolve from 'resolve';
-import { join } from 'path';
+import { mkFromPath } from './support-module';
 let logger = buildLogger();
-
-let es2015ModulesToCommonJsPlugin = resolve.sync('babel-plugin-transform-es2015-modules-commonjs', { basedir: join(__dirname, '../..') });
-
-logger.debug('resolved plugin: ', es2015ModulesToCommonJsPlugin);
-
-//add babel require hook
-require('babel-register')({
-  //don't ignore files in a `node_modules` dir
-  plugins: [
-    es2015ModulesToCommonJsPlugin
-  ]
-});
 
 
 export class BuildConfig {
@@ -53,15 +41,13 @@ export default class FrameworkSupport {
         return;
       }
 
-      //accomodate a possible `default` export.
-      let o = framework.default ? framework.default : framework;
 
-      if (_.isFunction(o)) {
-        return o(dependencies);
-      } else if (_.isFunction(o.support)) {
-        return o.support(dependencies);
-      } else if (_.isObject(o)) {
-        return o;
+      if (_.isFunction(framework)) {
+        return framework(dependencies);
+      } else if (_.isFunction(framework.support)) {
+        return framework.support(dependencies);
+      } else if (_.isObject(framework)) {
+        return framework;
       }
     }
 
@@ -72,14 +58,13 @@ export default class FrameworkSupport {
   /**
    * @param _require - convert src at given path to an object (used for testing)
    */
-  static bootstrap(modules, _require) {
-    _require = _require || require;
+  static bootstrap(modules) {
 
     let loadModule = (f) => {
       logger.debug('f: ', f);
       let path = resolve.sync(f);
       logger.debug('path: ', path);
-      return _require(path);
+      return mkFromPath(path);
     };
 
     logger.silly(`modules`, modules);
