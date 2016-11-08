@@ -2,8 +2,8 @@ import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import resolve from 'resolve';
 import { mkFromPath } from './support-module';
-
 let logger = buildLogger();
+
 
 export class BuildConfig {
 

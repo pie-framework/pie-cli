@@ -1,7 +1,7 @@
 {
-  "name": "pie-cli",
+  "name": "pie",
   "version": "1.4.0-alpha",
-  "description": "The pie cli",
+  "description": "The Portable Interaction Elements framework CLI",
   "preferGlobal": true,
   "bin": {
     "pie": "bin/pie"
@@ -26,8 +26,8 @@
     "pie",
     "cli"
   ],
-  "author": "ed.eustace@gmail.com",
-  "license": "MIT",
+  "author": "info@corespring.org",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/PieLabs/pie-cli/issues"
   },
