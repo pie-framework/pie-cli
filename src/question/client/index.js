@@ -74,6 +74,11 @@ export class ClientBuildable {
     let step = clean ? this.clean() : Promise.resolve();
     return step
       .then(() => this._install())
+      .then(() => {
+        let isValid = this.config.isConfigValid();
+        logger.silly('isConfigValid() ? ', isValid)
+        return isValid ? Promise.resolve() : Promise.reject('config is invalid');
+      })
       .then(() => this.writeEntryJs())
       .then(() => this.webpackConfig());
   }
