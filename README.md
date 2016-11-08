@@ -4,11 +4,8 @@
 
 ## Install
 
-> !!! Not ready yet
-The following won't be ready until we publish use the developer install instrucstions below.
-
 ```bash
-npm install -g pie-cli 
+npm install -g pie
 ```
 
 #### Developer install 

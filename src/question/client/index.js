@@ -21,7 +21,12 @@ let clientDependencies = {
 let baseConfig = (root) => {
   return {
     module: {
-      loaders: [],
+      loaders: [
+        {
+          test: /\.css$/,
+          loader: 'style!css'
+        }
+      ]
     },
     resolveLoader: {
       root: pathResolve(join(root, 'node_modules')),
