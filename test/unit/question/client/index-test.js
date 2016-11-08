@@ -239,7 +239,7 @@ describe('client', () => {
       });
 
       it('returns config.module.loaders[1]', () => {
-        expect(config.module.loaders[0]).to.eql(loader);
+        expect(config.module.loaders[1]).to.eql(loader);
       });
     });
   });
