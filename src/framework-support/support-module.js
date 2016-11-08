@@ -4,6 +4,7 @@ import { join } from 'path';
 import { buildLogger } from '../log-factory';
 import vm from 'vm';
 import { readFileSync } from 'fs-extra';
+import * as m from 'module';
 
 const logger = buildLogger();
 
@@ -12,35 +13,47 @@ const logger = buildLogger();
  * @return the module running in it's own sandbox
  */
 
+class Sandbox {
+  constructor() {
+    this.module = {
+      exports: {}
+    }
+  }
+  get exports() {
+    return this.module.exports;
+  }
+}
+
+/** 
+ * Note: We must run in *this* context to allow `instanceof` to continue to function. 
+ * @see: https://github.com/nodejs/node-v0.x-archive/issues/1277
+ */
 export function mkFromSrc(src, path) {
-  logger.debug('[mk] path: ', path);
+  logger.debug('[mkFromSrc] path: ', path);
 
   let babelised = transform(src, {
     plugins: [resolve.sync('babel-plugin-transform-es2015-modules-commonjs', { basedir: join(__dirname, '../..') })]
   });
 
-  let sandboxedModule = {
-    exports: {}
-  };
+  logger.silly('[mkFromSrc] code: ', babelised.code);
+  let wrapped = m.wrap(babelised.code);
+  logger.silly('[mkFromSrc] wrapped: ', wrapped);
 
-  let sandbox = {
-    module: sandboxedModule,
-    exports: sandboxedModule.exports
-  };
+  let sandbox = new Sandbox();
 
-  var context = vm.createContext(sandbox);
-  logger.debug('[mkFromSrc] code: ', babelised.code);
-
-  let script = new vm.Script(babelised.code, {
+  let script = new vm.Script(wrapped, {
     filename: path
   });
 
-  script.runInContext(context);
-  return sandboxedModule.exports;
+  let fn = script.runInThisContext();
+  fn(sandbox.exports, () => null, sandbox.module, path);
+  logger.silly('[mkFromSrc] sandbox: ', JSON.stringify(sandbox));
+
+  return sandbox.exports.default ? sandbox.exports.default : sandbox.exports;
 }
 
-export function mk(path) {
-  logger.debug('[mk] path: ', path);
+export function mkFromPath(path) {
+  logger.silly('[mkFromPath] path: ', path);
   let src = readFileSync(path, 'utf8');
   return mkFromSrc(src, path);
 }
