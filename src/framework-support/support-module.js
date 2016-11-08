@@ -25,6 +25,7 @@ class Sandbox {
 }
 
 /** 
+ * interprets a support module's logic in an isolated way so it doesnt come into conflict with this lib's module loader.
  * Note: We must run in *this* context to allow `instanceof` to continue to function. 
  * @see: https://github.com/nodejs/node-v0.x-archive/issues/1277
  */
