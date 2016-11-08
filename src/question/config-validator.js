@@ -49,10 +49,6 @@ const ajv = new Ajv();
 
 const validateFn = ajv.compile(schema);
 
-/**
- * A cache of schema validation functions
- */
-const schemaValidators = {};
 
 function emptyValidate() {
   return true;
@@ -63,14 +59,15 @@ emptyValidate.errors = [];
 function validatePie(loadSchema, obj) {
   logger.silly('[validatePie]', obj);
   let name = obj.pie.name;
-  if (!schemaValidators[name]) {
-    let schema = loadSchema(name);
-    schemaValidators[name] = schema ? ajv.compile(schema) : emptyValidate;
-  }
-  let valid = schemaValidators[name](obj);
+  let schema = loadSchema(name);
+  logger.silly('[validatePies] loadedSchema: ', schema);
+  let validator = schema ? ajv.compile(schema) : emptyValidate;
+
+  let valid = validator(obj);
+  logger.silly(`validate: ${name}, errors: ${validator.errors}`);
   return {
     valid: valid,
-    errors: schemaValidators[name].errors,
+    errors: validator.errors,
     id: obj.id
   }
 }
@@ -87,18 +84,19 @@ export function validate(config, loadSchema) {
 
   if (baseValid) {
     let pieValidations = _.map(config.pies, validatePie.bind(null, loadSchema));
-    let pieValidationsAllValid = _.filter(pieValidations, v => !v.valid).length === 0;
-    let valid = baseValid && pieValidationsAllValid;
+    let invalidPies = _.filter(pieValidations, v => !v.valid);
+    let valid = baseValid && invalidPies.length === 0;
 
     logger.silly(`[validate] baseValid: ${baseValid}`);
-    logger.silly(`[validate] pieValidationsAllValid: ${pieValidationsAllValid}`);
+    logger.silly(`[validate] invalidPies.length: ${invalidPies.length}`);
 
     return {
       valid: valid,
       errors: validateFn.errors || [],
-      pies: pieValidations
+      failingPieValidations: invalidPies
     }
   } else {
+    logger.debug('[validate] baseValid = false');
     return {
       valid: false,
       errors: validateFn.errors

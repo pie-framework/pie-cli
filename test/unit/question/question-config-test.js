@@ -2,6 +2,9 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import { stub } from 'sinon';
 import { join } from 'path';
+import { buildLogger } from '../../../src/log-factory';
+const logger = buildLogger();
+
 
 
 describe('QuestionConfig', () => {
@@ -43,7 +46,8 @@ describe('QuestionConfig', () => {
       expect(BuildOpts.build()).to.eql({
         config: 'config.json',
         dependencies: 'dependencies.json',
-        markup: 'index.html'
+        markup: 'index.html',
+        schemasDir: 'docs/schemas'
       });
     });
 
@@ -51,7 +55,8 @@ describe('QuestionConfig', () => {
       expect(BuildOpts.build({})).to.eql({
         config: 'config.json',
         dependencies: 'dependencies.json',
-        markup: 'index.html'
+        markup: 'index.html',
+        schemasDir: 'docs/schemas'
       });
     });
 
@@ -59,11 +64,13 @@ describe('QuestionConfig', () => {
       expect(BuildOpts.build({
         'questionConfigFile': 'c.json',
         'questionDependenciesFile': 'd.json',
-        'questionMarkupFile': 'i.html'
+        'questionMarkupFile': 'i.html',
+        'questionSchemasDir': 'docs/my-schemas'
       })).to.eql({
         config: 'c.json',
         dependencies: 'd.json',
-        markup: 'i.html'
+        markup: 'i.html',
+        schemasDir: 'docs/my-schemas'
       });
     })
   });
@@ -82,10 +89,6 @@ describe('QuestionConfig', () => {
     });
 
 
-    it('throws an error if the dir does not contain a config.json', () => {
-      fsExtra.readJsonSync.throws(new Error('config.json'));
-      expect(() => new proxy.QuestionConfig(__dirname, new BuildOpts())).to.throw(Error, proxy.QuestionConfig.fileError('config.json'));
-    });
 
     it('throws an error if the dir does not contain a dependencies.json', () => {
       fsExtra.readJsonSync.withArgs(join(__dirname, 'dependencies.json')).throws(new Error('dependencies.json'));
@@ -93,11 +96,6 @@ describe('QuestionConfig', () => {
         .to.throw(Error, proxy.QuestionConfig.fileError('dependencies.json'));
     });
 
-    it('throws an error if markup file can not be found', () => {
-      fsExtra.readFileSync.withArgs(join(__dirname, 'index.html')).throws(new Error('!!'));
-      expect(() => new (proxy.QuestionConfig)(__dirname, new BuildOpts()))
-        .to.throw(Error, proxy.QuestionConfig.fileError('index.html'));
-    });
 
     it('not throw an error if the dir contains config.json + dependencies.json', () => {
       expect(() => new proxy.QuestionConfig(__dirname, new BuildOpts()))
@@ -131,6 +129,23 @@ describe('QuestionConfig', () => {
       }
       fsExtra.readJsonSync.withArgs(join(__dirname, 'config.json')).returns(config);
       fsExtra.readJsonSync.withArgs(join(__dirname, 'dependencies.json')).returns(dependencies);
+    });
+
+    describe('get config', () => {
+      it('throws an error if the dir does not contain a config.json', () => {
+        fsExtra.readJsonSync.withArgs(join(__dirname, 'config.json')).throws(new Error('config.json'));
+        let config = new proxy.QuestionConfig(__dirname, new BuildOpts());
+        expect(() => config.config).to.throw(Error, proxy.QuestionConfig.fileError('config.json'));
+      });
+    });
+
+    describe('get markup', () => {
+
+      it('throws an error if markup file cant be found', () => {
+        fsExtra.readFileSync.withArgs(join(__dirname, 'index.html')).throws(new Error('!!'));
+        let config = new proxy.QuestionConfig(__dirname, new BuildOpts());
+        expect(() => config.markup).to.throw(Error, proxy.QuestionConfig.fileError('index.html'));
+      });
     });
 
     describe('npmDependencies', () => {

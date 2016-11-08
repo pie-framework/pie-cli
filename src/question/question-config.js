@@ -2,16 +2,20 @@ import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import fs from 'fs-extra';
 import { join } from 'path';
-import { validate as validateConfig } from './config-validator';
+import * as configValidator from './config-validator';
 
 const logger = buildLogger();
 
 export class BuildOpts {
 
-  constructor(config = 'config.json', dependencies = 'dependencies.json', markup = 'index.html') {
+  constructor(config = 'config.json',
+    dependencies = 'dependencies.json',
+    markup = 'index.html',
+    schemasDir = 'docs/schemas') {
     this.config = config;
     this.dependencies = dependencies;
     this.markup = markup;
+    this.schemasDir = schemasDir;
   }
 
   static build(args) {
@@ -20,7 +24,9 @@ export class BuildOpts {
     return new BuildOpts(
       args['questionConfigFile'],
       args['questionDependenciesFile'],
-      args['questionMarkupFile'])
+      args['questionMarkupFile'],
+      args['questionSchemasDir']
+    )
   }
 }
 
@@ -30,10 +36,6 @@ export class QuestionConfig {
     this.dir = dir;
     this.filenames = opts;
     logger.silly('filenames', this.filenames);
-    this._config = this.readConfig();
-    logger.silly('config', this._config);
-    this._markup = this.readMarkup();
-    logger.silly('markup', this._markup);
 
     this._dependencies = this._readJson(
       this.filenames.dependencies,
@@ -48,6 +50,7 @@ export class QuestionConfig {
 
   _readJson(n, errMsg) {
     try {
+      logger.silly('[_readJson] n: ', n);
       return fs.readJsonSync(join(this.dir, n));
     } catch (e) {
 
@@ -57,20 +60,39 @@ export class QuestionConfig {
   }
 
   get config() {
+    if (!this._config) {
+      this._config = this.readConfig();
+    }
+
+    if (!this.isConfigValid(this._config)) {
+      logger.warn('[get config] config is not valid');
+    }
+
     return this._config;
   }
 
-  readConfig() {
-    let json = this._readJson(this.filenames.config, `failed to load the configuration file: ${this.filenames.config}`);
-    let result = validateConfig(json);
-    if (result.valid) {
-      return json;
-    } else {
-      logger.error(`config.json validation.errors: ${JSON.stringify(result.errors, null, '  ')}`);
-      throw new Error('config.json has an invalid schema');
+  _loadConfigSchema(pie) {
+    try {
+      logger.silly('[_loadConfigSchema] pie: ', pie, 'this: ', this);
+      return this._readJson(join('node_modules', pie, `${this.filenames.schemasDir}/config.json`));
+    } catch (e) {
+      logger.silly('[_loadConfigSchema] error: ', e);
+      //no-op
     }
   }
 
+  isConfigValid(json) {
+    json = json || this.readConfig();
+    let result = configValidator.validate(json, this._loadConfigSchema.bind(this));
+    if (!result.valid) {
+      logger.error(`config.json validation result: ${JSON.stringify(result, null, '  ')}`);
+    }
+    return result.valid;
+  }
+
+  readConfig() {
+    return this._readJson(this.filenames.config, `failed to load the configuration file: ${this.filenames.config}`);
+  }
 
   readMarkup() {
     let markupPath = join(this.dir, this.filenames.markup);
@@ -82,6 +104,9 @@ export class QuestionConfig {
   }
 
   get markup() {
+    if (!this._markup) {
+      this._markup = this.readMarkup();
+    }
     return this._markup;
   }
 
@@ -100,7 +125,7 @@ export class QuestionConfig {
   }
 
   get pies() {
-    let rawPies = _.map(this._config.pies, 'pie');
+    let rawPies = _.map(this.config.pies, 'pie');
     let toUniqueNames = (acc, p) => {
       let existing = _.find(acc, { name: p.name });
       if (existing) {
@@ -134,4 +159,5 @@ export class QuestionConfig {
     }
     return _.map(names, name => this._readJson(join('node_modules', name, 'package.json')));
   }
+
 }
