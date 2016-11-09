@@ -25,9 +25,9 @@ export default {
     a: '1.0.0'
   },
   webpackLoaders: (resolve) => {
-    return {
-      'my-loader': '1.0.0'
-    }
+    return [
+      { test: /\.suffix$/, loader: 'x!y!z' }
+    ]
   }
 }
 
@@ -48,11 +48,16 @@ export /*default*/ function support(dependencies){
      * @param resolve a function that will resolve the module (to be removed)
      */
     webpackLoaders: (resolve) => {
-      return [] 
+      return [{ test: /\.suffix$/, loader: 'x!y!z' }]
     }
   };
 }
 ```
+
+### Support Limitations
+
+* don't add paths to the `loader` string in support. ie: `'export?MODULE!path/to/my/module'` won't be handled correctly. Instead this loader should be declared inline becaues it needs to bind the query to the path.
+
 ### Existing support 
 
 Out of the box `pie-cli` has support for `react` and `less`. You don't need to add these to your support module.
