@@ -13,13 +13,11 @@ npm install -g pie
 ```bash
 git clone git@github.com:PieLabs/pie-cli.git 
 cd pie-cli 
-npm install -g babel-cli 
 npm install 
 npm run build
 npm link 
 
 # pie-cli executable now points to /bin/pie-cli
-
 ```
 ## Usage 
 
@@ -47,9 +45,18 @@ npm test
 
 ##### Integration 
 
-> The integration tests are slower than the unit tests cos of all the `npm install` commands. You'll probably want to run the 1 at a time.
+> The integration tests are slower than the unit tests because of all the `npm install` commands. 
+You'll probably want to run the 1 at a time like so: 
 
+```shell
+mocha --require test/init test/integration/framework-support/support-module-test.js
 ```
+
+> `--require test/init` - inits babel and the logger.
+
+To run them all: 
+
+```shell
 npm run it 
 ```
 
