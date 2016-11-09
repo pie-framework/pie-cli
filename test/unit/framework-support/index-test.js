@@ -5,6 +5,28 @@ import { expect } from 'chai';
 describe('framework-support', () => {
 
 
+  describe('BuildConfig', () => {
+
+    let BuildConfig;
+    beforeEach(() => {
+      BuildConfig = proxyquire('../../../src/framework-support', {
+        'fs-extra': {},
+        resolve: {},
+        './support-module': {}
+      }).BuildConfig;
+    });
+
+    it('handles modules with no npmDependencies', () => {
+      let config = new BuildConfig([{}, { npmDependencies: { a: '1.0.0' } }]);
+      expect(config.npmDependencies).to.eql({ a: '1.0.0' });
+    });
+
+    it('handles modules with no webpackLoaders function', () => {
+      let config = new BuildConfig([{}, { webpackLoaders: () => [{ test: 't' }] }]);
+      expect(config.webpackLoaders()).to.eql([{ test: 't' }]);
+    });
+  });
+
   describe('bootstrap', () => {
 
     let FrameworkSupport, support, fsExtra, resolve, supportModule;

@@ -27,6 +27,7 @@ describe('loaders', () => {
 
   describe('LoaderNames', () => {
 
+
     describe('normalized', () => {
       it('returns 1 names', () => {
         expect(new mod.LoaderNames('a').normalized).to.eql('a-loader');
@@ -34,6 +35,33 @@ describe('loaders', () => {
 
       it('returns 2 names', () => {
         expect(new mod.LoaderNames('a!b').normalized).to.eql('a-loader!b-loader');
+      });
+
+      it('splits 1 loader with 1 query', () => {
+        let name = 'exports?JXG';
+        let names = new mod.LoaderNames(name);
+        expect(names.normalized).to.eql('exports-loader');
+      });
+
+      describe('2 loaders with 2 queries', () => {
+        let names;
+        beforeEach(() => {
+          let name = 'a?blah!exports?JXG';
+          names = new mod.LoaderNames(name);
+        });
+
+        it('extracts the 1st query', () => {
+          expect(names._names[0].query).to.eql('blah');
+        });
+
+        it('extracts the 2nd query', () => {
+          expect(names._names[1].query).to.eql('JXG');
+        });
+
+        it('splits 2 loaders with 2 queries', () => {
+          expect(names.normalized).to.eql('a-loader!exports-loader');
+        });
+
       });
     });
   });

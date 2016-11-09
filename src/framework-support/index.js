@@ -20,7 +20,8 @@ export class BuildConfig {
 
   webpackLoaders(resolve) {
     return _.reduce(this._modules, (acc, c) => {
-      return acc.concat(c.webpackLoaders(resolve));
+      let loadersFn = _.isFunction(c.webpackLoaders) ? c.webpackLoaders : () => [];
+      return acc.concat(loadersFn(resolve));
     }, []);
   }
 }
