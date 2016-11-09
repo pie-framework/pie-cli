@@ -33,7 +33,7 @@ If you want to play with the cli while developing you can watch the src, then li
 npm link
 npm run dev # runs -> 'gulp dev'
 # in some other dir 
-pie-lib --help
+pie --help
 ```
 
 #### Tests
