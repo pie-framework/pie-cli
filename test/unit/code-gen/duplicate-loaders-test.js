@@ -1,5 +1,7 @@
 import { expect } from 'chai';
 import { buildLogger } from '../../../src/log-factory';
+import _ from 'lodash';
+
 const logger = buildLogger();
 
 describe('duplicate-loaders', () => {
@@ -10,8 +12,8 @@ describe('duplicate-loaders', () => {
     config = {
       module: {
         loaders: [
-          { loader: 'a!b' },
-          { loader: 'a!b' }
+          { loader: 'a!b', test: /\.js$/ },
+          { loader: 'a!b', test: /\.js$/ }
         ]
       }
     }
@@ -31,6 +33,17 @@ describe('duplicate-loaders', () => {
 
     it('returns duplicates w/ present=false for an empty config.module.loaders', () => {
       expect(DuplicateLoaders.fromConfig({ module: {} }).present).to.eql(false);
+    });
+
+    it('returns duplicates w/ present=false for a config with same loaders but different tests', () => {
+
+      let tweaked = _.cloneDeep(config);
+
+      tweaked.module.loaders[0].test = /js$/;
+
+      let duplicates = DuplicateLoaders.fromConfig(tweaked);
+      logger.debug('duplicates: ', duplicates);
+      expect(duplicates.present).to.eql(false);
     });
 
     it('returns duplicates w/ present=true for a config', () => {

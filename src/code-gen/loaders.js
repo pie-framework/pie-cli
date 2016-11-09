@@ -6,6 +6,11 @@ export class Loader {
     this._raw = obj;
     this._names = new LoaderNames(obj.loader);
   }
+
+  get test() {
+    return this._raw.test;
+  }
+
   get normalizedName() {
     return this._names.normalized;
   }
