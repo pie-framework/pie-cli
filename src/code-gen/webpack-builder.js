@@ -1,10 +1,22 @@
 import webpack from 'webpack';
 import { buildLogger } from '../log-factory';
 import _ from 'lodash';
+import DuplicateLoaders from './duplicate-loaders';
+import { configToJsString } from './webpack-write-config';
 
 const logger = buildLogger();
 
 export function build(config) {
+
+  let duplicates = DuplicateLoaders.fromConfig(config);
+
+  if (duplicates.present) {
+
+    logger.error('This config has duplicate loaders:');
+    logger.error(configToJsString(config));
+    return Promise.reject(duplicates.error)
+  }
+
   return new Promise((resolve, reject) => {
     webpack(config, (err, stats) => {
       if (err) {

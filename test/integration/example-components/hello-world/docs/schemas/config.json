@@ -1,0 +1,13 @@
+{
+  "title": "hello world config schema",
+  "description": "The schema for hello-world",
+  "type": "object",
+  "properties": {
+    "prompt": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "prompt"
+  ]
+}

@@ -1,14 +1,9 @@
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import resolve from 'resolve';
-import { join } from 'path';
-
-//add babel require hook
-require('babel-register')({
-  plugins: [resolve.sync('babel-plugin-transform-es2015-modules-commonjs', { basedir: join(__dirname, '../..') })]
-});
-
+import { mkFromPath } from './support-module';
 let logger = buildLogger();
+
 
 export class BuildConfig {
 
@@ -25,7 +20,8 @@ export class BuildConfig {
 
   webpackLoaders(resolve) {
     return _.reduce(this._modules, (acc, c) => {
-      return acc.concat(c.webpackLoaders(resolve));
+      let loadersFn = _.isFunction(c.webpackLoaders) ? c.webpackLoaders : () => [];
+      return acc.concat(loadersFn(resolve));
     }, []);
   }
 }
@@ -40,21 +36,36 @@ export default class FrameworkSupport {
   }
 
   buildConfigFromPieDependencies(dependencies) {
-    let rawModules = _(this.frameworks).map((f) => f.support(dependencies)).compact().value();
+
+    let readSupport = (framework) => {
+      if (!framework) {
+        return;
+      }
+
+
+      if (_.isFunction(framework)) {
+        return framework(dependencies);
+      } else if (_.isFunction(framework.support)) {
+        return framework.support(dependencies);
+      } else if (_.isObject(framework)) {
+        return framework;
+      }
+    }
+
+    let rawModules = _(this.frameworks).map(readSupport).compact().value();
     return new BuildConfig(rawModules);
   }
 
   /**
    * @param _require - convert src at given path to an object (used for testing)
    */
-  static bootstrap(modules, _require) {
-    _require = _require || require;
+  static bootstrap(modules) {
 
     let loadModule = (f) => {
       logger.debug('f: ', f);
       let path = resolve.sync(f);
       logger.debug('path: ', path);
-      return _require(path);
+      return mkFromPath(path);
     };
 
     logger.silly(`modules`, modules);
