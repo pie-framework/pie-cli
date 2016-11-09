@@ -66,4 +66,6 @@ npm run it
 npm run build
 ```
 
+##### Credits
 
+> Special thanks to Ken Pratt @kenpratt for the `pie` npm package name
