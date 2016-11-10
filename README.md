@@ -66,6 +66,15 @@ npm run it
 npm run build
 ```
 
+#### Release
+
+This creates a new github release from the `develop` branch:
+
+```shell
+# check the version in package.json is ok (keep the `-prerelease` label - it'll be stripped automatically), then..
+npm run release
+```
+
 ##### Credits
 
 > Special thanks to Ken Pratt @kenpratt for the `pie` npm package name

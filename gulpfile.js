@@ -2,8 +2,11 @@ const gulp = require('gulp'),
   babel = require('gulp-babel'),
   gutil = require('gulp-util'),
   eslint = require('gulp-eslint'),
-  sourcemaps = require('gulp-sourcemaps');
+  sourcemaps = require('gulp-sourcemaps'),
+  customRelease = require('./custom-release');
 
+//Init custom release tasks
+customRelease.init(gulp);
 
 let glue = suffix => gulp.src(`src/**/*.${suffix}`).pipe(gulp.dest('lib'));
 let watch = (suffix, tasks) => {
