@@ -5,6 +5,8 @@ import { buildLogger } from '../log-factory';
 import vm from 'vm';
 import { readFileSync } from 'fs-extra';
 import * as m from 'module';
+import _ from 'lodash';
+import request from 'request';
 
 const logger = buildLogger();
 
@@ -57,4 +59,57 @@ export function mkFromPath(path) {
   logger.silly('[mkFromPath] path: ', path);
   let src = readFileSync(path, 'utf8');
   return mkFromSrc(src, path);
+}
+
+let installFromUrl = (urls) => {
+  logger.silly(`[installFromUrl] urls: ${JSON.stringify(urls, null, '  ')}`);
+  let promises = _.map(urls, u => {
+    logger.silly(`[installFromUrl] u: ${u}`);
+    return new Promise((resolve, reject) => {
+      request(u, (err, response, body) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ id: u, src: body });
+        }
+      });
+    })
+  });
+  return Promise.all(promises);
+}
+
+/**
+ * @param dir the root dir 
+ * @param ids : string[] - an array of either local paths or urls
+ */
+
+export function loadSupportModules(dir, ids) {
+  logger.debug(`[loadSupportModules] dir: ${dir}, ${ids}`);
+
+  let localSrc = _(ids).map(i => {
+    try {
+      let path = resolve.sync(i);
+      logger.silly(`[loadSupportModules] resolved: ${i} -> ${path}`);
+      return { id: i, src: readFileSync(path, 'utf8') };
+    } catch (e) {
+      return undefined;
+    }
+  }).compact().value();
+
+  let remainingIds = _.difference(ids, _.map(localSrc, 'id'));
+  logger.silly(`[loadSupportModules] remainingIds: ${JSON.stringify(remainingIds, null, '  ')}`);
+
+  return installFromUrl(remainingIds)
+    .then(urlSrc => {
+      let rest = _.difference(remainingIds, _.map(urlSrc, 'id'));
+
+      if (rest.length > 0) {
+        throw new Error('unable to install the following support modules: ' + rest.join(', '));
+      } else {
+        return _(localSrc)
+          .concat(urlSrc)
+          .map(o => mkFromSrc(o.src, o.id))
+          .value();
+      }
+    });
 }

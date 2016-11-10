@@ -6,6 +6,7 @@ import ExampleApp from '../example-app';
 import { softWrite } from '../file-helper';
 import { removeSync } from 'fs-extra';
 import _ from 'lodash';
+import FrameworkSupport from '../framework-support';
 
 const logger = buildLogger();
 
@@ -41,37 +42,42 @@ class PackQuestionCommand extends CliCommand {
     let dir = resolve(packOpts.dir);
     let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
     support = _.map(support, (s) => resolve(join(dir, s)));
+    support = support.concat(exampleApp.frameworkSupport());
+
     let exampleApp = new ExampleApp();
 
-    let questionOpts = Question.buildOpts(args);
-    let question = new Question(dir, questionOpts, support, exampleApp);
+    return FrameworkSupport.bootstrap(support)
+      .then(frameworkSupport => {
+        let questionOpts = Question.buildOpts(args);
+        let question = new Question(dir, questionOpts, frameworkSupport, exampleApp);
 
-    return question.pack(packOpts.clean)
-      .then((result) => {
-        logger.debug('pack result: ', result);
+        return question.pack(packOpts.clean)
+          .then((result) => {
+            logger.debug('pack result: ', result);
 
-        if (packOpts.buildExample) {
-          let paths = {
-            client: result.client,
-            controllers: result.controllers.filename
-          }
+            if (packOpts.buildExample) {
+              let paths = {
+                client: result.client,
+                controllers: result.controllers.filename
+              }
 
-          let ids = {
-            controllers: result.controllers.library
-          }
+              let ids = {
+                controllers: result.controllers.library
+              }
 
-          let markup = exampleApp.staticMarkup(paths, ids, question.config.markup, question.config.config);
+              let markup = exampleApp.staticMarkup(paths, ids, question.config.markup, question.config.config);
 
-          logger.silly('markup: ', markup);
+              logger.silly('markup: ', markup);
 
-          let examplePath = join(dir, packOpts.exampleFile);
+              let examplePath = join(dir, packOpts.exampleFile);
 
-          if (packOpts.clean) {
-            removeSync(examplePath);
-          }
+              if (packOpts.clean) {
+                removeSync(examplePath);
+              }
 
-          return softWrite(examplePath, markup);
-        }
+              return softWrite(examplePath, markup);
+            }
+          });
       });
   }
 }

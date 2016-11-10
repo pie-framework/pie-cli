@@ -17,14 +17,13 @@ export default class Question {
     }
   }
 
-  constructor(dir, opts, clientFrameworkSupport, app) {
-    clientFrameworkSupport = clientFrameworkSupport || [];
+  constructor(dir, opts, frameworkSupport, app) {
 
     logger.silly('[constructor] opts: ', JSON.stringify(opts));
 
     this.dir = dir;
     this.config = new QuestionConfig(dir, opts.question);
-    this.client = new ClientBuildable(this.config, clientFrameworkSupport, opts.client, app);
+    this.client = new ClientBuildable(this.config, frameworkSupport, opts.client, app);
     this.controllers = new ControllersBuildable(this.config, opts.controllers);
   }
 

@@ -76,6 +76,7 @@
     "marked": "^0.3.6",
     "marked-terminal": "^1.6.2",
     "pug": "^2.0.0-beta6",
+    "request": "^2.78.0",
     "resolve": "^1.1.7",
     "semver": "^5.3.0",
     "sockjs": "^0.3.18",
