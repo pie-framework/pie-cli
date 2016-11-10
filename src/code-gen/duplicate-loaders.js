@@ -22,11 +22,13 @@ let _getDuplicates = (config) => {
 
     let wrapped = new Loader(loader);
     let name = wrapped.normalizedName;
+    let test = wrapped.test;
+    let uid = `${name}-${test}`;
 
-    if (acc[name]) {
-      acc[name].push(wrapped);
+    if (acc[uid]) {
+      acc[uid].push(wrapped);
     } else {
-      acc[name] = [wrapped];
+      acc[uid] = [wrapped];
     }
     return acc;
   }, {});
