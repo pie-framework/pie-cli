@@ -13,13 +13,11 @@ npm install -g pie
 ```bash
 git clone git@github.com:PieLabs/pie-cli.git 
 cd pie-cli 
-npm install -g babel-cli 
 npm install 
 npm run build
 npm link 
 
 # pie-cli executable now points to /bin/pie-cli
-
 ```
 ## Usage 
 
@@ -35,7 +33,7 @@ If you want to play with the cli while developing you can watch the src, then li
 npm link
 npm run dev # runs -> 'gulp dev'
 # in some other dir 
-pie-lib --help
+pie --help
 ```
 
 #### Tests
@@ -47,9 +45,18 @@ npm test
 
 ##### Integration 
 
-> The integration tests are slower than the unit tests cos of all the `npm install` commands. You'll probably want to run the 1 at a time.
+> The integration tests are slower than the unit tests because of all the `npm install` commands. 
+You'll probably want to run the 1 at a time like so: 
 
+```shell
+mocha --require test/init test/integration/framework-support/support-module-test.js
 ```
+
+> `--require test/init` - inits babel and the logger.
+
+To run them all: 
+
+```shell
 npm run it 
 ```
 
@@ -59,4 +66,15 @@ npm run it
 npm run build
 ```
 
+#### Release
 
+This creates a new github release from the `develop` branch:
+
+```shell
+# check the version in package.json is ok (keep the `-prerelease` label - it'll be stripped automatically), then..
+npm run release
+```
+
+##### Credits
+
+> Special thanks to Ken Pratt @kenpratt for the `pie` npm package name
