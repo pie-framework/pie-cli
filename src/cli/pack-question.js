@@ -46,7 +46,7 @@ class PackQuestionCommand extends CliCommand {
 
     let exampleApp = new ExampleApp();
 
-    return FrameworkSupport.bootstrap(support)
+    return FrameworkSupport.bootstrap(dir, support)
       .then(frameworkSupport => {
         let questionOpts = Question.buildOpts(args);
         let question = new Question(dir, questionOpts, frameworkSupport, exampleApp);

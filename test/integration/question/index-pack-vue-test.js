@@ -9,7 +9,7 @@ describe('Question.pack :: Vue', () => {
 
   before(function (done) {
 
-    this.timeout(50000);
+    this.timeout(100000);
     let support = [
       join(__dirname, '_vue-support')
     ];

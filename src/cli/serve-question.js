@@ -64,7 +64,7 @@ class Cmd extends CliCommand {
     let questionOpts = Question.buildOpts(args);
 
     logger.debug('call FrameworkSupport.bootstrap with: ', support);
-    return FrameworkSupport.bootstrap(support)
+    return FrameworkSupport.bootstrap(dir, support)
       .then(frameworkSupport => {
         let question = new Question(dir, questionOpts, frameworkSupport, app);
         return question.prepareWebpackConfigs(opts.clean)
