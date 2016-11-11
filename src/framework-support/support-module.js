@@ -94,9 +94,12 @@ export function loadSupportModules(dir, ids) {
       logger.silly(`[loadSupportModules] resolved: ${i} -> ${path}`);
       return { id: i, src: readFileSync(path, 'utf8') };
     } catch (e) {
+      logger.silly('e: ', e);
       return undefined;
     }
   }).compact().value();
+
+  logger.silly(`[loadSupportModules] localSrc: ${JSON.stringify(localSrc, null, '  ')}`);
 
   let remainingIds = _.difference(ids, _.map(localSrc, 'id'));
   logger.silly(`[loadSupportModules] remainingIds: ${JSON.stringify(remainingIds, null, '  ')}`);

@@ -9,8 +9,8 @@ let noCallThruStub = (returnValue) => {
 }
 
 describe('serve-question', () => {
-  let cmd, proxy, question, questionConstructor, exampleApp, exampleAppConstructor, webpack, watchmaker;
-  
+  let cmd, proxy, question, questionConstructor, exampleApp, exampleAppConstructor, webpack, watchmaker, frameworkSupport;
+
   beforeEach(() => {
 
     exampleApp = new function () {
@@ -18,10 +18,12 @@ describe('serve-question', () => {
         on: stub(),
         listen: stub()
       };
+      this.frameworkSupport = stub().returns([]);
+
       this.server = stub().returns(this._server);
     }
 
-    exampleAppConstructor = noCallThruStub(exampleApp); 
+    exampleAppConstructor = noCallThruStub(exampleApp);
 
     question = {
       controllers: {
@@ -32,23 +34,23 @@ describe('serve-question', () => {
         readConfig: stub()
       },
       prepareWebpackConfigs: stub().returns(Promise.resolve({
-        client: {clientConfig: true},
-        controllers: {controllersConfig: true}
+        client: { clientConfig: true },
+        controllers: { controllersConfig: true }
       }))
     }
 
     questionConstructor = noCallThruStub(question);
-    
+
     questionConstructor.buildOpts = stub().returns({
       controllers: {
         filename: 'controllers.js'
       },
       client: {
         bundleName: 'pie.js'
-      } 
+      }
     });
 
-    webpack = spy(function(config) {
+    webpack = spy(function (config) {
       return {
         stubCompiler: true,
         config: config
@@ -59,11 +61,17 @@ describe('serve-question', () => {
       init: stub()
     };
 
+    frameworkSupport = {
+      '@noCallThru': true,
+      bootstrap: stub().returns(Promise.resolve({}))
+    }
+
     proxy = {
-      '../question':  questionConstructor,
-      'webpack' : webpack,
-      '../watch/watchmaker': watchmaker, 
-      '../example-app': exampleAppConstructor
+      '../question': questionConstructor,
+      'webpack': webpack,
+      '../watch/watchmaker': watchmaker,
+      '../example-app': exampleAppConstructor,
+      '../framework-support': frameworkSupport
     }
     cmd = proxyquire('../../../src/cli/serve-question', proxy);
   });
@@ -87,7 +95,7 @@ describe('serve-question', () => {
     describe('custom opts', () => {
       let opts;
 
-      before(()=> {
+      before(() => {
         opts = ServeQuestionOpts.build({
           port: 3000,
           clean: true,
@@ -98,11 +106,11 @@ describe('serve-question', () => {
       it('sets port to 3000', () => {
         expect(opts.port).to.eql(3000);
       });
-      
+
       it('sets clean to true', () => {
         expect(opts.clean).to.eql(true);
       });
-      
+
       it('sets dir to dir', () => {
         expect(opts.dir).to.eql('dir');
       });
@@ -122,16 +130,20 @@ describe('serve-question', () => {
         .catch(done);
     });
 
+    it('calls FrameworkSupport.bootstrap', () => {
+      assert.calledWith(frameworkSupport.bootstrap, []);
+    });
+
     it('calls prepareWebpackConfigs', () => {
       assert.calledWith(question.prepareWebpackConfigs, false);
     });
 
     it('calls webpack for client', () => {
-      assert.calledWith(webpack, {clientConfig: true});
+      assert.calledWith(webpack, { clientConfig: true });
     });
 
     it('calls webpack for controllers', () => {
-      assert.calledWith(webpack, {controllersConfig: true});
+      assert.calledWith(webpack, { controllersConfig: true });
     });
 
 
@@ -144,18 +156,18 @@ describe('serve-question', () => {
         ids: {
           controllers: 'uid'
         },
-        markup: match.func, 
+        markup: match.func,
         model: match.func
       }
 
-      assert.calledWith(exampleApp.server, 
-        { 
+      assert.calledWith(exampleApp.server,
+        {
           client: {
-            stubCompiler: true, 
+            stubCompiler: true,
             config: match.object
-          }, 
+          },
           controllers: {
-            stubCompiler: true, 
+            stubCompiler: true,
             config: match.object
           }
         }, opts);

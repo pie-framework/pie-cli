@@ -1,5 +1,5 @@
 import proxyquire from 'proxyquire';
-import { stub, spy } from 'sinon';
+import { assert, stub } from 'sinon';
 import { expect } from 'chai';
 
 describe('framework-support', () => {
@@ -29,60 +29,53 @@ describe('framework-support', () => {
 
   describe('bootstrap', () => {
 
-    let FrameworkSupport, support, fsExtra, resolve, supportModule;
+    let FrameworkSupport, supportModule;
 
     beforeEach(() => {
 
       let supportModuleResult = {
-        npmDependencies: {},
+        npmDependencies: {
+          a: '1.0.0'
+        },
         webpackLoaders: (/*resolve*/) => {
           return []
         }
       };
 
-      fsExtra = {
-        readdirSync: stub().returns(['support.js']),
-        lstatSync: stub().returns({ isFile: stub().returns(true) })
-      };
-
       supportModule = {
-        mkFromPath: stub().returns(supportModuleResult)
-      }
-
-      resolve = {
-        sync: spy(function (p) { return p; })
+        loadSupportModules: stub().returns(Promise.resolve([supportModuleResult]))
       }
 
       FrameworkSupport = proxyquire('../../../src/framework-support', {
-        'fs-extra': fsExtra,
-        resolve: resolve,
         './support-module': supportModule
       }).default;
     });
 
-    it('reads in modules from the dir', () => {
-      support = FrameworkSupport.bootstrap(['path/to/support.js']);
+    let withSupport = (paths, fn) => {
+      return done => {
+        FrameworkSupport.bootstrap('dir', paths)
+          .then(support => {
+            fn(support);
+            done();
+          })
+          .catch(done);
+      }
+    }
+
+    it('reads in modules from the dir', withSupport(['path/to/support.js'], support => {
       expect(support.frameworks.length).to.eql(1);
-    });
+    }));
 
-    it('reads in 2 modules from the dir', () => {
-      support = FrameworkSupport.bootstrap([
-        'path/to/support.js',
-        'some/other/path.js']);
-      expect(support.frameworks.length).to.eql(2);
-    });
+    it('calls loadSupportModules with 2 paths', withSupport([
+      'path/to/support.js',
+      'some/other/path.js'], () => {
+        assert.calledWith(supportModule.loadSupportModules, 'dir', ['path/to/support.js', 'some/other/path.js']);
+      }));
 
-    it('uses module from support-module', () => {
-      supportModule.mkFromPath.returns({
-        npmDependencies: {
-          a: '1.0.0'
-        }
-      })
-
-      support = FrameworkSupport.bootstrap(['some/other/path.js']);
+    it('uses module from support-module', withSupport([], support => {
       let config = support.buildConfigFromPieDependencies({});
       expect(config.npmDependencies).to.eql({ a: '1.0.0' });
-    });
+    }));
   });
 
   describe('buildConfigFromPieDependencies', () => {

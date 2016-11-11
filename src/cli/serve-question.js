@@ -7,7 +7,7 @@ import webpack from 'webpack';
 import ExampleApp from '../example-app';
 import _ from 'lodash';
 import { join } from 'path';
-import FrameworkSupport from 'framework-support';
+import FrameworkSupport from '../framework-support';
 
 const logger = buildLogger();
 
@@ -63,6 +63,7 @@ class Cmd extends CliCommand {
     support = support.concat(app.frameworkSupport());
     let questionOpts = Question.buildOpts(args);
 
+    logger.debug('call FrameworkSupport.bootstrap with: ', support);
     return FrameworkSupport.bootstrap(support)
       .then(frameworkSupport => {
         let question = new Question(dir, questionOpts, frameworkSupport, app);
