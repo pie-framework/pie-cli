@@ -3,14 +3,13 @@ import fs from 'fs-extra';
 import { join } from 'path';
 import { packExample } from '../integration-test-helper';
 
-describe('Packer.pack', () => {
+describe('Question.pack', () => {
 
-  let questionPath, question;
+  let questionPath;
 
   before(function (done) {
 
-    this.timeout(80000);
-
+    this.timeout(120000);
 
     packExample('index-pack-test', 'one', [])
       .then((result) => {

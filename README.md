@@ -36,6 +36,10 @@ npm run dev # runs -> 'gulp dev'
 pie --help
 ```
 
+#### Contributing
+
+If you are commiting a code change that is worthy of being included in the release information, write your commit message using the [angular commit conventions outlined here](https://github.com/conventional-changelog/conventional-changelog-angular/blob/master/convention.md). These commit formats will automatically be included in the release notes.
+
 #### Tests
 
 ##### Unit

@@ -75,7 +75,6 @@ describe('ExampleApp', () => {
     let support;
     beforeEach(() => {
       support = app.frameworkSupport();
-      console.log(support);
     });
 
     it('returns react', () => {

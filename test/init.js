@@ -3,4 +3,6 @@ require("babel-register")({
 });
 
 const logFactory = require('../src/log-factory');
-logFactory.init(process.env.LOG_LEVEL || 'info'); 
+logFactory.init(process.env.LOG_LEVEL || 'info');
+
+global.testLogger = logFactory.getLogger('TEST');

@@ -68,7 +68,7 @@ describe('Question', () => {
     });
 
     describe('isConfigValid', () => {
-      it.only('returns false', () => {
+      it('returns false', () => {
         expect(config.isConfigValid()).to.eql(false);
       });
     });

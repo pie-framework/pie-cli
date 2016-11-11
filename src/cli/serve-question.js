@@ -5,8 +5,7 @@ import { resolve } from 'path';
 import * as watchMaker from '../watch/watchmaker';
 import webpack from 'webpack';
 import ExampleApp from '../example-app';
-import _ from 'lodash';
-import { join } from 'path';
+import tmpSupport from './tmp-support';
 
 const logger = buildLogger();
 
@@ -55,12 +54,9 @@ class Cmd extends CliCommand {
 
     let opts = ServeQuestionOpts.build(args);
     let dir = resolve(opts.dir);
-    let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
-    support = _.map(support, (s) => resolve(join(dir, s)));
-
-    let app = new ExampleApp();
+    let exampleApp = new ExampleApp();
     let questionOpts = Question.buildOpts(args);
-    let question = new Question(dir, questionOpts, support, app);
+    let question = new Question(dir, questionOpts, tmpSupport, exampleApp);
 
     return question.prepareWebpackConfigs(opts.clean)
       .then(({ client, controllers }) => {
@@ -82,7 +78,7 @@ class Cmd extends CliCommand {
           model: () => question.config.readConfig()
         };
 
-        return app.server(compilers, opts);
+        return exampleApp.server(compilers, opts);
       })
       .then(server => {
         startServer(server);

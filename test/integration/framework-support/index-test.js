@@ -26,7 +26,9 @@ describe('FrameworkSupport', () => {
     let config = frameworkSupport.buildConfigFromPieDependencies({
       react: ['1.2.3']
     });
-    expect(config.npmDependencies).to.eql(target.support({ react: [] }).npmDependencies);
+    testLogger.debug('config:', JSON.stringify(config.npmDependencies, null, '  '));
+    testLogger.debug('target:', JSON.stringify(target, null, '  '));
+    expect(config.npmDependencies).to.eql(target.default.npmDependencies);
   });
 
 });
