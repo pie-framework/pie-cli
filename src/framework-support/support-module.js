@@ -69,6 +69,8 @@ let installFromUrl = (urls) => {
       request(u, (err, response, body) => {
         if (err) {
           reject(err);
+        } else if (response.statusCode !== 200) {
+          reject(new Error(u + ' got a statusCode of ' + response.statusCode));
         } else {
           resolve({ id: u, src: body });
         }
