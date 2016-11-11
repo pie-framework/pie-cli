@@ -7,10 +7,10 @@
     "pie": "bin/pie"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --require babel-register test/unit/**/*",
+    "test": "./node_modules/.bin/mocha --require test/init test/unit/**/*",
     "prepublish": "npm run build",
     "build": "gulp build",
-    "it": "./node_modules/.bin/mocha --require babel-register test/integration/**",
+    "it": "./node_modules/.bin/mocha --require test/init 'test/integration/**/*-test.js'",
     "postinstall": "./dev/bin/postinstall",
     "dev": "./node_modules/.bin/gulp dev",
     "release": "./node_modules/.bin/gulp release"
@@ -76,6 +76,7 @@
     "marked": "^0.3.6",
     "marked-terminal": "^1.6.2",
     "pug": "^2.0.0-beta6",
+    "request": "^2.78.0",
     "resolve": "^1.1.7",
     "semver": "^5.3.0",
     "sockjs": "^0.3.18",

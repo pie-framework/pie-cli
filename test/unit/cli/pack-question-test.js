@@ -12,7 +12,6 @@ describe('pack-question', () => {
   });
 
   describe('match', () => {
-
     it('returns true for pack-question', () => {
       expect(cmd.match({ _: ['pack-question'] })).to.eql(true);
     });

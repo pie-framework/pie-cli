@@ -1,9 +1,8 @@
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
-import resolve from 'resolve';
-import { mkFromPath } from './support-module';
-let logger = buildLogger();
+import { loadSupportModules } from './support-module';
 
+let logger = buildLogger();
 
 export class BuildConfig {
 
@@ -59,22 +58,9 @@ export default class FrameworkSupport {
   /**
    * @param _require - convert src at given path to an object (used for testing)
    */
-  static bootstrap(modules) {
-
-    let loadModule = (f) => {
-      logger.debug('f: ', f);
-      let path = resolve.sync(f);
-      logger.debug('path: ', path);
-      return mkFromPath(path);
-    };
-
-    logger.silly(`modules`, modules);
-
-    let loadedModules = _.map(modules, loadModule);
-
-    logger.silly(`loadedModules`, loadedModules);
-
-    return new FrameworkSupport(loadedModules);
+  static bootstrap(dir, modules) {
+    return loadSupportModules(dir, modules)
+      .then( loaded => new FrameworkSupport(loaded));
   };
 
 }

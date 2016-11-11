@@ -57,7 +57,7 @@ export class ClientBuildable {
     this.config = config;
     this.opts = opts;
     this.app = app;
-    this.frameworkSupport = FrameworkSupport.bootstrap(support.concat(app.frameworkSupport()));
+    this.frameworkSupport = support;
     this.npmDir = new NpmDir(this.dir);
   }
 
