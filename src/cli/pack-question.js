@@ -5,7 +5,7 @@ import { resolve, join } from 'path';
 import ExampleApp from '../example-app';
 import { softWrite } from '../file-helper';
 import { removeSync } from 'fs-extra';
-import _ from 'lodash';
+import tmpSupport from './tmp-support';
 
 const logger = buildLogger();
 
@@ -39,12 +39,9 @@ class PackQuestionCommand extends CliCommand {
   run(args) {
     let packOpts = PackQuestionOpts.build(args);
     let dir = resolve(packOpts.dir);
-    let support = args.support ? (_.isArray(args.support) ? args.support : [args.support]) : [];
-    support = _.map(support, (s) => resolve(join(dir, s)));
     let exampleApp = new ExampleApp();
-
     let questionOpts = Question.buildOpts(args);
-    let question = new Question(dir, questionOpts, support, exampleApp);
+    let question = new Question(dir, questionOpts, tmpSupport, exampleApp);
 
     return question.pack(packOpts.clean)
       .then((result) => {
