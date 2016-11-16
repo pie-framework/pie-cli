@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import { assert, stub, spy } from 'sinon';
 
-describe('pack-question', () => {
+describe('clean-question', () => {
 
   let cmd, questionConstructor, questionInstance, buildOpts, fsExtra, path;
 
@@ -19,10 +19,6 @@ describe('pack-question', () => {
     }
 
     questionInstance = {
-      config: {
-        markup: '<div></div>',
-        config: {}
-      },
       pack: stub().returns(Promise.resolve({ 
         controllers: { 
           filename: 'controller.js', 
@@ -40,9 +36,10 @@ describe('pack-question', () => {
       controllers: {},
       config: {}
     }
+    
     questionConstructor.buildOpts = stub().returns(buildOpts);
 
-    cmd = proxyquire('../../../src/cli/pack-question', {
+    cmd = proxyquire('../../../src/cli/clean-question', {
       '../question': {
         default: questionConstructor
       },
@@ -53,14 +50,13 @@ describe('pack-question', () => {
 
   describe('match', () => {
 
-    it('returns true for pack-question', () => {
-      expect(cmd.match({ _: ['pack-question'] })).to.eql(true);
+    it('returns true for clean-question', () => {
+      expect(cmd.match({ _: ['clean-question'] })).to.eql(true);
     });
   });
 
   describe('run', () => {
 
-    describe('with keepBuildAssets=false', () => {
       beforeEach((done) => {
       cmd.run({dir: 'dir', buildExample: false})
         .then(() => {
@@ -69,17 +65,12 @@ describe('pack-question', () => {
         .catch(done);
       });
 
-      it('calls pack', () => {
-        assert.calledWith(questionInstance.pack, false);
-      });
-      
-      it('calls clean', () => {
+      it('calls question.clean', () => {
         assert.called(questionInstance.clean);
       });
-      
-      it('calls removeSync if buildExample=false', () => {
+
+      it('calls removeSync on example.html', () => {
         assert.calledWith(fsExtra.removeSync, 'dir/example.html');
       });
     });
-  });
 });
