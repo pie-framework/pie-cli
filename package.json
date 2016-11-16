@@ -1,6 +1,6 @@
 {
   "name": "pie",
-  "version": "2.1.0-prerelease",
+  "version": "2.2.0-prerelease",
   "description": "The Portable Interaction Elements framework CLI",
   "preferGlobal": true,
   "bin": {
@@ -58,7 +58,7 @@
     "run-sequence": "^1.2.2",
     "sinon": "^1.17.6",
     "temp": "^0.8.3",
-    "release-helper" : "PieLabs/release-helper#v1.3.0"
+    "release-helper": "PieLabs/release-helper#v1.3.0"
   },
   "dependencies": {
     "ajv": "^4.8.2",
