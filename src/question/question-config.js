@@ -120,9 +120,6 @@ export class QuestionConfig {
         acc[p.name] = p.localPath;
       } else {
 
-        logger.info('p: ', p);
-        logger.info('p.versions: ', p.versions);
-
         /**
          * TODO: We don't have a strategy in place for different versions (or version ranges) of the same pie.
          * For now throw an error if we find multiple versions.
