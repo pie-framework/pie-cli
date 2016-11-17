@@ -13,7 +13,8 @@ describe('QuestionConfig', () => {
   beforeEach(() => {
     fsExtra = {
       readJsonSync: stub(),
-      readFileSync: stub()
+      readFileSync: stub(),
+      existsSync: stub().returns(true)
     };
     BuildOpts = proxy.BuildOpts;
   });
@@ -82,20 +83,21 @@ describe('QuestionConfig', () => {
       fsExtra = {
         readJsonSync: stub()
           .withArgs(join(__dirname, 'config.json')).returns({})
-          .withArgs(join(__dirname, 'dependencies.json')).returns({}),
+          .withArgs(join(__dirname, 'dependencies.json')).returns({ a: '../..' }),
         readFileSync: stub()
-          .withArgs(join(__dirname, 'index.html')).returns('<div>hi</div>')
+          .withArgs(join(__dirname, 'index.html')).returns('<div>hi</div>'),
+        existsSync: stub().returns(true)
       }
     });
 
-
-
-    it('throws an error if the dir does not contain a dependencies.json', () => {
-      fsExtra.readJsonSync.withArgs(join(__dirname, 'dependencies.json')).throws(new Error('dependencies.json'));
-      expect(() => new proxy.QuestionConfig(__dirname, new BuildOpts()))
-        .to.throw(Error, proxy.QuestionConfig.fileError('dependencies.json'));
+    it('defaults to an empty object if the dir does not contain a dependencies.json', () => {
+      fsExtra.existsSync.withArgs(join(__dirname, 'dependencies.json')).returns(false);
+      expect(new proxy.QuestionConfig(__dirname, new BuildOpts()).localDependencies).to.eql({});
     });
 
+    it('reads in the dependencies.json', () => {
+      expect(new proxy.QuestionConfig(__dirname, new BuildOpts()).localDependencies).to.eql({ a: '../..' });
+    });
 
     it('not throw an error if the dir contains config.json + dependencies.json', () => {
       expect(() => new proxy.QuestionConfig(__dirname, new BuildOpts()))
