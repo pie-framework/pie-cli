@@ -1,7 +1,20 @@
 import { buildLogger } from '../log-factory';
 import CliCommand from './cli-command';
+import { writeJsonSync } from 'fs-extra';
+import { make as makeManifest } from '../question/manifest';
 
 const logger = buildLogger();
+
+class ManifestOpts {
+  constructor(dir = process.cwd(), outfile = null) {
+    this.dir = dir;
+    this.outfile = outfile;
+  }
+
+  static buildOpts(args) {
+    return new ManifestOpts(args.dir, args.outfile);
+  }
+}
 
 class ManifestCommand extends CliCommand {
   constructor() {
@@ -9,8 +22,15 @@ class ManifestCommand extends CliCommand {
   }
 
   run(args) {
-    logger.info('[run] args: ', args);
-    return Promise.reject(new Error('todo...'));
+    let opts = ManifestOpts.buildOpts(args);
+    logger.info('[run] opts: ', opts);
+
+    let manifest = makeManifest(opts.dir);
+
+    if (opts.outfile) {
+      writeJsonSync(opts.outfile, manifest);
+    }
+    return Promise.resolve(JSON.stringify(manifest));
   }
 }
 

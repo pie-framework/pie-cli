@@ -118,6 +118,20 @@ export class QuestionConfig {
       logger.silly('[npmDependencies] p: ', p);
       if (p.localPath) {
         acc[p.name] = p.localPath;
+      } else {
+
+        logger.info('p: ', p);
+        logger.info('p.versions: ', p.versions);
+
+        /**
+         * TODO: We don't have a strategy in place for different versions (or version ranges) of the same pie.
+         * For now throw an error if we find multiple versions.
+         */
+        if (p.versions.length > 1) {
+          throw new Error(`multiple versions found for ${p.name}`);
+        }
+
+        acc[p.name] = _.first(p.versions)
       }
       return acc;
     }, {});
@@ -128,7 +142,7 @@ export class QuestionConfig {
     let toUniqueNames = (acc, p) => {
       let existing = _.find(acc, { name: p.name });
       if (existing) {
-        existing.versions = _(existing.versions).concat(p.version).uniq();
+        existing.versions = _(existing.versions).concat(p.version).uniq().value();
       }
       else {
         acc.push({

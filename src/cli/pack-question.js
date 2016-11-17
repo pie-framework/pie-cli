@@ -6,7 +6,7 @@ import ExampleApp from '../example-app';
 import { softWrite } from '../file-helper';
 import { removeSync } from 'fs-extra';
 import tmpSupport from './tmp-support';
-
+import { run as runManifest } from './manifest';
 const logger = buildLogger();
 
 export class PackQuestionOpts {
@@ -28,7 +28,7 @@ export class PackQuestionOpts {
       args.dir || process.cwd(),
       args.clean === 'true' || args.clean === true,
       args.buildExample !== 'false' && args.buildExample !== false,
-      args.exampleFile || 'example.html', 
+      args.exampleFile || 'example.html',
       args.keepBuildAssets || false);
   }
 }
@@ -50,7 +50,7 @@ class PackQuestionCommand extends CliCommand {
     let maybeDeleteBuildAssets = packOpts.keepBuildAssets ? Promise.resolve() : () => {
       return question.clean()
         .then(() => {
-          if(!packOpts.buildExample){
+          if (!packOpts.buildExample) {
             removeSync(join(dir, packOpts.exampleFile));
           }
         });
@@ -84,7 +84,8 @@ class PackQuestionCommand extends CliCommand {
           return softWrite(examplePath, markup);
         }
       })
-      .then(maybeDeleteBuildAssets);
+      .then(maybeDeleteBuildAssets)
+      .then(() => runManifest({ outfile: args.manifestOutfile }));
   }
 }
 

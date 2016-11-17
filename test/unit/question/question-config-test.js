@@ -5,8 +5,6 @@ import { join } from 'path';
 import { buildLogger } from '../../../src/log-factory';
 const logger = buildLogger();
 
-
-
 describe('QuestionConfig', () => {
   let BuildOpts, fsExtra;
 
@@ -153,7 +151,17 @@ describe('QuestionConfig', () => {
     describe('npmDependencies', () => {
       it('returns an object with any pie with local path as the key:value', () => {
         let q = new proxy.QuestionConfig(__dirname, new BuildOpts());
-        expect(q.npmDependencies).to.eql({ 'my-pie': '../..' });
+        expect(q.npmDependencies).to.eql({ 'my-pie': '../..', 'my-other-pie': '1.0.0' });
+      });
+
+      it('throws an error if there are multiple versions for a given pie', () => {
+        config.pies.push({ pie: { name: 'my-other-pie', version: '1.0.1' } });
+        fsExtra.readJsonSync.withArgs(join(__dirname, 'config.json')).returns(config);
+        let q = new proxy.QuestionConfig(__dirname, new BuildOpts());
+
+        expect(() => {
+          q.npmDependencies
+        }).to.throw('multiple versions found for my-other-pie');
       });
     });
 
