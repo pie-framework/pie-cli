@@ -1,6 +1,10 @@
 import { existsSync, readJsonSync } from 'fs-extra';
 import { execSync } from 'child_process';
 import { join } from 'path';
+import isEmpty from 'lodash/isEmpty';
+import {buildLogger} from '../log-factory';
+
+const logger = buildLogger();
 
 export function match(args) {
   let out = (args.v || args.version);
@@ -9,7 +13,7 @@ export function match(args) {
 
 export let summary = '--version | -v - print the version';
 
-export function run() {
+export function run(log = console.log) {
   let pkg = readJsonSync(join(__dirname, '..', '..', 'package.json'));
   let projectRoot = join(__dirname, '../..');
   let gitDir = join(projectRoot, '.git');
@@ -18,6 +22,10 @@ export function run() {
     gitSha = execSync(`git --git-dir=${gitDir} --work-tree=${projectRoot} rev-parse --short HEAD`, { encoding: 'utf8' });
     gitSha = gitSha.trim();
   }
-  console.log(`version: ${pkg.version}, git-sha: ${gitSha}`);
+  let message = `version: ${pkg.version}`;
+  message += isEmpty(gitSha) ? '' : `, git-sha: ${gitSha}`;
+  console.log('message: ', message);
+  logger.info('message: ', message);
+  log(message); 
   process.exit(0);
 };
