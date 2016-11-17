@@ -9,7 +9,6 @@ class ManifestCommand extends CliCommand {
   }
 
   run(args) {
-
     logger.info('[run] args: ', args);
     return Promise.reject(new Error('todo...'));
   }

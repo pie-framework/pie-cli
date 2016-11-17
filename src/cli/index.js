@@ -18,7 +18,7 @@ export default function (opts) {
 
   opts = normalizeOpts(opts);
 
-  let help = new Help('pie-cli', commands);
+  let help = new Help('pie', commands);
 
   let cmd = _.find([help].concat(commands), (cmd) => {
     return cmd.match(opts);
