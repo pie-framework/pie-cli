@@ -127,17 +127,8 @@ export default class NpmDir {
 
   install(dependencies) {
     logger.info('[install] ...');
-    let pkgExists = this._exists('package.json')
-    let nodeModulesExists = this._exists('node_modules');
-
-    logger.silly('[install] pkgExists: ', pkgExists)
-    if (pkgExists && nodeModulesExists) {
-      logger.info('[install] skipping install cmd');
-      return Promise.resolve({ skipped: true });
-    } else {
-      return this._writePackageJson(dependencies)
-        .then(() => this._install());
-    }
+    return this._writePackageJson(dependencies)
+      .then(() => this._install());
   };
 
   _install(args) {

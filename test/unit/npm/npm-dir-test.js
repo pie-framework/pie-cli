@@ -51,26 +51,7 @@ describe('npm-dir', () => {
     let dir;
     beforeEach(() => {
       dir = new NpmDir(__dirname);
-      dir._exists = sinon.stub()
-        .withArgs('package.json').returns(false)
-        .withArgs('node_modules').returns(false);
-    });
-
-    it('skips install if package.json and node_modules exists', (done) => {
-
-      withCloseHandler(() => {
-        dir._exists
-          .withArgs('package.json').returns(true)
-          .withArgs('node_modules').returns(true);
-
-        dir.install({})
-          .then((result) => {
-            expect(result.skipped).to.eql(true);
-            done();
-          })
-          .catch(done);
-
-      });
+      dir._exists = sinon.stub();
     });
 
     it('writes package.json when installing', (done) => {
