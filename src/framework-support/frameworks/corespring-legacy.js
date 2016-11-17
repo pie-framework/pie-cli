@@ -16,6 +16,10 @@ export function support(dependencies) {
           {
             test: /\.(eot|svg|ttf|woff|woff2)([#?].*)?$/,
             loader: 'file?name=public/fonts/[name].[ext]'
+          },
+          {
+            test: /\/images\/feedback\/.*\.png/,
+            loader: 'file?{"name":"public/images/feedback/[name].[ext]"}'
           }
         ];
       }
