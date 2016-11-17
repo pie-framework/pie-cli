@@ -133,10 +133,6 @@ describe('Question', () => {
       assert.calledWith(fs.removeSync, 'controllersDir');
     });
 
-    it('calls removeSync on example.html', () => {
-      assert.calledWith(fs.removeSync, 'dir/example.html');
-    });
-
   });
 
   describe('pack', () => {

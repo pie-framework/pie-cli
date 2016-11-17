@@ -1,6 +1,9 @@
 import Question from '../question';
 import { resolve } from 'path';
 import { buildLogger } from '../log-factory';
+import { join } from 'path';
+import { removeSync } from 'fs-extra';
+import { PackQuestionOpts } from './pack-question';
 
 const marked = require('marked');
 const TerminalRenderer = require('marked-terminal');
@@ -42,7 +45,9 @@ export function run(args) {
   //Note: we don't need framework support for a clean
   let noExternalSupport = [];
   let questionOpts = Question.buildOpts(args);
+  let packOpts = PackQuestionOpts.build(args);
   let question = new Question(dir, questionOpts, noExternalSupport, emptyApp);
   return question.clean(dir, args)
+    .then(() => removeSync(join(dir, packOpts.exampleFile)))
     .then(() => "clean complete")
 }
