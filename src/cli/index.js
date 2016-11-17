@@ -4,12 +4,14 @@ import * as version from './version';
 import * as packQuestion from './pack-question';
 import * as cleanQuestion from './clean-question';
 import * as serveQuestion from './serve-question';
+import * as manifest from './manifest';
 import {normalizeOpts} from './helper';
 let commands = [
   version,
   packQuestion,
   cleanQuestion,
-  serveQuestion
+  serveQuestion,
+  manifest
 ];
 
 export default function (opts) {
