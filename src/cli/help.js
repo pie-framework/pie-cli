@@ -26,7 +26,7 @@ export default class Help {
       let usage = _(this.handlers).map((h) => `\t${h.summary}`).join('\n');
       console.log(usage);
       console.log('--');
-      console.log('you can also run: \n\tpie-cli help $cmd\nfor more detail.')
+      console.log(`you can also run: \n\t${this.rootCmd} help $command-name\nfor more detail.`);
     }
     return Promise.resolve('--');
   }

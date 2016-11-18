@@ -6,15 +6,16 @@ import ExampleApp from '../example-app';
 import { softWrite } from '../file-helper';
 import { removeSync } from 'fs-extra';
 import tmpSupport from './tmp-support';
-
+import { run as runManifest } from './manifest';
 const logger = buildLogger();
 
 export class PackQuestionOpts {
-  constructor(dir, clean, buildExample, exampleFile) {
+  constructor(dir, clean, buildExample, exampleFile, keepBuildAssets) {
     this.dir = dir;
     this.clean = clean;
     this.buildExample = buildExample;
     this.exampleFile = exampleFile;
+    this.keepBuildAssets = keepBuildAssets;
   }
 
   static build(args) {
@@ -27,7 +28,8 @@ export class PackQuestionOpts {
       args.dir || process.cwd(),
       args.clean === 'true' || args.clean === true,
       args.buildExample !== 'false' && args.buildExample !== false,
-      args.exampleFile || 'example.html');
+      args.exampleFile || 'example.html',
+      args.keepBuildAssets || false);
   }
 }
 
@@ -43,6 +45,17 @@ class PackQuestionCommand extends CliCommand {
     let questionOpts = Question.buildOpts(args);
     let question = new Question(dir, questionOpts, tmpSupport, exampleApp);
 
+    logger.silly('[run] packOpts? ', packOpts);
+
+    let maybeDeleteBuildAssets = packOpts.keepBuildAssets ? Promise.resolve() : () => {
+      return question.clean()
+        .then(() => {
+          if (!packOpts.buildExample) {
+            removeSync(join(dir, packOpts.exampleFile));
+          }
+        });
+    }
+
     return question.pack(packOpts.clean)
       .then((result) => {
         logger.debug('pack result: ', result);
@@ -57,6 +70,7 @@ class PackQuestionCommand extends CliCommand {
             controllers: result.controllers.library
           }
 
+          logger.silly('question: ', question)
           let markup = exampleApp.staticMarkup(paths, ids, question.config.markup, question.config.config);
 
           logger.silly('markup: ', markup);
@@ -69,7 +83,9 @@ class PackQuestionCommand extends CliCommand {
 
           return softWrite(examplePath, markup);
         }
-      });
+      })
+      .then(maybeDeleteBuildAssets)
+      .then(() => runManifest({ outfile: args.manifestOutfile }));
   }
 }
 

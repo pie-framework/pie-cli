@@ -1,7 +1,6 @@
 import { ClientBuildable, BuildOpts as ClientBuildOpts } from './client';
 import { ControllersBuildable, BuildOpts as ControllersBuildOpts } from './controllers';
 import { QuestionConfig, BuildOpts as QuestionConfigBuildOpts } from './question-config';
-import { join } from 'path';
 import { removeSync } from 'fs-extra';
 import { buildLogger } from '../log-factory';
 
@@ -31,9 +30,7 @@ export default class Question {
   clean() {
     return this.client.clean()
       .then(() => this.controllers.clean())
-      .then(() => removeSync(this.controllers.controllersDir))
-      //TODO - does this belong here? We don't build the example in Question'
-      .then(() => removeSync(join(this.dir, 'example.html')));
+      .then(() => removeSync(this.controllers.controllersDir));
   }
 
   pack(clean = false) {

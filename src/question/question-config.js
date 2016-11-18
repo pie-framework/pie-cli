@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { buildLogger } from '../log-factory';
-import fs from 'fs-extra';
+import { readJsonSync, existsSync, readFileSync } from 'fs-extra';
 import { join } from 'path';
 import * as configValidator from './config-validator';
 
@@ -37,9 +37,8 @@ export class QuestionConfig {
     this.filenames = opts;
     logger.silly('filenames', this.filenames);
 
-    this._dependencies = this._readJson(
-      this.filenames.dependencies,
-      `failed to load the dependencies file: ${this.filenames.dependencies}`);
+    let dependenciesPath = join(this.dir, this.filenames.dependencies);
+    this._dependencies = existsSync(dependenciesPath) ? readJsonSync(dependenciesPath, { throws: false }) : {};
 
     logger.silly('dependencies', this._dependencies);
   }
@@ -51,7 +50,7 @@ export class QuestionConfig {
   _readJson(n, errMsg) {
     try {
       logger.silly('[_readJson] n: ', n);
-      return fs.readJsonSync(join(this.dir, n));
+      return readJsonSync(join(this.dir, n));
     } catch (e) {
 
       logger.silly('[_readJson] e: ', e);
@@ -97,7 +96,7 @@ export class QuestionConfig {
   readMarkup() {
     let markupPath = join(this.dir, this.filenames.markup);
     try {
-      return fs.readFileSync(markupPath, 'utf8');
+      return readFileSync(markupPath, 'utf8');
     } catch (e) {
       throw QuestionConfig.fileError(this.filenames.markup);
     }
@@ -119,6 +118,17 @@ export class QuestionConfig {
       logger.silly('[npmDependencies] p: ', p);
       if (p.localPath) {
         acc[p.name] = p.localPath;
+      } else {
+
+        /**
+         * TODO: We don't have a strategy in place for different versions (or version ranges) of the same pie.
+         * For now throw an error if we find multiple versions.
+         */
+        if (p.versions.length > 1) {
+          throw new Error(`multiple versions found for ${p.name}`);
+        }
+
+        acc[p.name] = _.first(p.versions)
       }
       return acc;
     }, {});
@@ -129,7 +139,7 @@ export class QuestionConfig {
     let toUniqueNames = (acc, p) => {
       let existing = _.find(acc, { name: p.name });
       if (existing) {
-        existing.versions = _(existing.versions).concat(p.version).uniq();
+        existing.versions = _(existing.versions).concat(p.version).uniq().value();
       }
       else {
         acc.push({
@@ -154,7 +164,7 @@ export class QuestionConfig {
 
   readPackages(names) {
     let nodeModulesPath = join(this.dir, 'node_modules');
-    if (!fs.existsSync(nodeModulesPath)) {
+    if (!existsSync(nodeModulesPath)) {
       throw new Error('pie packages cant be read until the "node_modules" directory has been installed');
     }
     return _.map(names, name => this._readJson(join('node_modules', name, 'package.json')));
