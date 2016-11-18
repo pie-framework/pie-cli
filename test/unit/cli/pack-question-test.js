@@ -85,16 +85,12 @@ describe('pack-question', () => {
 
     let run = (opts) => {
       return function (done) {
-        global.testLogger.info('questionInstance: ', questionInstance)
-        global.testLogger.info('cmd: ', cmd);
         cmd.run(opts)
           .then(() => {
-            global.testLogger.info('run is done.');
             done();
           })
           .catch(e => {
-            global.testLogger.error(e.stack);
-            done(new Error('!'))
+            done(e);
           });
       }
     }
