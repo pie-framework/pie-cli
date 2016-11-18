@@ -5,15 +5,14 @@ import { join } from 'path';
 import { buildLogger } from '../../../src/log-factory';
 const logger = buildLogger();
 
-
-
 describe('QuestionConfig', () => {
   let BuildOpts, fsExtra;
 
   beforeEach(() => {
     fsExtra = {
       readJsonSync: stub(),
-      readFileSync: stub()
+      readFileSync: stub(),
+      existsSync: stub().returns(true)
     };
     BuildOpts = proxy.BuildOpts;
   });
@@ -82,20 +81,21 @@ describe('QuestionConfig', () => {
       fsExtra = {
         readJsonSync: stub()
           .withArgs(join(__dirname, 'config.json')).returns({})
-          .withArgs(join(__dirname, 'dependencies.json')).returns({}),
+          .withArgs(join(__dirname, 'dependencies.json')).returns({ a: '../..' }),
         readFileSync: stub()
-          .withArgs(join(__dirname, 'index.html')).returns('<div>hi</div>')
+          .withArgs(join(__dirname, 'index.html')).returns('<div>hi</div>'),
+        existsSync: stub().returns(true)
       }
     });
 
-
-
-    it('throws an error if the dir does not contain a dependencies.json', () => {
-      fsExtra.readJsonSync.withArgs(join(__dirname, 'dependencies.json')).throws(new Error('dependencies.json'));
-      expect(() => new proxy.QuestionConfig(__dirname, new BuildOpts()))
-        .to.throw(Error, proxy.QuestionConfig.fileError('dependencies.json'));
+    it('defaults to an empty object if the dir does not contain a dependencies.json', () => {
+      fsExtra.existsSync.withArgs(join(__dirname, 'dependencies.json')).returns(false);
+      expect(new proxy.QuestionConfig(__dirname, new BuildOpts()).localDependencies).to.eql({});
     });
 
+    it('reads in the dependencies.json', () => {
+      expect(new proxy.QuestionConfig(__dirname, new BuildOpts()).localDependencies).to.eql({ a: '../..' });
+    });
 
     it('not throw an error if the dir contains config.json + dependencies.json', () => {
       expect(() => new proxy.QuestionConfig(__dirname, new BuildOpts()))
@@ -151,7 +151,17 @@ describe('QuestionConfig', () => {
     describe('npmDependencies', () => {
       it('returns an object with any pie with local path as the key:value', () => {
         let q = new proxy.QuestionConfig(__dirname, new BuildOpts());
-        expect(q.npmDependencies).to.eql({ 'my-pie': '../..' });
+        expect(q.npmDependencies).to.eql({ 'my-pie': '../..', 'my-other-pie': '1.0.0' });
+      });
+
+      it('throws an error if there are multiple versions for a given pie', () => {
+        config.pies.push({ pie: { name: 'my-other-pie', version: '1.0.1' } });
+        fsExtra.readJsonSync.withArgs(join(__dirname, 'config.json')).returns(config);
+        let q = new proxy.QuestionConfig(__dirname, new BuildOpts());
+
+        expect(() => {
+          q.npmDependencies
+        }).to.throw('multiple versions found for my-other-pie');
       });
     });
 

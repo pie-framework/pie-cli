@@ -1,4 +1,3 @@
-//@flow
 import semver from 'semver';
 import fs from 'fs-extra';
 import path from 'path';
@@ -22,15 +21,30 @@ export let pathIsDir = (root, v) => {
   }
 };
 
+export let dependenciesToHashAndSrc = (dependencies) => {
+  if (!dependencies || !_.isObject(dependencies) || _.isEmpty(dependencies)) {
+    throw new Error('dependencies must be an non empty object');
+  }
+
+  let src = toSrc(dependencies);
+  return { hash: hash(src), src: src };
+}
+
 export let dependenciesToHash = (dependencies) => {
   if (!dependencies || !_.isObject(dependencies) || _.isEmpty(dependencies)) {
     throw new Error('dependencies must be an non empty object');
   }
 
-  let raw = _.reduce(dependencies, (acc, value, key) => {
-    acc += `${key}:${value}`;
-    return acc;
-  }, '');
-
-  return crypto.createHash('md5').update(raw).digest('hex');
+  let src = toSrc(dependencies);
+  return hash(src);
 };
+
+let toSrc = (dependencies) => {
+  let keyed = _.map(dependencies, (value, key) => `${key}:${value}`);
+  keyed.sort();
+  return keyed.join(',');
+};
+
+let hash = (s) => {
+  return crypto.createHash('md5').update(s).digest('hex');
+}
