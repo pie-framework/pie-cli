@@ -7,6 +7,7 @@ import { writeConfig } from '../../code-gen/webpack-write-config';
 import { removeFiles } from '../../file-helper';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import _ from 'lodash';
+import buildDependencies from '../build-dependencies';
 
 let logger = buildLogger();
 
@@ -23,10 +24,7 @@ export class BuildOpts {
   }
 }
 
-exports.NPM_DEPENDENCIES = {
-  'babel-core': '^6.17.0',
-  'babel-loader': '^6.2.5'
-};
+exports.NPM_DEPENDENCIES = buildDependencies;
 
 export class ControllersBuildable {
 
