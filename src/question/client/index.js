@@ -7,16 +7,14 @@ import _ from 'lodash';
 import resolve from 'resolve';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import { configToJsString, writeConfig } from '../../code-gen/webpack-write-config';
+import buildDependencies from '../build-dependencies';
 
 const logger = buildLogger();
 
-let clientDependencies = {
-  'babel-core': '^6.17.0',
-  'babel-loader': '^6.2.5',
+let clientDependencies = _.merge(buildDependencies, {
   'style-loader': '^0.13.1',
-  'css-loader': '^0.25.0',
-  'webpack': '2.1.0-beta.21'
-};
+  'css-loader': '^0.25.0'
+});
 
 let baseConfig = (root) => {
   return {
