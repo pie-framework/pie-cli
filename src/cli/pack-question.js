@@ -19,11 +19,6 @@ export class PackQuestionOpts {
   }
 
   static build(args) {
-
-    if (args.keepBuildAssets) {
-      logger.error('TODO: plug keepBuildAssets back in');
-    }
-
     return new PackQuestionOpts(
       args.dir || process.cwd(),
       args.clean === 'true' || args.clean === true,
