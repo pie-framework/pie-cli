@@ -43,7 +43,7 @@ export class ControllersBuildable {
       logger.silly('[get dependencies] pieControllerDir: ', pieControllerDir);
       if (fs.existsSync(pieControllerDir)) {
         let modulePath = relative(this.controllersDir, pieControllerDir);
-        acc[p.name] = modulePath;
+        acc[`${p.name}-controller`] = modulePath;
       }
       else {
         logger.warn('[build] the following path doesnt exist: ', pieControllerDir);
@@ -56,6 +56,7 @@ export class ControllersBuildable {
 
   prepareWebpackConfig(clean) {
     let firstStep = clean ? this.clean() : Promise.resolve();
+
 
     let buildDependencies = _.extend({}, this.dependencies, exports.NPM_DEPENDENCIES);
 
@@ -91,10 +92,12 @@ export class ControllersBuildable {
 
     if (!fs.existsSync(entryPath)) {
       let entrySrc = _.map(dependencies, (value, key) => {
-        return `exports['${key}'] = require('${key}-controller');
-exports['${key}'].version =  '${value}';`;
+        //We need to use the normal name (without the -controller suffix) so the controller map has normalised names.
+        let dependencyName = key.replace('-controller', '');
+        return `exports['${dependencyName}'] = require('${key}');
+exports['${dependencyName}'].version =  '${value}';`;
       });
-      fs.writeFileSync(entryPath, entrySrc.join('\n'), { encoding: 'utf8' });
+      fs.writeFileSync(entryPath, entrySrc.join('\n'), 'utf8');
     }
     return Promise.resolve();
   }
