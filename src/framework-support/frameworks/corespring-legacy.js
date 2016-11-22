@@ -15,11 +15,11 @@ export function support(dependencies) {
         return [
           {
             test: /\.(eot|svg|ttf|woff|woff2)([#?].*)?$/,
-            loader: 'file?name=public/fonts/[name].[ext]'
+            loader: 'file?{"name":"public/fonts/[name].[ext]"}'
           },
           {
-            test: /\/images\/feedback\/.*\.png/,
-            loader: 'file?{"name":"public/images/feedback/[name].[ext]"}'
+            test: /libs\/styles\/images\/.*\.(svg|png)([#?].*)?$/,
+            loader: 'file?{"name":"public/[path][name].[ext]", "context":"./node_modules/corespring-legacy-component-dependencies/libs/styles"}'
           }
         ];
       }
