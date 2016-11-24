@@ -20,6 +20,10 @@ export function support(dependencies) {
           {
             test: /libs\/styles\/images\/.*\.(svg|png)([#?].*)?$/,
             loader: 'file?{"name":"public/[path][name].[ext]", "context":"./node_modules/corespring-legacy-component-dependencies/libs/styles"}'
+          },
+          {
+            test: /\/images\/feedback\/.*\.png/,
+            loader: 'file?{"name":"public/images/feedback/[name].[ext]"}'
           }
         ];
       }
