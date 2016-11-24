@@ -16,12 +16,17 @@ export default class Question {
     }
   }
 
-  constructor(dir, opts, clientFrameworkSupport, app) {
+
+  readonly config;
+  private client;
+  private controllers;
+
+  constructor(private dir, private opts, private clientFrameworkSupport, private app) {
     clientFrameworkSupport = clientFrameworkSupport || [];
 
     logger.silly('[constructor] opts: ', JSON.stringify(opts));
 
-    this.dir = dir;
+    // this.dir = dir;
     this.config = new QuestionConfig(dir, opts.question);
     this.client = new ClientBuildable(this.config, clientFrameworkSupport, opts.client, app);
     this.controllers = new ControllersBuildable(this.config, opts.controllers);

@@ -10,13 +10,12 @@ import { run as runManifest } from './manifest';
 const logger = buildLogger();
 
 export class PackQuestionOpts {
-  constructor(dir, clean, buildExample, exampleFile, keepBuildAssets) {
-    this.dir = dir;
-    this.clean = clean;
-    this.buildExample = buildExample;
-    this.exampleFile = exampleFile;
-    this.keepBuildAssets = keepBuildAssets;
-  }
+  constructor(readonly dir,
+    readonly clean,
+    readonly buildExample,
+    readonly exampleFile,
+    readonly keepBuildAssets) { }
+
 
   static build(args) {
     return new PackQuestionOpts(

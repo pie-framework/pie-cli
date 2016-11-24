@@ -1,19 +1,18 @@
 import { join, relative, resolve } from 'path';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import { buildLogger } from '../../log-factory';
 import { dependenciesToHash } from '../../npm/dependency-helper';
 import NpmDir from '../../npm/npm-dir';
 import { writeConfig } from '../../code-gen/webpack-write-config';
 import { removeFiles } from '../../file-helper';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
-import _ from 'lodash';
+import * as _ from 'lodash';
 import buildDependencies from '../build-dependencies';
 
 let logger = buildLogger();
 
 export class BuildOpts {
-  constructor(filename) {
-    this.filename = filename;
+  constructor(readonly filename) {
     if (_.isEmpty(this.filename)) {
       throw new Error('filename cannot be empty');
     }
@@ -28,9 +27,10 @@ exports.NPM_DEPENDENCIES = buildDependencies;
 
 export class ControllersBuildable {
 
-  constructor(config, opts) {
-    this.config = config;
-    this.opts = opts;
+  private controllersDir;
+  private npmDir;
+
+  constructor(private config, private opts) {
     this.controllersDir = join(config.dir, 'controllers');
     fs.ensureDirSync(this.controllersDir);
     this.npmDir = new NpmDir(this.controllersDir);
@@ -38,7 +38,7 @@ export class ControllersBuildable {
   }
 
   get dependencies() {
-    return _.reduce(this.config.pies, (acc, p) => {
+    return _.reduce(this.config.pies, (acc, p: any) => {
       let pieControllerDir = join(p.installedPath, 'controller');
       logger.silly('[get dependencies] pieControllerDir: ', pieControllerDir);
       if (fs.existsSync(pieControllerDir)) {
@@ -91,7 +91,7 @@ export class ControllersBuildable {
     logger.silly('[writeEntryJs] entryPath:', entryPath);
 
     if (!fs.existsSync(entryPath)) {
-      let entrySrc = _.map(dependencies, (value, key) => {
+      let entrySrc = _.map(dependencies, (value, key: string) => {
         //We need to use the normal name (without the -controller suffix) so the controller map has normalised names.
         let dependencyName = key.replace('-controller', '');
         return `exports['${dependencyName}'] = require('${key}');

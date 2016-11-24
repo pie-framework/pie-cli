@@ -1,10 +1,7 @@
-import _ from 'lodash';
+import * as _ from 'lodash';
 
 export default class Help {
-  constructor(rootCmd, handlers) {
-    this.handlers = handlers;
-    this.rootCmd = rootCmd;
-  }
+  constructor(private rootCmd, private handlers: { summary: string, usage: string, match: any }[]) { }
 
   match(args) {
     return args.help || args.h || args._.indexOf('help') !== -1;

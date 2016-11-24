@@ -6,10 +6,7 @@ import { make as makeManifest } from '../question/manifest';
 const logger = buildLogger();
 
 class ManifestOpts {
-  constructor(dir = process.cwd(), outfile = null) {
-    this.dir = dir;
-    this.outfile = outfile;
-  }
+  constructor(readonly dir = process.cwd(), readonly outfile = null) { }
 
   static buildOpts(args) {
     return new ManifestOpts(args.dir, args.outfile);
@@ -35,7 +32,7 @@ class ManifestCommand extends CliCommand {
 }
 
 let cmd = new ManifestCommand();
-exports.match = cmd.match.bind(cmd);
-exports.usage = cmd.usage;
-exports.summary = cmd.summary;
-exports.run = cmd.run.bind(cmd);
+export let match = cmd.match.bind(cmd);
+export let usage = cmd.usage;
+export let summary = cmd.summary;
+export let run = cmd.run.bind(cmd);

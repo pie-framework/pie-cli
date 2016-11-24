@@ -3,7 +3,9 @@ const gulp = require('gulp'),
   gutil = require('gulp-util'),
   eslint = require('gulp-eslint'),
   sourcemaps = require('gulp-sourcemaps'),
-  releaseHelper = require('release-helper');
+  releaseHelper = require('release-helper'),
+  ts = require('gulp-typescript'),
+  tsProject = ts.createProject('tsconfig.json');
 
 //Init custom release tasks
 releaseHelper.init(gulp);
@@ -17,6 +19,12 @@ let watch = (suffix, tasks) => {
 gulp.task('pug', () => glue('pug'));
 gulp.task('md', () => glue('md'));
 gulp.task('ejs', () => glue('ejs'));
+
+gulp.task('typescript', () => {
+  var tsResult = tsProject.src()
+    .pipe(tsProject());
+  return tsResult.js.pipe(gulp.dest('lib'));
+});
 
 gulp.task('babel', () => {
   return gulp.src('src/**/*.js')

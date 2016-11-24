@@ -47,7 +47,7 @@ export function run(args) {
   let questionOpts = Question.buildOpts(args);
   let packOpts = PackQuestionOpts.build(args);
   let question = new Question(dir, questionOpts, noExternalSupport, emptyApp);
-  return question.clean(dir, args)
+  return question.clean()
     .then(() => removeSync(join(dir, packOpts.exampleFile)))
     .then(() => "clean complete")
 }

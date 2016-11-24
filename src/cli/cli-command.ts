@@ -1,8 +1,8 @@
 import { resolve, dirname, extname, join } from 'path';
 import { existsSync, readFileSync } from 'fs-extra';
-import _ from 'lodash';
+import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
-import ejs from 'ejs';
+import * as ejs from 'ejs';
 
 const logger = buildLogger();
 
@@ -15,7 +15,7 @@ marked.setOptions({
 
 export default class CliCommand {
 
-  constructor(name, summary, usage) {
+  constructor(readonly name, readonly summary, readonly usage?) {
     this.name = name;
     this.summary = `${name} - ${summary}`;
     this.usage = this._initUsage(usage);

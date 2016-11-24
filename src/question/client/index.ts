@@ -3,8 +3,8 @@ import FrameworkSupport from '../../framework-support';
 import { buildLogger } from '../../log-factory';
 import { removeFiles, softWrite } from '../../file-helper';
 import NpmDir from '../../npm/npm-dir';
-import _ from 'lodash';
-import resolve from 'resolve';
+import * as _ from 'lodash';
+import * as resolve from 'resolve';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import { configToJsString, writeConfig } from '../../code-gen/webpack-write-config';
 import buildDependencies from '../build-dependencies';
@@ -37,10 +37,7 @@ let baseConfig = (root) => {
 };
 
 export class BuildOpts {
-  constructor(bundleName, pieBranch) {
-    this.bundleName = bundleName;
-    this.pieBranch = pieBranch;
-  }
+  constructor(readonly bundleName, readonly pieBranch) { }
 
   static build(args) {
     args = args || {};
@@ -51,10 +48,10 @@ export class BuildOpts {
 }
 
 export class ClientBuildable {
-  constructor(config, support, opts, app) {
-    this.config = config;
-    this.opts = opts;
-    this.app = app;
+  private frameworkSupport;
+  private npmDir;
+  private _supportConfig;
+  constructor(private config, private support, private opts, private app) {
     this.frameworkSupport = FrameworkSupport.bootstrap(support.concat(app.frameworkSupport()));
     this.npmDir = new NpmDir(this.dir);
   }

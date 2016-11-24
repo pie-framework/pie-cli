@@ -3,17 +3,14 @@ import Question from '../question';
 import CliCommand from './cli-command';
 import { resolve } from 'path';
 import * as watchMaker from '../watch/watchmaker';
-import webpack from 'webpack';
+import * as webpack from 'webpack';
 import ExampleApp from '../example-app';
 import tmpSupport from './tmp-support';
 
 const logger = buildLogger();
 
 export class ServeQuestionOpts {
-  constructor(dir, clean, port) {
-    this.dir = dir;
-    this.clean = clean;
-    this.port = port;
+  constructor(readonly dir, readonly clean, readonly port) {
   }
 
   static build(args) {

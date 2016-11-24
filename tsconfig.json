@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "outDir": "lib/",
+    "target": "es6"
+  },
+  "include": [
+    "src/**/*",
+    "typings/**/*"
+  ]
+}
