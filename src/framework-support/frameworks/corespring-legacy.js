@@ -6,6 +6,10 @@ export function support(dependencies) {
 
   if (isLegacy) {
     return {
+      externals: {
+        js: ['https://cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'],
+        css: []
+      },
       npmDependencies: {
         'css-loader': '0.9.0',
         'file-loader': '^0.9.0',

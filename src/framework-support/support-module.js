@@ -49,6 +49,7 @@ export function mkFromSrc(src, path) {
   let fn = script.runInThisContext();
   fn(sandbox.exports, () => null, sandbox.module, path);
   logger.silly('[mkFromSrc] sandbox: ', JSON.stringify(sandbox));
+  console.log('[mkFromSrc] sandbox: ', JSON.stringify(sandbox));
 
   return sandbox.exports.default ? sandbox.exports.default : sandbox.exports;
 }

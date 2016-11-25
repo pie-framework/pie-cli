@@ -9,7 +9,23 @@ export class BuildConfig {
 
   constructor(modules) {
     logger.debug('[BuildConfig:constructor]', modules);
+    console.log('[BuildConfig:constructor]', modules);
     this._modules = modules;
+  }
+
+  get externals(){
+    return _.reduce(this._modules, (acc, c) => {
+        if(c.externals){
+          console.log('XXX JS', c.externals.js)
+          if(c.externals.js){
+            acc.js = acc.js.concat(c.externals.js)
+          }
+          if(c.externals.css){
+            acc.css = acc.css.concat(c.externals.css)
+          }
+        }
+        return acc;
+    }, {js:[], css:[]});
   }
 
   get npmDependencies() {
@@ -60,6 +76,8 @@ export default class FrameworkSupport {
    * @param _require - convert src at given path to an object (used for testing)
    */
   static bootstrap(modules) {
+
+    console.log('XXX bootstrap ', modules)
 
     let loadModule = (f) => {
       logger.debug('f: ', f);

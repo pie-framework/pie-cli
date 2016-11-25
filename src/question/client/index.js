@@ -63,6 +63,10 @@ export class ClientBuildable {
     return this.config.dir;
   }
 
+  get externals(){
+    return this._supportConfig ? this._supportConfig.externals : {js:[], css:[]};
+  }
+
   pack(clean) {
     return this.prepareWebpackConfig(clean)
       .then((config) => this.bundle(config));

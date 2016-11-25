@@ -27,6 +27,10 @@ export default class Question {
     this.controllers = new ControllersBuildable(this.config, opts.controllers);
   }
 
+  get externals(){
+    return this.client ? this.client.externals : {js:[], css:[]};
+  }
+
   clean() {
     return this.client.clean()
       .then(() => this.controllers.clean())
