@@ -37,7 +37,8 @@ describe('pack-question', () => {
         },
         client: 'pie.js'
       })),
-      clean: stub().returns(Promise.resolve())
+      clean: stub().returns(Promise.resolve()),
+      externals: {js:['external.js'], css:['external.css']}
     };
 
     questionConstructor = stub().returns(questionInstance);
@@ -128,7 +129,8 @@ describe('pack-question', () => {
 
         assert.calledWith(exampleApp.staticMarkup, {
           client: 'pie.js',
-          controllers: 'controller.js'
+          controllers: 'controller.js',
+          externals: {js:['external.js'], css:['external.css']}
         },
           { controllers: 'id', },
           questionInstance.config.markup,

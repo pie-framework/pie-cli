@@ -25,6 +25,11 @@ describe('framework-support', () => {
       let config = new BuildConfig([{}, { webpackLoaders: () => [{ test: 't' }] }]);
       expect(config.webpackLoaders()).to.eql([{ test: 't' }]);
     });
+
+    it('handles modules with no externals', () => {
+      let config = new BuildConfig([{}, { externals: { js:['a'], css:['b']}}]);
+      expect(config.externals).to.eql({ js:['a'], css:['b']});
+    });
   });
 
   describe('bootstrap', () => {
