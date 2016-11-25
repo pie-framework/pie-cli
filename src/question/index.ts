@@ -18,8 +18,8 @@ export default class Question {
 
 
   readonly config;
-  private client;
-  private controllers;
+  readonly client;
+  readonly controllers;
 
   constructor(private dir, private opts, private clientFrameworkSupport, private app) {
     clientFrameworkSupport = clientFrameworkSupport || [];

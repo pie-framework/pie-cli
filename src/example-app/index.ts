@@ -1,10 +1,10 @@
 import { join } from 'path';
-import _ from 'lodash';
-import pug from 'pug';
-import jsesc from 'jsesc';
+import * as _ from 'lodash';
+import * as pug from 'pug';
+import * as jsesc from 'jsesc';
 import { buildLogger } from '../log-factory';
-import express from 'express';
-import webpackMiddleware from 'webpack-dev-middleware';
+import * as express from 'express';
+import * as webpackMiddleware from 'webpack-dev-middleware';
 import ExampleAppServer from './server';
 
 const logger = buildLogger();
@@ -37,6 +37,9 @@ let writeInitLogic = (p, index) => {
 };
 
 export default class ExampleApp {
+
+  private _staticExample;
+  private _server;
 
   constructor() {
     logger.debug('[Example] constructor');

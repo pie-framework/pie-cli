@@ -1,16 +1,19 @@
 import { buildLogger } from '../log-factory';
-import chokidar from 'chokidar';
+import * as chokidar from 'chokidar';
 import { relative, resolve, join } from 'path';
-import _ from 'lodash';
-import fs from 'fs-extra';
+import * as _ from 'lodash';
+import * as fs from 'fs-extra';
 
 const logger = buildLogger();
+interface Roots {
+  srcRoot: string;
+  targetRoot: string;
+}
 
 export class FileWatch {
-  constructor(filepath, onChange) {
+  private _watch;
+  constructor(readonly filepath, readonly onChange) {
     logger.silly('[FileWatch] filepath: ', filepath);
-    this.filepath = filepath;
-    this.onChange = onChange;
 
     this._watch = chokidar.watch(this.filepath, { ignoreInitial: true });
     this._watch.on('change', () => {
@@ -22,17 +25,23 @@ export class FileWatch {
   }
 }
 
-export class BaseWatch {
+export class BaseWatch implements Roots {
 
-  constructor(ignores) {
-    this.ignores = ignores;
-  }
+  private _watcher;
+  constructor(private ignores) { }
 
   getDestination(path) {
     let relativePath = relative(this.srcRoot, path);
     let destination = join(this.targetRoot, relativePath);
     logger.silly(`[BaseWatch] [getDestination], path: ${path}, relativePath: ${relativePath}, destination: ${destination}`);
     return destination;
+  }
+
+  get srcRoot(): string {
+    throw new Error('not implemented');
+  }
+  get targetRoot(): string {
+    throw new Error('not implemented');
   }
 
   start() {
@@ -87,11 +96,8 @@ export class BaseWatch {
 
 export class PieControllerWatch extends BaseWatch {
 
-  constructor(name, relativePieRoot, questionRoot) {
+  constructor(private name, private relativePieRoot, private questionRoot) {
     super([]);
-    this.name = name;
-    this.relativePieRoot = relativePieRoot;
-    this.questionRoot = questionRoot;
   }
 
   get srcRoot() {
@@ -104,11 +110,8 @@ export class PieControllerWatch extends BaseWatch {
 }
 
 export class PieClientWatch extends BaseWatch {
-  constructor(name, relativePieRoot, questionRoot) {
+  constructor(private name, private relativePieRoot, private questionRoot) {
     super([/.*controller.*/]);
-    this.name = name;
-    this.relativePieRoot = relativePieRoot;
-    this.questionRoot = questionRoot;
   }
 
   get srcRoot() {
@@ -121,6 +124,9 @@ export class PieClientWatch extends BaseWatch {
 }
 
 export class PieWatch {
+
+  private client;
+  private controller;
 
   constructor(name, relativePath, rootDir) {
     logger.debug('[PieWatch] constructor: ', name, relativePath, rootDir);

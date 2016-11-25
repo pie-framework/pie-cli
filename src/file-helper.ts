@@ -1,6 +1,6 @@
-import _ from 'lodash';
-import path from 'path';
-import fs from 'fs-extra';
+import * as _ from 'lodash';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import { existsSync, writeFile } from 'fs-extra';
 import { buildLogger } from './log-factory';
 
@@ -13,7 +13,7 @@ export function removeFiles(root, files) {
   }));
   return Promise.all(promises)
     .then((results) => {
-      logger.silly(`removed: from ${root}: ${_.map(results, (f) => path.basename(f)).join("\n")}`);
+      logger.silly(`removed: from ${root}: ${_.map(results, (f: string) => path.basename(f)).join("\n")}`);
       return results;
     });
 }

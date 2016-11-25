@@ -8,7 +8,7 @@ import { camelCase } from 'change-case';
 export function normalizeOpts(opts) {
   opts = opts || {};
 
-  let rest = _(opts).keys().reduce((acc, k) => {
+  let rest = _(opts).keys().reduce((acc: any, k) => {
     if (k !== '_') {
       acc[camelCase(k)] = opts[k];
     } else {

@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import { readJsonSync, existsSync, readFileSync } from 'fs-extra';
 import { join } from 'path';
@@ -8,15 +8,10 @@ const logger = buildLogger();
 
 export class BuildOpts {
 
-  constructor(config = 'config.json',
-    dependencies = 'dependencies.json',
-    markup = 'index.html',
-    schemasDir = 'docs/schemas') {
-    this.config = config;
-    this.dependencies = dependencies;
-    this.markup = markup;
-    this.schemasDir = schemasDir;
-  }
+  constructor(readonly config = 'config.json',
+    readonly dependencies = 'dependencies.json',
+    readonly markup = 'index.html',
+    readonly schemasDir = 'docs/schemas') { }
 
   static build(args) {
     args = args || {};
@@ -31,14 +26,15 @@ export class BuildOpts {
 }
 
 export class QuestionConfig {
-  constructor(dir, opts) {
-    opts = opts || new BuildOpts();
-    this.dir = dir;
-    this.filenames = opts;
+
+  private _dependencies;
+  private _config;
+  private _markup;
+  constructor(readonly dir, readonly filenames: BuildOpts = new BuildOpts()) {
     logger.silly('filenames', this.filenames);
 
     let dependenciesPath = join(this.dir, this.filenames.dependencies);
-    this._dependencies = existsSync(dependenciesPath) ? readJsonSync(dependenciesPath, { throws: false }) : {};
+    this._dependencies = existsSync(dependenciesPath) ? readJsonSync(dependenciesPath, ({ throws: false }) as any) : {};
 
     logger.silly('dependencies', this._dependencies);
   }
@@ -47,7 +43,7 @@ export class QuestionConfig {
     return new Error(`failed to load file: ${name}`);
   }
 
-  _readJson(n, errMsg) {
+  _readJson(n, errMsg?: string) {
     try {
       logger.silly('[_readJson] n: ', n);
       return readJsonSync(join(this.dir, n));
@@ -114,7 +110,7 @@ export class QuestionConfig {
   }
 
   get npmDependencies() {
-    return _.reduce(this.pies, (acc, p) => {
+    return _.reduce(this.pies, (acc, p: any) => {
       logger.silly('[npmDependencies] p: ', p);
       if (p.localPath) {
         acc[p.name] = p.localPath;
@@ -137,7 +133,7 @@ export class QuestionConfig {
   get pies() {
     let rawPies = _.map(this.config.pies, 'pie');
     let toUniqueNames = (acc, p) => {
-      let existing = _.find(acc, { name: p.name });
+      let existing: any = _.find(acc, { name: p.name });
       if (existing) {
         existing.versions = _(existing.versions).concat(p.version).uniq().value();
       }

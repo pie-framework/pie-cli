@@ -1,5 +1,5 @@
-import http from 'http';
-import sockjs from 'sockjs';
+import * as http from 'http';
+import * as sockjs from 'sockjs';
 
 import { buildLogger } from '../log-factory';
 
@@ -15,6 +15,10 @@ export default class ExampleAppServer {
   static SOCK_JS_URL() {
     return '//cdn.jsdelivr.net/sockjs/1.0.1/sockjs.min.js';
   }
+
+  private _httpServer;
+  private _sockServer;
+  private _connection;
 
   constructor(app, sockJsUrl = ExampleAppServer.SOCK_JS_URL()) {
     this._httpServer = http.createServer(app);

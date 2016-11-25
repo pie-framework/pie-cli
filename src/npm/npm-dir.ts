@@ -1,8 +1,8 @@
-import fs from 'fs-extra';
-import path from 'path';
-import _ from 'lodash';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as _ from 'lodash';
 import { spawn } from 'child_process';
-import readline from 'readline';
+import * as readline from 'readline';
 import * as helper from './dependency-helper';
 import { buildLogger } from '../log-factory';
 import { removeFiles } from '../file-helper';
@@ -11,13 +11,11 @@ let logger = buildLogger();
 
 export default class NpmDir {
 
-  constructor(rootDir) {
-    this.rootDir = rootDir;
+  constructor(readonly rootDir) {
     logger.debug(`rootDir: ${rootDir}`);
   }
 
-  _spawnPromise(args, ignoreExitCode) {
-    ignoreExitCode = ignoreExitCode || false;
+  _spawnPromise(args, ignoreExitCode: boolean = false) {
 
     logger.debug('[_spawnPromise] args: ', args);
 
@@ -131,7 +129,7 @@ export default class NpmDir {
       .then(() => this._install());
   };
 
-  _install(args) {
+  _install(args?: any[]) {
     args = args || [];
     let cmd = ['install'].concat(args);
     logger.silly('[install] > final cmd: ', cmd.join(' '));

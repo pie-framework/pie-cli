@@ -1,8 +1,8 @@
 import { transform } from 'babel-core';
-import resolve from 'resolve';
+import * as resolve from 'resolve';
 import { join } from 'path';
 import { buildLogger } from '../log-factory';
-import vm from 'vm';
+import * as vm from 'vm';
 import { readFileSync } from 'fs-extra';
 import * as m from 'module';
 
@@ -14,6 +14,7 @@ const logger = buildLogger();
  */
 
 class Sandbox {
+  readonly module;
   constructor() {
     this.module = {
       exports: {}

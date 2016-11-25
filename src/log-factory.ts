@@ -1,8 +1,8 @@
-import winston from 'winston';
-import path from 'path';
-import _ from 'lodash';
-import fs from 'fs-extra';
-import stackTrace from 'stack-trace';
+import * as winston from 'winston';
+import * as path from 'path';
+import * as _ from 'lodash';
+import * as fs from 'fs-extra';
+import * as stackTrace from 'stack-trace';
 
 let config = {
   'default': 'info'
@@ -30,7 +30,7 @@ export let init = (log) => {
   }
 };
 
-function addLogger(label, level) {
+function addLogger(label, level?: string) {
 
   level = level ? level : config['default'] || 'info';
 
@@ -59,7 +59,7 @@ export let isLogLevel = (l) => _.includes(['error', 'warn', 'info', 'verbose', '
 
 
 export let setDefaultLevel = (l) => {
-  config = config || {};
+  config = config || { 'default': l };
   config['default'] = l;
 };
 

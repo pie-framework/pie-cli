@@ -1,7 +1,7 @@
 import { existsSync, readJsonSync } from 'fs-extra';
 import { execSync } from 'child_process';
 import { join } from 'path';
-import isEmpty from 'lodash/isEmpty';
+import * as isEmpty from 'lodash/isEmpty';
 
 export function match(args) {
   let out = (args.v || args.version);
@@ -21,6 +21,6 @@ export function run(log = console.log) {
   }
   let message = `version: ${pkg.version}`;
   message += isEmpty(gitSha) ? '' : `, git-sha: ${gitSha}`;
-  log(message); 
+  log(message);
   process.exit(0);
 };

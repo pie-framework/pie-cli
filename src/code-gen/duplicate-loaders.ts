@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import { Loader } from './loaders';
 
@@ -33,7 +33,7 @@ let _getDuplicates = (config) => {
     return acc;
   }, {});
 
-  return _.reduce(loaderGroups, (duplicates, loaderArray, key) => {
+  return _.reduce(loaderGroups, (duplicates, loaderArray: any[], key) => {
 
     if (loaderArray.length === 0) {
       throw new Error(`loader array for ${key} is empty - this should never happen`);
@@ -49,9 +49,8 @@ let _getDuplicates = (config) => {
 
 export default class DuplicateLoaders {
 
-  constructor() {
-    this._duplicates = {};
-  }
+  private _duplicates = {};
+  constructor() { }
 
   get error() {
     let msg = `The following loaders are duplicated: ${_.keys(this._duplicates).join(', ')}`

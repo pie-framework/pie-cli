@@ -1,8 +1,8 @@
-import semver from 'semver';
-import fs from 'fs-extra';
-import path from 'path';
-import crypto from 'crypto';
-import _ from 'lodash';
+import * as semver from 'semver';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as crypto from 'crypto';
+import * as _ from 'lodash';
 
 export let isGitUrl = (str) => {
   var re = /(?:git|ssh|https?|git@[\w\.]+):(?:\/\/)?[\w\.@:\/~_-]+\.git(?:\/?|\#[\d\w\.\-/_]+?)$/;

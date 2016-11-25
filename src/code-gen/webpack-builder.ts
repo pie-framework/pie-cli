@@ -1,12 +1,14 @@
-import webpack from 'webpack';
+import * as webpack from 'webpack';
 import { buildLogger } from '../log-factory';
-import _ from 'lodash';
+import * as _ from 'lodash';
 import DuplicateLoaders from './duplicate-loaders';
 import { configToJsString } from './webpack-write-config';
 
 const logger = buildLogger();
 
-export function build(config) {
+type BuildResult = { stats: webpack.compiler.Stats, duration: number };
+
+export function build(config): Promise<BuildResult> {
 
   let duplicates = DuplicateLoaders.fromConfig(config);
 
@@ -22,14 +24,14 @@ export function build(config) {
       if (err) {
         logger.error(err.message);
         reject(err);
-      }
-      else if (stats.hasErrors()) {
-        _.forEach(stats.compilation.errors, (e) => logger.error(e));
+      } else if (stats.hasErrors()) {
+        _.forEach((stats as any).compilation.errors, (e) => logger.error(e));
         reject(new Error('Webpack build errors - see the logs'));
-      }
-      else {
-        logger.info(`webpack compile done. duration (ms): ${stats.endTime - stats.startTime}`);
-        let duration = stats.endTime - stats.startTime;
+      } else {
+        let endTime = (stats as any).endTime;
+        let startTime = (stats as any).startTime;
+        let duration = endTime - startTime;
+        logger.info(`webpack compile done. duration (ms): ${duration}`);
         resolve({ stats: stats, duration: duration });
       }
     });

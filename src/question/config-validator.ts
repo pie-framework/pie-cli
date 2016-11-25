@@ -1,5 +1,5 @@
-import Ajv from 'ajv';
-import _ from 'lodash';
+import * as Ajv from 'ajv';
+import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
 
 const logger = buildLogger();
@@ -49,8 +49,12 @@ const ajv = new Ajv();
 
 const validateFn = ajv.compile(schema);
 
+interface EmptyValidate {
+  (): boolean;
+  errors: any[];
+}
 
-function emptyValidate() {
+let emptyValidate: EmptyValidate = <EmptyValidate>function () {
   return true;
 }
 
@@ -72,11 +76,17 @@ function validatePie(loadSchema, obj) {
   }
 }
 
+type ValidationResult = {
+  valid: boolean,
+  errors: Ajv.ValidationError[],
+  failingPieValidations?: any[]
+}
+
 /** 
  * TODO: For all pie libs referenced in the config
  * Try to find a schema for it and then validate that node against the schema
  */
-export function validate(config, loadSchema) {
+export function validate(config, loadSchema): ValidationResult {
 
   loadSchema = loadSchema || (() => null);
 
@@ -84,7 +94,7 @@ export function validate(config, loadSchema) {
 
   if (baseValid) {
     let pieValidations = _.map(config.pies, validatePie.bind(null, loadSchema));
-    let invalidPies = _.filter(pieValidations, v => !v.valid);
+    let invalidPies = _.filter(pieValidations, (v: any) => !v.valid);
     let valid = baseValid && invalidPies.length === 0;
 
     logger.silly(`[validate] baseValid: ${baseValid}`);

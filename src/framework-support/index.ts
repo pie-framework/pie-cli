@@ -1,25 +1,24 @@
-import _ from 'lodash';
+import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
-import resolve from 'resolve';
+import * as resolve from 'resolve';
 import { mkFromPath } from './support-module';
 let logger = buildLogger();
 
 
 export class BuildConfig {
 
-  constructor(modules) {
+  constructor(private modules) {
     logger.debug('[BuildConfig:constructor]', modules);
-    this._modules = modules;
   }
 
   get npmDependencies() {
-    return _.reduce(this._modules, (acc, c) => {
+    return _.reduce(this.modules, (acc, c: any) => {
       return _.extend(acc, c.npmDependencies);
     }, {});
   }
 
   webpackLoaders(resolve) {
-    return _.reduce(this._modules, (acc, c) => {
+    return _.reduce(this.modules, (acc, c: any) => {
       let loadersFn = _.isFunction(c.webpackLoaders) ? c.webpackLoaders : () => [];
       return acc.concat(loadersFn(resolve));
     }, []);
@@ -31,9 +30,7 @@ export default class FrameworkSupport {
   /**
    * @param frameworks - an array of objects that have a `support` function which returns {npmDependencies: , webpackLoaders: (resolve) => {}}
    */
-  constructor(frameworks) {
-    this.frameworks = frameworks;
-  }
+  constructor(private frameworks) { }
 
   buildConfigFromPieDependencies(dependencies) {
 
