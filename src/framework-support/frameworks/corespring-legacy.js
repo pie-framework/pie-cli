@@ -6,8 +6,10 @@ export function support(dependencies) {
 
   if (isLegacy) {
     return {
+      // This is a temporary option only present to handle the
+      // MathJax dependency and we plan to remove it.
       externals: {
-        js: ['https://cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'],
+        js: ['//cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'],
         css: []
       },
       npmDependencies: {
