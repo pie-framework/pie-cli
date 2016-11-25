@@ -9,8 +9,7 @@ export function support(dependencies) {
       // This is a temporary option only present to handle the
       // MathJax dependency and we plan to remove it.
       externals: {
-        js: ['//cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'],
-        css: []
+        js: ['//cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML']
       },
       npmDependencies: {
         'css-loader': '0.9.0',
