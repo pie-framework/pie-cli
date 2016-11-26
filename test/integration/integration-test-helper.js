@@ -1,11 +1,11 @@
 import temp from 'temp';
 import { resolve, join } from 'path';
 import { copySync } from 'fs-extra';
-import Question from '../../src/question';
-import ExampleApp from '../../src/example-app';
+import Question from '../../lib/question';
+import ExampleApp from '../../lib/example-app';
 import path from 'path';
 import { writeFileSync } from 'fs-extra';
-import { buildLogger } from '../../src/log-factory';
+import { buildLogger } from '../../lib/log-factory';
 
 const logger = buildLogger();
 

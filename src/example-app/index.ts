@@ -1,3 +1,5 @@
+"use strict";
+
 import { join } from 'path';
 import * as _ from 'lodash';
 import * as pug from 'pug';

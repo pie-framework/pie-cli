@@ -23,7 +23,7 @@ describe('npm-dir', () => {
       spawn: sinon.stub().returns(spawned)
     }
 
-    NpmDir = proxyquire('../../../src/npm/npm-dir', {
+    NpmDir = proxyquire('../../../lib/npm/npm-dir', {
 
       'fs-extra': fs,
       'child_process': childProcess,

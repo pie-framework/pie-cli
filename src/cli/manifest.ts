@@ -6,7 +6,7 @@ import { make as makeManifest } from '../question/manifest';
 const logger = buildLogger();
 
 class ManifestOpts {
-  constructor(readonly dir = process.cwd(), readonly outfile = null) { }
+  constructor(readonly dir = process.cwd(), readonly outfile?: string) { }
 
   static buildOpts(args) {
     return new ManifestOpts(args.dir, args.outfile);

@@ -29,19 +29,13 @@ export class BaseWatch implements Roots {
 
   private _watcher;
   constructor(private ignores) { }
-
+  public srcRoot: string;
+  public targetRoot: string;
   getDestination(path) {
     let relativePath = relative(this.srcRoot, path);
     let destination = join(this.targetRoot, relativePath);
     logger.silly(`[BaseWatch] [getDestination], path: ${path}, relativePath: ${relativePath}, destination: ${destination}`);
     return destination;
-  }
-
-  get srcRoot(): string {
-    throw new Error('not implemented');
-  }
-  get targetRoot(): string {
-    throw new Error('not implemented');
   }
 
   start() {

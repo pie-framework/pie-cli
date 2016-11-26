@@ -58,7 +58,7 @@ describe('pack-question', () => {
       staticMarkup: stub().returns('<div>hi</div>')
     }
 
-    cmd = proxyquire('../../../src/cli/pack-question', {
+    cmd = proxyquire('../../../lib/cli/pack-question', {
       '../question': {
         default: questionConstructor
       },

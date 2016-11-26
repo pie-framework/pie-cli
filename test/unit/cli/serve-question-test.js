@@ -5,12 +5,13 @@ import { spy, stub, assert, match } from 'sinon';
 let noCallThruStub = (returnValue) => {
   let s = stub().returns(returnValue);
   s['@noCallThru'] = true;
+  s.default = s;
   return s;
 }
 
 describe('serve-question', () => {
   let cmd, proxy, question, questionConstructor, exampleApp, exampleAppConstructor, webpack, watchmaker;
-  
+
   beforeEach(() => {
 
     exampleApp = new function () {
@@ -21,7 +22,7 @@ describe('serve-question', () => {
       this.server = stub().returns(this._server);
     }
 
-    exampleAppConstructor = noCallThruStub(exampleApp); 
+    exampleAppConstructor = noCallThruStub(exampleApp);
 
     question = {
       controllers: {
@@ -32,23 +33,23 @@ describe('serve-question', () => {
         readConfig: stub()
       },
       prepareWebpackConfigs: stub().returns(Promise.resolve({
-        client: {clientConfig: true},
-        controllers: {controllersConfig: true}
+        client: { clientConfig: true },
+        controllers: { controllersConfig: true }
       }))
     }
 
     questionConstructor = noCallThruStub(question);
-    
+
     questionConstructor.buildOpts = stub().returns({
       controllers: {
         filename: 'controllers.js'
       },
       client: {
         bundleName: 'pie.js'
-      } 
+      }
     });
 
-    webpack = spy(function(config) {
+    webpack = spy(function (config) {
       return {
         stubCompiler: true,
         config: config
@@ -60,12 +61,12 @@ describe('serve-question', () => {
     };
 
     proxy = {
-      '../question':  questionConstructor,
-      'webpack' : webpack,
-      '../watch/watchmaker': watchmaker, 
+      '../question': questionConstructor,
+      'webpack': webpack,
+      '../watch/watchmaker': watchmaker,
       '../example-app': exampleAppConstructor
     }
-    cmd = proxyquire('../../../src/cli/serve-question', proxy);
+    cmd = proxyquire('../../../lib/cli/serve-question', proxy);
   });
 
   describe('ServeQuestionOpts', () => {
@@ -87,7 +88,7 @@ describe('serve-question', () => {
     describe('custom opts', () => {
       let opts;
 
-      before(()=> {
+      before(() => {
         opts = ServeQuestionOpts.build({
           port: 3000,
           clean: true,
@@ -98,11 +99,11 @@ describe('serve-question', () => {
       it('sets port to 3000', () => {
         expect(opts.port).to.eql(3000);
       });
-      
+
       it('sets clean to true', () => {
         expect(opts.clean).to.eql(true);
       });
-      
+
       it('sets dir to dir', () => {
         expect(opts.dir).to.eql('dir');
       });
@@ -127,11 +128,11 @@ describe('serve-question', () => {
     });
 
     it('calls webpack for client', () => {
-      assert.calledWith(webpack, {clientConfig: true});
+      assert.calledWith(webpack, { clientConfig: true });
     });
 
     it('calls webpack for controllers', () => {
-      assert.calledWith(webpack, {controllersConfig: true});
+      assert.calledWith(webpack, { controllersConfig: true });
     });
 
 
@@ -144,18 +145,18 @@ describe('serve-question', () => {
         ids: {
           controllers: 'uid'
         },
-        markup: match.func, 
+        markup: match.func,
         model: match.func
       }
 
-      assert.calledWith(exampleApp.server, 
-        { 
+      assert.calledWith(exampleApp.server,
+        {
           client: {
-            stubCompiler: true, 
+            stubCompiler: true,
             config: match.object
-          }, 
+          },
           controllers: {
-            stubCompiler: true, 
+            stubCompiler: true,
             config: match.object
           }
         }, opts);

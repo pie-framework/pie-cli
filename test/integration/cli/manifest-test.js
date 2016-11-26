@@ -1,7 +1,7 @@
 import { setUpTmpQuestionAndComponents } from '../integration-test-helper';
 import { join } from 'path';
 import { removeSync } from 'fs-extra';
-import { run } from '../../../src/cli/manifest';
+import { run } from '../../../lib/cli/manifest';
 import { expect } from 'chai';
 import { readJsonSync } from 'fs-extra';
 

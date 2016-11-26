@@ -16,7 +16,7 @@ describe('manifest', () => {
 
     make = stub().returns(manifestResult);
 
-    cmd = proxyquire('../../../src/cli/manifest', {
+    cmd = proxyquire('../../../lib/cli/manifest', {
       'fs-extra': fsExtra,
       '../question/manifest': {
         make: make

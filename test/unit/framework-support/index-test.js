@@ -9,7 +9,7 @@ describe('framework-support', () => {
 
     let BuildConfig;
     beforeEach(() => {
-      BuildConfig = proxyquire('../../../src/framework-support', {
+      BuildConfig = proxyquire('../../../lib/framework-support', {
         'fs-extra': {},
         resolve: {},
         './support-module': {}
@@ -53,7 +53,7 @@ describe('framework-support', () => {
         sync: spy(function (p) { return p; })
       }
 
-      FrameworkSupport = proxyquire('../../../src/framework-support', {
+      FrameworkSupport = proxyquire('../../../lib/framework-support', {
         'fs-extra': fsExtra,
         resolve: resolve,
         './support-module': supportModule
@@ -90,7 +90,7 @@ describe('framework-support', () => {
     let frameworkSupport, FrameworkSupport, supportArray;
 
     beforeEach(() => {
-      FrameworkSupport = require('../../../src/framework-support').default;
+      FrameworkSupport = require('../../../lib/framework-support').default;
       supportArray = [{
         support: (deps) => {
           if (deps.react) {

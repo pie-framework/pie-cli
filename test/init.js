@@ -2,7 +2,7 @@ require("babel-register")({
   sourceMaps: true
 });
 
-const logFactory = require('../src/log-factory');
+const logFactory = require('../lib/log-factory');
 logFactory.init(process.env.LOG_LEVEL || 'info');
 
 global.testLogger = logFactory.getLogger('TEST');

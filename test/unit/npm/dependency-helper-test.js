@@ -8,7 +8,7 @@ describe('dependency-helper', () => {
   let helper;
 
   before(() => {
-    helper = require('../../../src/npm/dependency-helper');
+    helper = require('../../../lib/npm/dependency-helper');
   });
 
   describe('isGitUrl', () => {
@@ -53,7 +53,7 @@ describe('dependency-helper', () => {
         isDirectory: sinon.stub().returns(true)
       };
 
-      helper = proxyquire('../../../src/npm/dependency-helper', {
+      helper = proxyquire('../../../lib/npm/dependency-helper', {
         'fs-extra': {
           lstatSync: sinon.stub().returns(stat)
         },
