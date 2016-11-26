@@ -1,7 +1,10 @@
 import * as _ from 'lodash';
+import CliCommand from './cli-command';
 
-export default class Help {
-  constructor(private rootCmd, private handlers: { summary: string, usage: string, match: any }[]) { }
+export class Help extends CliCommand {
+  constructor(private rootCmd, private handlers: CliCommand[]) {
+    super('help', 'show help');
+  }
 
   match(args) {
     return args.help || args.h || args._.indexOf('help') !== -1;

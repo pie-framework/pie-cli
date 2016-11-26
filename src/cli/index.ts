@@ -1,28 +1,28 @@
 import * as _ from 'lodash';
-import Help from './help';
-import * as version from './version';
-import * as packQuestion from './pack-question';
-import * as cleanQuestion from './clean-question';
+import { Help } from './help';
+import version from './version';
+import packQuestion from './pack-question';
+import cleanQuestion from './clean-question';
 import * as serveQuestion from './serve-question';
 import * as manifest from './manifest';
 import { normalizeOpts } from './helper';
 
-
-let commands: any[] = [
+import CliCommand from './cli-command';
+let commands: CliCommand[] = [
   version,
   packQuestion,
-  cleanQuestion,
-  serveQuestion,
-  manifest
+  cleanQuestion
+  // serveQuestion,
+  // manifest
 ];
 
 export default function (opts) {
 
   opts = normalizeOpts(opts);
 
-  let help = new Help('pie', commands);
+  let help: CliCommand = new Help('pie', commands);
 
-  let cmd = _.find([help].concat(commands), (cmd) => {
+  let cmd = _.find(([help] as CliCommand[]).concat(commands), (cmd) => {
     return cmd.match(opts);
   }) || help;
 

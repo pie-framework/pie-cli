@@ -65,4 +65,8 @@ export default class CliCommand {
     return includes;
   }
 
+  run(args) {
+    throw new Error('Not Implemented');
+  }
+
 }

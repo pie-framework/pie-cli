@@ -84,7 +84,4 @@ class PackQuestionCommand extends CliCommand {
 }
 
 let cmd = new PackQuestionCommand();
-exports.match = cmd.match.bind(cmd);
-exports.usage = cmd.usage;
-exports.summary = cmd.summary;
-exports.run = cmd.run.bind(cmd);
+export default cmd;
