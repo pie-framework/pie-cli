@@ -45,7 +45,7 @@ describe('clean-question', () => {
       },
       'fs-extra': fsExtra,
       'path': path
-    });
+    }).default;
   });
 
   describe('match', () => {

@@ -49,9 +49,12 @@ describe('pack-question', () => {
     }
 
     questionConstructor.buildOpts = stub().returns(buildOpts);
+    questionConstructor['@noCallThru'] = true;
 
     manifest = {
-      run: stub().returns(Promise.resolve())
+      default: {
+        run: stub().returns(Promise.resolve()),
+      }
     }
 
     exampleApp = {
@@ -71,7 +74,7 @@ describe('pack-question', () => {
       '../example-app': {
         default: stub().returns(exampleApp)
       }
-    });
+    }).default;
   });
 
   describe('match', () => {
@@ -115,7 +118,7 @@ describe('pack-question', () => {
       });
 
       it('calls manifestCmd.run', () => {
-        assert.calledWith(manifest.run, { outfile: 'manifest.json' });
+        assert.calledWith(manifest.default.run, { outfile: 'manifest.json' });
       });
     });
 
@@ -125,6 +128,7 @@ describe('pack-question', () => {
       assertBasics();
 
       it('calls exampleApp.staticMarkup', () => {
+
 
         assert.calledWith(exampleApp.staticMarkup, {
           client: 'pie.js',

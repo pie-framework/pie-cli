@@ -31,8 +31,4 @@ class ManifestCommand extends CliCommand {
   }
 }
 
-let cmd = new ManifestCommand();
-export let match = cmd.match.bind(cmd);
-export let usage = cmd.usage;
-export let summary = cmd.summary;
-export let run = cmd.run.bind(cmd);
+export default new ManifestCommand();

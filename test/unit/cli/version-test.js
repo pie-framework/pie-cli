@@ -14,7 +14,7 @@ describe('version', () => {
       'child_process': {
         execSync: stub().returns('HASH')
       }
-    });
+    }).default;
   }
 
   beforeEach(() => {

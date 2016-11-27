@@ -115,7 +115,7 @@ describe('serve-question', () => {
     let result;
 
     beforeEach((done) => {
-      cmd.run()
+      cmd.default.run()
         .then((r) => {
           result = r;
           done();

@@ -26,7 +26,7 @@ export default class CliCommand {
     return marked(contents);
   }
 
-  _loadUsageContents(usageValue) {
+  _loadUsageContents(usageValue): string {
 
     let getMdFilename = () => {
       if (!usageValue) {
@@ -51,8 +51,10 @@ export default class CliCommand {
             return readFileSync(rel, 'utf8');
           }
         });
-      } else {
+      } else if (existsSync(mdPath)) {
         return readFileSync(mdPath, 'utf8');
+      } else {
+        return '';
       }
     } else {
       return usageValue;
@@ -65,7 +67,7 @@ export default class CliCommand {
     return includes;
   }
 
-  run(args) {
+  run(args): Promise<any> | any {
     throw new Error('Not Implemented');
   }
 

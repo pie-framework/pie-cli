@@ -21,7 +21,7 @@ describe('manifest', () => {
       '../question/manifest': {
         make: make
       }
-    });
+    }).default;
   });
 
   let run = (args) => {

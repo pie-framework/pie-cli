@@ -6,7 +6,7 @@ import ExampleApp from '../example-app';
 import { softWrite } from '../file-helper';
 import { removeSync } from 'fs-extra';
 import tmpSupport from './tmp-support';
-import { run as runManifest } from './manifest';
+import manifest from './manifest';
 const logger = buildLogger();
 
 export class PackQuestionOpts {
@@ -79,7 +79,7 @@ class PackQuestionCommand extends CliCommand {
         }
       })
       .then(maybeDeleteBuildAssets)
-      .then(() => runManifest({ outfile: args.manifestOutfile }));
+      .then(() => manifest.run({ outfile: args.manifestOutfile }));
   }
 }
 
