@@ -29,7 +29,8 @@ export function packExample(testName, exampleQuestion, support) {
     .then((result) => {
       let paths = {
         controllers: result.controllers.filename,
-        client: result.client
+        client: result.client,
+        externals: question.client.externals
       }
 
       let ids = {

@@ -1,7 +1,7 @@
 import { setUpTmpQuestionAndComponents } from '../integration-test-helper';
 import { join } from 'path';
 import { removeSync } from 'fs-extra';
-import { run } from '../../../lib/cli/manifest';
+import manifest from '../../../lib/cli/manifest';
 import { expect } from 'chai';
 import { readJsonSync } from 'fs-extra';
 
@@ -13,7 +13,7 @@ describe('manifest', () => {
     questionPath = join(tmpPath, 'example-questions/one');
     removeSync(join(questionPath, 'dependencies.json'));
     manifestPath = join(questionPath, 'manifest.json');
-    run({ dir: questionPath, outfile: manifestPath })
+    manifest.run({ dir: questionPath, outfile: manifestPath })
       .then(() => done())
       .catch(done);
   });
