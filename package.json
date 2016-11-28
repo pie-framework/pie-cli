@@ -7,10 +7,10 @@
     "pie": "bin/pie"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha --require babel-register test/unit/**",
+    "test": "./node_modules/.bin/gulp test",
     "prepublish": "npm run build",
     "build": "gulp build",
-    "it": "./node_modules/.bin/mocha --require test/init 'test/integration/**/*-test.js'",
+    "it": "./node_modules/.bin/gulp it",
     "postinstall": "./dev/bin/postinstall",
     "dev": "./node_modules/.bin/gulp dev",
     "release": "./node_modules/.bin/gulp release"
