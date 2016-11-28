@@ -1,4 +1,6 @@
-export default {
+import {SupportInfo} from '../support-info';
+
+let config: SupportInfo = {
   npmDependencies: {
     'babel-preset-react': '~6.16.0'
   },
@@ -18,3 +20,5 @@ export default {
     ]
   }
 };
+
+export default config;

@@ -2,23 +2,24 @@ import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import * as resolve from 'resolve';
 import { mkFromPath } from './support-module';
-let logger = buildLogger();
+import { SupportInfo } from './support-info';
 
+let logger = buildLogger();
 
 export class BuildConfig {
 
-  constructor(private modules) {
+  constructor(private modules: SupportInfo[]) {
     logger.debug('[BuildConfig:constructor]', modules);
   }
 
-  get npmDependencies() {
-    return _.reduce(this.modules, (acc, c: any) => {
+  get npmDependencies(): { [key: string]: string } {
+    return _.reduce(this.modules, (acc, c) => {
       return _.extend(acc, c.npmDependencies);
     }, {});
   }
 
   get externals(): { js: string[], css: string[] } {
-    return _.reduce(this.modules, (acc, m: any) => {
+    return _.reduce(this.modules, (acc, m) => {
       let externals = _.merge({ js: [], css: [] }, m.externals);
       acc.js = _(externals.js).concat(acc.js).compact().sort().value();
       acc.css = _(externals.css).concat(acc.css).compact().sort().value();
@@ -26,7 +27,7 @@ export class BuildConfig {
     }, { js: [], css: [] });
   }
 
-  webpackLoaders(resolve) {
+  webpackLoaders(resolve: () => string[]): string[] {
     return _.reduce(this.modules, (acc, c: any) => {
       let loadersFn = _.isFunction(c.webpackLoaders) ? c.webpackLoaders : () => [];
       return acc.concat(loadersFn(resolve));

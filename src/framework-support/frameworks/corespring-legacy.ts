@@ -1,4 +1,6 @@
-export function support(dependencies) {
+import {SupportInfo} from '../support-info';
+
+export function support(dependencies) : SupportInfo {
 
   let isLegacy = Object.getOwnPropertyNames(dependencies).filter(name => {
     return name.indexOf('corespring-legacy') === 0;
