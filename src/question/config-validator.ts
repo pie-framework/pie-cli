@@ -78,7 +78,7 @@ function validatePie(loadSchema, obj) {
 
 type ValidationResult = {
   valid: boolean,
-  errors: Ajv.ValidationError[],
+  errors: Ajv.ErrorObject[],
   failingPieValidations?: any[]
 }
 

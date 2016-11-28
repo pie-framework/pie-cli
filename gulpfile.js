@@ -8,6 +8,10 @@ const gulp = require('gulp'),
   ts = require('gulp-typescript'),
   tsProject = ts.createProject('tsconfig.json');
 
+
+
+
+
 //Init custom release tasks
 releaseHelper.init(gulp);
 
@@ -22,25 +26,12 @@ gulp.task('md', () => glue('md'));
 gulp.task('ejs', () => glue('ejs'));
 
 gulp.task('typescript', () => {
-  var tsResult = tsProject.src()
+  let tsResult = tsProject.src()
     .pipe(tsProject());
   return tsResult.js.pipe(gulp.dest('lib'));
 });
 
-// guVlp.task('babel', () => {
-//   return gulp.src('src/**/*.js')
-//     .pipe(sourcemaps.init())
-//     .pipe(babel())
-//     .on('error', function (e) {
-//       console.log(e.stack);
-//       gutil.log('babel error', e.stack);
-//       this.emit('end');
-//     })
-//     .pipe(sourcemaps.write())
-//     .pipe(gulp.dest('lib'))
-// });
 
-// gulp.task('watch-babel', () => watch('js', ['babel']));
 gulp.task('watch-pug', () => watch('pug'));
 gulp.task('watch-ejs', () => watch('ejs'));
 gulp.task('watch-md', () => watch('md'));
