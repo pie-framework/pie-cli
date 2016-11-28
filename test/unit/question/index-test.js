@@ -1,9 +1,10 @@
 import { expect } from 'chai';
-import { stub, assert } from 'sinon';
+import { stub, assert, spy } from 'sinon';
 import proxyquire from 'proxyquire';
 
+
 describe('Question', () => {
-  let q, Question, controllers, client, questionConfig, app, fs;
+  let q, Question, CleanMode, controllers, client, questionConfig, app, fs, fileHelper;
 
   beforeEach(() => {
 
@@ -23,7 +24,11 @@ describe('Question', () => {
       }
 
       this.instance = {
-        clean: stub().returns(Promise.resolve()),
+        buildInfo: {
+          dir: 'client-dir',
+          buildOnly: ['node_modules'],
+          output: ['pie.js']
+        },
         pack: stub().returns(Promise.resolve({ clientResult: true })),
         prepareWebpackConfig: stub().returns(Promise.resolve(this.webpackConfig))
       }
@@ -43,7 +48,11 @@ describe('Question', () => {
       }
 
       this.instance = {
-        clean: stub().returns(Promise.resolve()),
+        buildInfo: {
+          dir: 'controllers-dir',
+          buildOnly: ['controllers'],
+          output: ['controllers.js']
+        },
         pack: stub().returns(Promise.resolve({ controllersResult: true })),
         controllersDir: 'controllersDir',
         prepareWebpackConfig: stub().returns(Promise.resolve(this.webpackConfig))
@@ -66,14 +75,22 @@ describe('Question', () => {
       removeSync: stub().returns(Promise.resolve())
     }
 
+    fileHelper = {
+      removeFilePaths: spy(function (paths) {
+        return Promise.resolve(paths);
+      })
+    }
+
     let proxied = proxyquire('../../../lib/question', {
       'fs-extra': fs,
       './client': client,
       './controllers': controllers,
-      './question-config': questionConfig
+      './question-config': questionConfig,
+      '../file-helper': fileHelper
     });
 
     Question = proxied.default;
+    CleanMode = proxied.CleanMode;
     q = new Question('dir', Question.buildOpts({}), [], app);
   });
 
@@ -115,24 +132,33 @@ describe('Question', () => {
 
   describe('clean', () => {
 
-    beforeEach((done) => {
-      q.clean()
-        .then(() => done())
-        .catch(done);
-    });
+    let assertClean = (mode, fn) => {
+      return (done) => {
+        q.clean(mode)
+          .then((paths) => {
+            fn(paths);
+            done()
+          })
+          .catch(done);
 
-    it('calls client.clean', () => {
-      assert.called(client.instance.clean);
-    });
+      }
+    }
 
-    it('calls controllers.clean', () => {
-      assert.called(controllers.instance.clean);
-    });
+    it('removes BUILD_ONLY build assets', assertClean(/*CleanMode.BUILD_ONLY*/ 0, (paths) => {
+      expect(paths).to.eql([
+        'client-dir/node_modules',
+        'controllers-dir/controllers'
+      ]);
+    }));
 
-    it('calls removeSync on controllersDir', () => {
-      assert.calledWith(fs.removeSync, 'controllersDir');
-    });
-
+    it('removes All build assets', assertClean(/*CleanMode.ALL*/ 1, (paths) => {
+      expect(paths).to.eql([
+        'client-dir/node_modules',
+        'client-dir/pie.js',
+        'controllers-dir/controllers',
+        'controllers-dir/controllers.js'
+      ]);
+    }));
   });
 
   describe('pack', () => {
@@ -140,30 +166,44 @@ describe('Question', () => {
 
     let checks = (cleanParam) => {
 
-      beforeEach((done) => {
-        q.pack(cleanParam)
-          .then((r) => {
-            result = r;
-            done();
-          })
-          .catch(done);
-      });
+      describe('with clean=' + cleanParam, () => {
+        beforeEach((done) => {
+          q.clean = stub().returns(Promise.resolve([]));
+          q.pack(cleanParam)
+            .then((r) => {
+              result = r;
+              done();
+            })
+            .catch(done);
+        });
 
-      it(`calls client.pack(${cleanParam})`, () => {
-        assert.calledWith(client.instance.pack, cleanParam);
-      });
+        it(`calls client.pack()`, () => {
+          assert.called(client.instance.pack);
+        });
 
-      it(`calls controllers.pack(${cleanParam})`, () => {
-        assert.calledWith(controllers.instance.pack, cleanParam);
-      });
+        it(`calls controllers.pack()`, () => {
+          assert.called(controllers.instance.pack);
+        });
 
-      it(`returns the results when called with ${cleanParam}`, () => {
-        expect(result).to.eql({ client: { clientResult: true }, controllers: { controllersResult: true } });
+        if (cleanParam) {
+          it(`calls this.clean`, () => {
+            assert.calledWith(q.clean, 1)
+          });
+        } else {
+          it(`does not call this.clean`, () => {
+            assert.notCalled(q.clean);
+          });
+        }
+
+        it(`gets the result`, () => {
+          expect(result).to.eql({ client: { clientResult: true }, controllers: { controllersResult: true } });
+        });
+
       });
     }
 
-    checks(false);
     checks(true);
+    checks(false);
   });
 
   describe('prepareWebpackConfigs', () => {
@@ -171,28 +211,42 @@ describe('Question', () => {
 
     let checks = (cleanParam) => {
 
-      beforeEach((done) => {
-        q.prepareWebpackConfigs(cleanParam)
-          .then((r) => {
-            result = r;
-            done();
-          })
-          .catch(done);
-      });
+      describe('with clean=' + cleanParam, () => {
+        beforeEach((done) => {
+          q.clean = stub().returns(Promise.resolve([]));
 
-      it(`calls client.prepareWebpackConfig(${cleanParam})`, () => {
-        assert.calledWith(client.instance.prepareWebpackConfig, cleanParam);
-      });
-
-      it(`calls controllers.prepareWebpackConfig(${cleanParam})`, () => {
-        assert.calledWith(controllers.instance.prepareWebpackConfig, cleanParam);
-      });
-
-      it(`returns the results with ${cleanParam}`, () => {
-        expect(result).to.eql({
-          client: client.webpackConfig,
-          controllers: controllers.webpackConfig
+          q.prepareWebpackConfigs(cleanParam)
+            .then((r) => {
+              result = r;
+              done();
+            })
+            .catch(done);
         });
+
+        it(`calls client.prepareWebpackConfig()`, () => {
+          assert.called(client.instance.prepareWebpackConfig);
+        });
+
+        it(`calls controllers.prepareWebpackConfig()`, () => {
+          assert.called(controllers.instance.prepareWebpackConfig);
+        });
+
+        it(`returns the results`, () => {
+          expect(result).to.eql({
+            client: client.webpackConfig,
+            controllers: controllers.webpackConfig
+          });
+        });
+
+        if (cleanParam) {
+          it(`calls this.clean`, () => {
+            assert.calledWith(q.clean, 1)
+          });
+        } else {
+          it(`does not call this.clean`, () => {
+            assert.notCalled(q.clean);
+          });
+        }
       });
     }
 

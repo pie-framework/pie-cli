@@ -6,16 +6,21 @@ import { buildLogger } from './log-factory';
 
 const logger = buildLogger();
 
-export function removeFiles(root, files) {
+export function removeFilePaths(files: string[]): Promise<string[]> {
   let promises = _.map(files, (f) => new Promise((resolve, reject) => {
-    let filepath = path.join(root, f);
-    fs.remove(filepath, (err) => err ? reject(err) : resolve(filepath));
+    logger.silly(`remove filepath: ${f}`);
+    return fs.remove(f, (err) => err ? reject(err) : resolve(f));
   }));
   return Promise.all(promises)
     .then((results) => {
-      logger.silly(`removed: from ${root}: ${_.map(results, (f: string) => path.basename(f)).join("\n")}`);
+      logger.silly(`removed: ${_.map(results, (f: string) => path.basename(f)).join("\n")}`);
       return results;
     });
+}
+
+export function removeFiles(root, files) {
+  let filePaths = _.map(files, f => path.join(root, f));
+  return removeFilePaths(filePaths);
 }
 
 export function softWrite(path, src) {

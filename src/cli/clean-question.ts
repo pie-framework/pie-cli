@@ -1,4 +1,4 @@
-import Question from '../question';
+import Question, { CleanMode } from '../question';
 import { resolve } from 'path';
 import { buildLogger } from '../log-factory';
 import { join } from 'path';
@@ -27,7 +27,7 @@ class CleanQuestionCommand extends CliCommand {
     let questionOpts = Question.buildOpts(args);
     let packOpts = PackQuestionOpts.build(args);
     let question = new Question(dir, questionOpts, noExternalSupport, emptyApp);
-    return question.clean()
+    return question.clean(CleanMode.ALL)
       .then(() => removeSync(join(dir, packOpts.exampleFile)))
       .then(() => "clean complete")
   }

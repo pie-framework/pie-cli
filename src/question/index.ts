@@ -3,8 +3,17 @@ import { ControllersBuildable, BuildOpts as ControllersBuildOpts } from './contr
 import { QuestionConfig, BuildOpts as QuestionConfigBuildOpts } from './question-config';
 import { removeSync } from 'fs-extra';
 import { buildLogger } from '../log-factory';
+import { BuildInfo } from './build-info';
+import * as _ from 'lodash';
+import { join } from 'path';
+import { removeFilePaths } from '../file-helper';
 
 const logger = buildLogger();
+
+export enum CleanMode {
+  BUILD_ONLY,
+  ALL
+}
 
 export default class Question {
 
@@ -16,36 +25,46 @@ export default class Question {
     }
   }
 
-
-  readonly config;
+  readonly config: QuestionConfig;
   readonly client: ClientBuildable;
-  readonly controllers;
+  readonly controllers: ControllersBuildable;
 
   constructor(private dir, private opts, private clientFrameworkSupport, private app) {
     clientFrameworkSupport = clientFrameworkSupport || [];
 
     logger.silly('[constructor] opts: ', JSON.stringify(opts));
 
-    // this.dir = dir;
     this.config = new QuestionConfig(dir, opts.question);
     this.client = new ClientBuildable(this.config, clientFrameworkSupport, opts.client, app);
     this.controllers = new ControllersBuildable(this.config, opts.controllers);
   }
 
-  get externals(){
-    return this.client ? this.client.externals : {js:[], css:[]};
+  get externals() {
+    return this.client ? this.client.externals : { js: [], css: [] };
   }
 
-  clean() {
-    return this.client.clean()
-      .then(() => this.controllers.clean())
-      .then(() => removeSync(this.controllers.controllersDir));
+  clean(mode: CleanMode) {
+
+    let info = [this.client.buildInfo, this.controllers.buildInfo];
+
+    let mkDeletePaths = (i: BuildInfo): string[] => {
+      let files = _.concat(i.buildOnly, mode == CleanMode.ALL ? i.output : []);
+      return _.map(files, f => join(i.dir, f));
+    }
+
+    let filesToClean: string[][] = _(info).map(mkDeletePaths).value();
+
+    logger.silly(`[clean] filesToClean: ${filesToClean}`);
+
+    return removeFilePaths(_.flatten(filesToClean));
   }
 
   pack(clean = false) {
-    return this.client.pack(clean)
+    let maybeClean = clean ? this.clean.bind(this, CleanMode.ALL) : () => Promise.resolve();
+    return maybeClean()
+      .then(() => this.client.pack())
       .then((client) => {
-        return this.controllers.pack(clean)
+        return this.controllers.pack()
           .then((controllers) => {
             return { client: client, controllers: controllers };
           });
@@ -53,10 +72,12 @@ export default class Question {
   }
 
   prepareWebpackConfigs(clean = false) {
-    return this.client.prepareWebpackConfig(clean)
+    let maybeClean = clean ? this.clean.bind(this, CleanMode.ALL) : () => Promise.resolve();
+    return maybeClean()
+      .then(() => this.client.prepareWebpackConfig())
       .then(clientConfig => {
         logger.debug('[prepareWebpackConfig] got clientConfig:', clientConfig);
-        return this.controllers.prepareWebpackConfig(clean)
+        return this.controllers.prepareWebpackConfig()
           .then(controllersConfig => {
             logger.debug('[prepareWebpackConfig] got controllersConfig:', controllersConfig);
             return {

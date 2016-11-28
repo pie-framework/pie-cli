@@ -65,7 +65,7 @@ describe('client', () => {
 
     describe('constructor', () => {
       beforeEach(() => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], {}, emptyApp);
+        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
       });
 
       it('calls new NpmDir', () => {
@@ -74,79 +74,57 @@ describe('client', () => {
 
     });
 
-    describe('clean', () => {
-
-      beforeEach((done) => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
-        buildable.clean()
-          .then(() => done())
-          .catch(done);
-      });
-
-      it('calls npmDir.clean', () => {
-        assert.called(npmDirInstance.clean);
-      });
-
-      it('calls removeFile', () => {
-        assert.calledWith(removeFiles, 'dir', ['pie.js', 'pie.js.map', 'entry.js']);
-      });
-    });
-
     describe('pack', () => {
       let buildable;
-      beforeEach(() => {
+      beforeEach((done) => {
         buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
         buildable.prepareWebpackConfig = stub().returns(Promise.resolve());
         buildable.bundle = stub().returns(Promise.resolve());
+        buildable.pack()
+          .then(done.bind(null, null))
+          .catch(done);
       });
 
-      let pack = (clean) => {
-        return (done) => {
-          buildable.pack(clean)
-            .then(() => {
-              assert.calledWith(buildable.prepareWebpackConfig, clean);
-              assert.called(buildable.bundle);
-              done();
-            })
-            .catch(done);
-        }
-      }
+      it('calls prepareWebpackConfig', () => {
+        assert.called(buildable.prepareWebpackConfig);
+      });
 
-      it('calls the steps with clean=true', pack(true));
-      it('calls the steps with clean=false', pack(false));
+      it('calls bundle', () => {
+        assert.called(buildable.bundle);
+      });
     });
 
     describe('prepareWebpackConfig', () => {
       let buildable;
-      beforeEach(() => {
+      beforeEach((done) => {
         buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
         buildable.clean = stub().returns(Promise.resolve());
         buildable._install = stub().returns(Promise.resolve());
         buildable.writeEntryJs = stub().returns(Promise.resolve());
         buildable.webpackConfig = stub().returns(Promise.resolve());
         buildable.config.isConfigValid = stub().returns(true);
+        buildable.prepareWebpackConfig()
+          .then(done.bind(null, null))
+          .catch(done);
       });
 
-      let prepareWebpackConfig = (clean) => {
-        return (done) => {
-          buildable.prepareWebpackConfig(clean)
-            .then(() => {
-              assert.called(buildable._install);
-              assert.called(buildable.writeEntryJs);
-              assert.called(buildable.webpackConfig);
-              assert[clean ? 'called' : 'notCalled'](buildable.clean);
-              assert.called(buildable.config.isConfigValid);
-              done();
-            })
-            .catch(done);
-        }
-      }
+      it('calls _install', () => {
+        assert.called(buildable._install);
+      });
 
-      it('calls steps when clean=true', prepareWebpackConfig(true));
-      it('calls steps when clean=false', prepareWebpackConfig(false));
+      it('calls writeEntryJs', () => {
+        assert.called(buildable.writeEntryJs);
+      });
+
+      it('calls webpackConfig', () => {
+        assert.called(buildable.webpackConfig);
+      });
+
+      it('calls isConfigValid', () => {
+        assert.called(buildable.config.isConfigValid);
+      });
 
     });
-
 
     describe('_buildFrrameworkConfig', () => {
       let buildable;
@@ -198,6 +176,16 @@ describe('client', () => {
       })
     });
 
+    describe('buildInfo', () => {
+
+      it('returns the build info', () => {
+        expect(buildable.buildInfo).to.eql({
+          dir: buildable.dir,
+          buildOnly: ['entry.js', 'node_modules', 'package.json'],
+          output: ['pie.js', 'pie.js.map']
+        });
+      });
+    });
 
     describe('webpackConfig', () => {
 
