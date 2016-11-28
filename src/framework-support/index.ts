@@ -11,20 +11,6 @@ export class BuildConfig {
     logger.debug('[BuildConfig:constructor]', modules);
   }
 
-  get externals(){
-    return _.reduce(this._modules, (acc, c) => {
-        if(c.externals){
-          if(c.externals.js){
-            acc.js = acc.js.concat(c.externals.js)
-          }
-          if(c.externals.css){
-            acc.css = acc.css.concat(c.externals.css)
-          }
-        }
-        return acc;
-    }, {js:[], css:[]});
-  }
-
   get npmDependencies() {
     return _.reduce(this.modules, (acc, c: any) => {
       return _.extend(acc, c.npmDependencies);
