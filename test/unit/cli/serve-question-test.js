@@ -34,7 +34,11 @@ describe('serve-question', () => {
       prepareWebpackConfigs: stub().returns(Promise.resolve({
         client: {clientConfig: true},
         controllers: {controllersConfig: true}
-      }))
+      })),
+      externals: {
+        js: ['external.js'],
+        css: ['external.css']
+      }
     }
 
     questionConstructor = noCallThruStub(question);
@@ -139,7 +143,11 @@ describe('serve-question', () => {
       let opts = {
         paths: {
           controllers: 'controllers.js',
-          client: 'pie.js'
+          client: 'pie.js',
+          externals: {
+            js: ['external.js'],
+            css: ['external.css']
+          }
         },
         ids: {
           controllers: 'uid'
