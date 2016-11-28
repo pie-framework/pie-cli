@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "noImplicitUseStrict": false,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "outDir": "lib/",
+    "target": "es6"
+  },
+  "include": [
+    "src/**/*",
+    "local-typings/**/*"
+  ]
+}

@@ -6,7 +6,7 @@ describe('loaders', () => {
   let mod;
 
   beforeEach(() => {
-    mod = proxyquire('../../../src/code-gen/loaders', {});
+    mod = proxyquire('../../../lib/code-gen/loaders', {});
   });
 
   describe('LoaderName', () => {

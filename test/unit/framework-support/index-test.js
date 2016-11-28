@@ -4,26 +4,67 @@ import { expect } from 'chai';
 
 describe('framework-support', () => {
 
-
   describe('BuildConfig', () => {
 
     let BuildConfig;
     beforeEach(() => {
-      BuildConfig = proxyquire('../../../src/framework-support', {
+      BuildConfig = proxyquire('../../../lib/framework-support', {
         'fs-extra': {},
         resolve: {},
         './support-module': {}
       }).BuildConfig;
     });
 
-    it('handles modules with no npmDependencies', () => {
-      let config = new BuildConfig([{}, { npmDependencies: { a: '1.0.0' } }]);
-      expect(config.npmDependencies).to.eql({ a: '1.0.0' });
+    describe('get npmDependencies', () => {
+      it('handles modules with no npmDependencies', () => {
+        let config = new BuildConfig([{}, { npmDependencies: { a: '1.0.0' } }]);
+        expect(config.npmDependencies).to.eql({ a: '1.0.0' });
+      });
+
     });
 
-    it('handles modules with no webpackLoaders function', () => {
-      let config = new BuildConfig([{}, { webpackLoaders: () => [{ test: 't' }] }]);
-      expect(config.webpackLoaders()).to.eql([{ test: 't' }]);
+    describe('webpackLoaders()', () => {
+      it('handles modules with no webpackLoaders function', () => {
+        let config = new BuildConfig([{}, { webpackLoaders: () => [{ test: 't' }] }]);
+        expect(config.webpackLoaders()).to.eql([{ test: 't' }]);
+      });
+    });
+
+    describe('get externals', () => {
+
+      let assertExternals = (modules, expected) => {
+        return () => {
+          let config = new BuildConfig(modules);
+          expect(config.externals).to.eql(expected);
+        }
+      }
+
+      it('returns externals from one module', assertExternals(
+        [{}, { externals: { js: ['a'], css: ['b'] } }],
+        { js: ['a'], css: ['b'] }
+      ));
+
+      it('returns externals from 2 modules', assertExternals(
+        [
+          { externals: { js: ['one.js'], css: ['one.css'] } },
+          { externals: { js: ['two.js'], css: ['two.css'] } }
+        ],
+        {
+          js: ['one.js', 'two.js'],
+          css: ['one.css', 'two.css']
+        }
+      ));
+
+      it('handles empty arrays for js or css', assertExternals(
+        [{ externals: { js: null, css: null } }],
+        { js: [], css: [] }
+      ));
+
+      it('handles nulls in arrays for js or css', assertExternals(
+        [{ externals: { js: [null], css: [null] } }],
+        { js: [], css: [] }
+      ));
+
     });
 
     it('handles modules with no externals', () => {
@@ -58,7 +99,7 @@ describe('framework-support', () => {
         sync: spy(function (p) { return p; })
       }
 
-      FrameworkSupport = proxyquire('../../../src/framework-support', {
+      FrameworkSupport = proxyquire('../../../lib/framework-support', {
         'fs-extra': fsExtra,
         resolve: resolve,
         './support-module': supportModule
@@ -95,7 +136,7 @@ describe('framework-support', () => {
     let frameworkSupport, FrameworkSupport, supportArray;
 
     beforeEach(() => {
-      FrameworkSupport = require('../../../src/framework-support').default;
+      FrameworkSupport = require('../../../lib/framework-support').default;
       supportArray = [{
         support: (deps) => {
           if (deps.react) {

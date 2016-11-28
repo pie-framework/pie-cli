@@ -1,4 +1,4 @@
-import FrameworkSupport from '../../../src/framework-support';
+import FrameworkSupport from '../../../lib/framework-support';
 import { expect } from 'chai';
 import path from 'path';
 
@@ -8,11 +8,11 @@ describe('FrameworkSupport', () => {
 
   before(() => {
 
-    target = require('../../../src/framework-support/frameworks/react.js');
+    target = require('../../../lib/framework-support/frameworks/react.js');
 
     frameworkSupport = FrameworkSupport.bootstrap(
       [
-        path.resolve(__dirname, '../../../src/framework-support/frameworks/react.js')
+        path.resolve(__dirname, '../../../lib/framework-support/frameworks/react.js')
       ]
     )
   });
@@ -26,8 +26,6 @@ describe('FrameworkSupport', () => {
     let config = frameworkSupport.buildConfigFromPieDependencies({
       react: ['1.2.3']
     });
-    testLogger.debug('config:', JSON.stringify(config.npmDependencies, null, '  '));
-    testLogger.debug('target:', JSON.stringify(target, null, '  '));
     expect(config.npmDependencies).to.eql(target.default.npmDependencies);
   });
 

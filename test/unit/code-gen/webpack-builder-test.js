@@ -2,9 +2,6 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import _ from 'lodash';
 import { assert, match, stub, spy } from 'sinon';
-import { buildLogger } from '../../../src/log-factory';
-
-const logger = buildLogger();
 
 describe('webpack-builder', () => {
 
@@ -13,12 +10,13 @@ describe('webpack-builder', () => {
 
     duplicateLoadersInstance = {
       present: false,
-      error: new Error('duplicate errror')
+      error: new Error('duplicate error')
     }
 
     duplicateLoadersCtr = stub().returns(duplicateLoadersInstance);
     duplicateLoadersCtr['@noCallThru'] = true;
     duplicateLoadersCtr.fromConfig = stub().returns(duplicateLoadersInstance);
+
 
     stats = {
       hasErrors: stub().returns(false),
@@ -31,9 +29,9 @@ describe('webpack-builder', () => {
       done(null, stats);
     });
 
-    mod = proxyquire('../../../src/code-gen/webpack-builder', {
+    mod = proxyquire('../../../lib/code-gen/webpack-builder', {
       webpack: webpack,
-      './duplicate-loaders': duplicateLoadersCtr
+      './duplicate-loaders': { default: duplicateLoadersCtr }
     })
   });
 
@@ -64,9 +62,9 @@ describe('webpack-builder', () => {
         done(new Error('e'));
       });
 
-      mod = proxyquire('../../../src/code-gen/webpack-builder', {
+      mod = proxyquire('../../../lib/code-gen/webpack-builder', {
         webpack: webpack,
-        './duplicate-loaders': duplicateLoadersCtr
+        './duplicate-loaders': { default: duplicateLoadersCtr }
       });
 
       mod.build({})
@@ -90,9 +88,9 @@ describe('webpack-builder', () => {
         done(null, badStats);
       });
 
-      mod = proxyquire('../../../src/code-gen/webpack-builder', {
+      mod = proxyquire('../../../lib/code-gen/webpack-builder', {
         webpack: webpack,
-        './duplicate-loaders': duplicateLoadersCtr
+        './duplicate-loaders': { default: duplicateLoadersCtr }
       });
 
       mod.build({})

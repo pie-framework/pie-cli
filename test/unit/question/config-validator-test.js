@@ -1,11 +1,11 @@
 import { expect } from 'chai';
-import { buildLogger } from '../../../src/log-factory';
+import { buildLogger } from '../../../lib/log-factory';
 import _ from 'lodash';
 
 const logger = buildLogger();
 
 describe('config-validator', () => {
-  let validate = require('../../../src/question/config-validator').validate;
+  let validate = require('../../../lib/question/config-validator').validate;
 
   describe('validate', () => {
 

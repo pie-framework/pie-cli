@@ -66,7 +66,7 @@ describe('Question', () => {
       removeSync: stub().returns(Promise.resolve())
     }
 
-    let proxied = proxyquire('../../../src/question', {
+    let proxied = proxyquire('../../../lib/question', {
       'fs-extra': fs,
       './client': client,
       './controllers': controllers,

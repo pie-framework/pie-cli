@@ -3,7 +3,7 @@ import _ from 'lodash';
 import proxyquire from 'proxyquire';
 import { resolve } from 'path';
 import { parse } from 'acorn';
-import { buildLogger } from '../../../src/log-factory';
+import { buildLogger } from '../../../lib/log-factory';
 import { assert, stub, spy, match } from 'sinon';
 import { join } from 'path';
 
@@ -36,7 +36,7 @@ describe('ExampleApp', () => {
 
     webpackDevMiddleware = stub().returns({});
 
-    ExampleApp = proxyquire('../../../src/example-app', {
+    ExampleApp = proxyquire('../../../lib/example-app', {
       jsesc: jsesc,
       './server': {
         default: serverConstructor
@@ -78,11 +78,11 @@ describe('ExampleApp', () => {
     });
 
     it('returns react', () => {
-      expect(support[0]).to.eql(resolve(`${__dirname}/../../../src/framework-support/frameworks/react`));
+      expect(support[0]).to.eql(resolve(`${__dirname}/../../../lib/framework-support/frameworks/react`));
     });
 
     it('returns less', () => {
-      expect(support[1]).to.eql(resolve(`${__dirname}/../../../src/framework-support/frameworks/less`));
+      expect(support[1]).to.eql(resolve(`${__dirname}/../../../lib/framework-support/frameworks/less`));
     });
   });
 
@@ -323,7 +323,7 @@ describe('ExampleApp', () => {
       });
 
       it('sets the views dir', () => {
-        assert.calledWith(expressInstance.set, 'views', resolve(join(__dirname, '../../../src/example-app/views')));
+        assert.calledWith(expressInstance.set, 'views', resolve(join(__dirname, '../../../lib/example-app/views')));
       });
 
       it('calls webpackDevMiddleware for controllers', () => {
