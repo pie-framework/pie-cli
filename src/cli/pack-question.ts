@@ -57,7 +57,8 @@ class PackQuestionCommand extends CliCommand {
         if (packOpts.buildExample) {
           let paths = {
             client: result.client,
-            controllers: result.controllers.filename
+            controllers: result.controllers.filename,
+            externals: question.client.externals
           }
 
           let ids = {

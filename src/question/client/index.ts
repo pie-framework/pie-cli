@@ -1,5 +1,5 @@
 import { join, resolve as pathResolve } from 'path';
-import FrameworkSupport from '../../framework-support';
+import FrameworkSupport, { BuildConfig } from '../../framework-support';
 import { buildLogger } from '../../log-factory';
 import { removeFiles, softWrite } from '../../file-helper';
 import NpmDir from '../../npm/npm-dir';
@@ -48,9 +48,9 @@ export class BuildOpts {
 }
 
 export class ClientBuildable {
-  private frameworkSupport;
+  private frameworkSupport: FrameworkSupport;
   private npmDir;
-  private _supportConfig;
+  private _supportConfig: BuildConfig;
   constructor(private config, private support, private opts, private app) {
     this.frameworkSupport = FrameworkSupport.bootstrap(support.concat(app.frameworkSupport()));
     this.npmDir = new NpmDir(this.dir);
@@ -59,6 +59,11 @@ export class ClientBuildable {
   get dir() {
     return this.config.dir;
   }
+
+  get externals() {
+    return this._supportConfig ? this._supportConfig.externals : { js: [], css: [] };
+  }
+
 
   pack(clean) {
     return this.prepareWebpackConfig(clean)

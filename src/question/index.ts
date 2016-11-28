@@ -18,7 +18,7 @@ export default class Question {
 
 
   readonly config;
-  readonly client;
+  readonly client: ClientBuildable;
   readonly controllers;
 
   constructor(private dir, private opts, private clientFrameworkSupport, private app) {

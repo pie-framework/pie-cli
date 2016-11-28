@@ -32,6 +32,12 @@ describe('serve-question', () => {
         readMarkup: stub(),
         readConfig: stub()
       },
+      client: {
+        externals: {
+          js: ['a.js'],
+          css: ['a.css']
+        }
+      },
       prepareWebpackConfigs: stub().returns(Promise.resolve({
         client: { clientConfig: true },
         controllers: { controllersConfig: true }
@@ -140,7 +146,11 @@ describe('serve-question', () => {
       let opts = {
         paths: {
           controllers: 'controllers.js',
-          client: 'pie.js'
+          client: 'pie.js',
+          externals: {
+            js: ['a.js'],
+            css: ['a.css']
+          }
         },
         ids: {
           controllers: 'uid'

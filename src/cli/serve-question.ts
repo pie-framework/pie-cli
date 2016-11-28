@@ -66,7 +66,8 @@ class Cmd extends CliCommand {
         let opts = {
           paths: {
             controllers: questionOpts.controllers.filename,
-            client: questionOpts.client.bundleName
+            client: questionOpts.client.bundleName,
+            externals: question.client.externals
           },
           ids: {
             controllers: question.controllers.uid

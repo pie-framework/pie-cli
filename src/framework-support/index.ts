@@ -17,6 +17,15 @@ export class BuildConfig {
     }, {});
   }
 
+  get externals(): { js: string[], css: string[] } {
+    return _.reduce(this.modules, (acc, m: any) => {
+      let externals = _.merge({ js: [], css: [] }, m.externals);
+      acc.js = _(externals.js).concat(acc.js).compact().sort().value();
+      acc.css = _(externals.css).concat(acc.css).compact().sort().value();
+      return acc;
+    }, { js: [], css: [] });
+  }
+
   webpackLoaders(resolve) {
     return _.reduce(this.modules, (acc, c: any) => {
       let loadersFn = _.isFunction(c.webpackLoaders) ? c.webpackLoaders : () => [];
