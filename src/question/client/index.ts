@@ -8,8 +8,11 @@ import * as resolve from 'resolve';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import { configToJsString, writeConfig } from '../../code-gen/webpack-write-config';
 import buildDependencies from '../build-dependencies';
+import { BuildInfo } from '../build-info';
 
 const logger = buildLogger();
+
+const ENTRY_JS = 'entry.js';
 
 let clientDependencies = _.merge(buildDependencies, {
   'style-loader': '^0.13.1',
@@ -64,16 +67,13 @@ export class ClientBuildable {
     return this._supportConfig ? this._supportConfig.externals : { js: [], css: [] };
   }
 
-
-  pack(clean) {
-    return this.prepareWebpackConfig(clean)
+  pack() {
+    return this.prepareWebpackConfig()
       .then((config) => this.bundle(config));
   }
 
-  prepareWebpackConfig(clean) {
-    let step = clean ? this.clean() : Promise.resolve();
-    return step
-      .then(() => this._install())
+  prepareWebpackConfig() {
+    return this._install()
       .then(() => {
         let isValid = this.config.isConfigValid();
         logger.silly('isConfigValid() ? ', isValid)
@@ -83,8 +83,9 @@ export class ClientBuildable {
       .then(() => this.webpackConfig());
   }
 
-  get entryJsPath() {
-    return join(this.dir, 'entry.js');
+
+  private get entryJsPath() {
+    return join(this.dir, ENTRY_JS);
   }
 
   writeEntryJs() {
@@ -95,12 +96,15 @@ export class ClientBuildable {
     return softWrite(this.entryJsPath, js);
   }
 
-  clean() {
-    logger.debug('[clean]...', this.opts);
-    let files = [this.opts.bundleName, this.opts.bundleName + '.map', 'entry.js'];
-    logger.silly('[clean] files: ', files);
-    return this.npmDir.clean()
-      .then(() => removeFiles(this.dir, files));
+  get buildInfo(): BuildInfo {
+    let out = {
+      dir: this.dir,
+      buildOnly: [ENTRY_JS, 'node_modules', 'package.json'],
+      output: [this.opts.bundleName, `${this.opts.bundleName}.map`]
+    }
+
+    logger.debug('[buildInfo]...', out);
+    return out;
   }
 
   webpackConfig() {
