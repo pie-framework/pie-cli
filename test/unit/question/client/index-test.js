@@ -25,7 +25,7 @@ describe('client', () => {
       bootstrap: stub().returns(frameworkSupport)
     };
 
-    index = proxyquire('../../../../src/question/client', {
+    index = proxyquire('../../../../lib/question/client', {
       '../../npm/npm-dir': {
         default: npmDirConstructor
       },

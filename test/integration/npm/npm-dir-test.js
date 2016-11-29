@@ -1,4 +1,4 @@
-import NpmDir from '../../../src/npm/npm-dir';
+import NpmDir from '../../../lib/npm/npm-dir';
 import temp from 'temp';
 import fs from 'fs-extra';
 import path from 'path';

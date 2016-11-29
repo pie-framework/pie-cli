@@ -21,7 +21,7 @@ describe('manifest', () => {
       dependenciesToHashAndSrc: stub().returns({ hash: 'hash', src: 'src' })
     }
 
-    make = proxyquire('../../../src/question/manifest', {
+    make = proxyquire('../../../lib/question/manifest', {
       './question-config': questionConfig,
       '../npm/dependency-helper': dependencyHelper
     }).make;

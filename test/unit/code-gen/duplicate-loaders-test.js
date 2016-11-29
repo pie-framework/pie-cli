@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { buildLogger } from '../../../src/log-factory';
+import { buildLogger } from '../../../lib/log-factory';
 import _ from 'lodash';
 
 const logger = buildLogger();
@@ -18,7 +18,7 @@ describe('duplicate-loaders', () => {
       }
     }
 
-    DuplicateLoaders = require('../../../src/code-gen/duplicate-loaders').default;
+    DuplicateLoaders = require('../../../lib/code-gen/duplicate-loaders').default;
   });
 
   describe('fromConfig', () => {

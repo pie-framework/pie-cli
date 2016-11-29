@@ -38,7 +38,9 @@ describe('pack-question', () => {
         client: 'pie.js'
       })),
       clean: stub().returns(Promise.resolve()),
-      externals: {js:['external.js'], css:['external.css']}
+      client: {
+        externals: { js: ['external.js'], css: ['external.css'] }
+      }
     };
 
     questionConstructor = stub().returns(questionInstance);
@@ -50,16 +52,19 @@ describe('pack-question', () => {
     }
 
     questionConstructor.buildOpts = stub().returns(buildOpts);
+    questionConstructor['@noCallThru'] = true;
 
     manifest = {
-      run: stub().returns(Promise.resolve())
+      default: {
+        run: stub().returns(Promise.resolve()),
+      }
     }
 
     exampleApp = {
       staticMarkup: stub().returns('<div>hi</div>')
     }
 
-    cmd = proxyquire('../../../src/cli/pack-question', {
+    cmd = proxyquire('../../../lib/cli/pack-question', {
       '../question': {
         default: questionConstructor
       },
@@ -72,7 +77,7 @@ describe('pack-question', () => {
       '../example-app': {
         default: stub().returns(exampleApp)
       }
-    });
+    }).default;
   });
 
   describe('match', () => {
@@ -116,7 +121,7 @@ describe('pack-question', () => {
       });
 
       it('calls manifestCmd.run', () => {
-        assert.calledWith(manifest.run, { outfile: 'manifest.json' });
+        assert.calledWith(manifest.default.run, { outfile: 'manifest.json' });
       });
     });
 
@@ -127,10 +132,11 @@ describe('pack-question', () => {
 
       it('calls exampleApp.staticMarkup', () => {
 
+
         assert.calledWith(exampleApp.staticMarkup, {
           client: 'pie.js',
           controllers: 'controller.js',
-          externals: {js:['external.js'], css:['external.css']}
+          externals: { js: ['external.js'], css: ['external.css'] }
         },
           { controllers: 'id', },
           questionInstance.config.markup,

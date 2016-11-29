@@ -13,15 +13,15 @@ describe('clean-question', () => {
     }
 
     path = {
-      resolve: spy(function(i){
+      resolve: spy(function (i) {
         return i;
       })
     }
 
     questionInstance = {
-      pack: stub().returns(Promise.resolve({ 
-        controllers: { 
-          filename: 'controller.js', 
+      pack: stub().returns(Promise.resolve({
+        controllers: {
+          filename: 'controller.js',
           library: 'id'
         },
         client: 'pie.js'
@@ -36,16 +36,16 @@ describe('clean-question', () => {
       controllers: {},
       config: {}
     }
-    
+
     questionConstructor.buildOpts = stub().returns(buildOpts);
 
-    cmd = proxyquire('../../../src/cli/clean-question', {
+    cmd = proxyquire('../../../lib/cli/clean-question', {
       '../question': {
         default: questionConstructor
       },
-      'fs-extra' : fsExtra,
+      'fs-extra': fsExtra,
       'path': path
-    });
+    }).default;
   });
 
   describe('match', () => {
@@ -57,20 +57,20 @@ describe('clean-question', () => {
 
   describe('run', () => {
 
-      beforeEach((done) => {
-      cmd.run({dir: 'dir', buildExample: false})
+    beforeEach((done) => {
+      cmd.run({ dir: 'dir', buildExample: false })
         .then(() => {
-         done();
+          done();
         })
         .catch(done);
-      });
-
-      it('calls question.clean', () => {
-        assert.called(questionInstance.clean);
-      });
-
-      it('calls removeSync on example.html', () => {
-        assert.calledWith(fsExtra.removeSync, 'dir/example.html');
-      });
     });
+
+    it('calls question.clean', () => {
+      assert.called(questionInstance.clean);
+    });
+
+    it('calls removeSync on example.html', () => {
+      assert.calledWith(fsExtra.removeSync, 'dir/example.html');
+    });
+  });
 });

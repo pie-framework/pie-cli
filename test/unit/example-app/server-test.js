@@ -31,7 +31,7 @@ describe('ExampleAppServer', () => {
     sockjs = {
       createServer: stub().returns(sockInstance)
     }
-    ExampleAppServer = proxyquire('../../../src/example-app/server', {
+    ExampleAppServer = proxyquire('../../../lib/example-app/server', {
       http: http,
       sockjs: sockjs
     }).default;

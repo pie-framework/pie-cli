@@ -3,14 +3,16 @@ html
   head
     meta(charset='utf-8')
     link(href='//fonts.googleapis.com/css?family=Roboto', rel='stylesheet')
+    
     each val in paths.externals.css
-      link(href=val, rel='stylesheet')
-
+      link(href=val, rel='stylesheet') 
+    
     script(src=paths.client, type='text/javascript')
     script(src=paths.controllers, type='text/javascript')
+    
     each val in paths.externals.js
       script(src=val, type='text/javascript')
-
+    
     script(type='text/javascript').
 
       window.pie = window.pie || {};
