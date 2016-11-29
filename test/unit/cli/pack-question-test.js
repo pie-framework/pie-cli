@@ -121,7 +121,7 @@ describe('pack-question', () => {
       });
 
       it('calls manifestCmd.run', () => {
-        assert.calledWith(manifest.default.run, { outfile: 'manifest.json' });
+        assert.calledWith(manifest.default.run, { dir: 'dir', outfile: 'manifest.json' });
       });
     });
 

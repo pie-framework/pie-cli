@@ -8,6 +8,8 @@ import { removeFiles } from '../../file-helper';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import * as _ from 'lodash';
 import buildDependencies from '../build-dependencies';
+import { BuildInfo } from '../build-info';
+import { QuestionConfig } from '../question-config';
 
 let logger = buildLogger();
 
@@ -25,25 +27,28 @@ export class BuildOpts {
 
 exports.NPM_DEPENDENCIES = buildDependencies;
 
+const CONTROLLERS_DIR = 'controllers';
 export class ControllersBuildable {
 
-  private controllersDir;
   private npmDir;
 
-  constructor(private config, private opts) {
-    this.controllersDir = join(config.dir, 'controllers');
+  constructor(private config: QuestionConfig, private opts) {
     fs.ensureDirSync(this.controllersDir);
     this.npmDir = new NpmDir(this.controllersDir);
-    logger.silly('[constructro] this.controllersDir', this.controllersDir);
+    logger.silly('[constructor] this.controllersDir', this.controllersDir);
   }
 
-  get dependencies() {
+  private get controllersDir() {
+    return join(this.config.dir, CONTROLLERS_DIR);
+  }
+
+  private get dependencies() {
     return _.reduce(this.config.pies, (acc, p: any) => {
       let pieControllerDir = join(p.installedPath, 'controller');
       logger.silly('[get dependencies] pieControllerDir: ', pieControllerDir);
       if (fs.existsSync(pieControllerDir)) {
         let modulePath = relative(this.controllersDir, pieControllerDir);
-        acc[`${p.name}-controller`] = modulePath;
+        acc[p.name] = modulePath;
       }
       else {
         logger.warn('[build] the following path doesnt exist: ', pieControllerDir);
@@ -54,26 +59,30 @@ export class ControllersBuildable {
 
   get uid() { return dependenciesToHash(this.dependencies); }
 
-  prepareWebpackConfig(clean) {
-    let firstStep = clean ? this.clean() : Promise.resolve();
+  prepareWebpackConfig() {
 
+    let controllerDependencies = _.mapKeys(this.dependencies, (value, key) => `${key}-controller`);
+    let buildDependencies = _.extend({}, controllerDependencies, exports.NPM_DEPENDENCIES);
 
-    let buildDependencies = _.extend({}, this.dependencies, exports.NPM_DEPENDENCIES);
+    fs.ensureDirSync(this.controllersDir);
 
-    return firstStep
-      .then(() => fs.ensureDirSync(this.controllersDir))
-      .then(() => this.npmDir.install(buildDependencies))
+    return this.npmDir.install(buildDependencies)
       .then(() => this.writeEntryJs(this.dependencies))
       .then(() => this.webpackConfig());
   }
 
-  pack(clean) {
-    return this.prepareWebpackConfig(clean)
+  pack() {
+    return this.prepareWebpackConfig()
       .then((config) => this.bundle(config));
   }
 
   bundle(config) {
-    writeConfig(join(this.controllersDir, 'webpack.config.js'), config);
+
+    //TODO: Wire this up.
+    if (this.opts.writeWebpackConfig) {
+      writeConfig(join(this.controllersDir, 'webpack.config.js'), config);
+    }
+
     return buildWebpack(config)
       .then(() => {
         return {
@@ -85,6 +94,7 @@ export class ControllersBuildable {
       });
   }
 
+
   writeEntryJs(dependencies) {
     let entryPath = join(this.controllersDir, 'entry.js');
 
@@ -92,24 +102,23 @@ export class ControllersBuildable {
 
     if (!fs.existsSync(entryPath)) {
       let entrySrc = _.map(dependencies, (value, key: string) => {
-        //We need to use the normal name (without the -controller suffix) so the controller map has normalised names.
-        let dependencyName = key.replace('-controller', '');
-        return `exports['${dependencyName}'] = require('${key}');
-exports['${dependencyName}'].version =  '${value}';`;
+        return `
+         exports['${key}'] = require('${key}-controller');
+         exports['${key}'].version = '${value}';
+         `;
       });
+
       fs.writeFileSync(entryPath, entrySrc.join('\n'), 'utf8');
     }
     return Promise.resolve();
   }
 
-  clean() {
-    return this.npmDir.clean()
-      .then(() => {
-        return removeFiles(this.controllersDir, ['entry.js']);
-      })
-      .then(() => {
-        return removeFiles(this.config.dir, [this.opts.filename]);
-      });
+  get buildInfo(): BuildInfo {
+    return {
+      dir: this.config.dir,
+      output: [this.opts.filename],
+      buildOnly: [CONTROLLERS_DIR]
+    }
   }
 
   webpackConfig() {

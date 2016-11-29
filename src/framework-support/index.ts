@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import * as resolve from 'resolve';
 import { mkFromPath } from './support-module';
-import { SupportInfo, LoaderInfo, ResolveFn } from './support-info';
+import { LoaderInfo, SupportInfo, ResolveFn } from './support-info';
 
 let logger = buildLogger();
 
@@ -28,7 +28,7 @@ export class BuildConfig {
   }
 
   webpackLoaders(resolve: ResolveFn): LoaderInfo[] {
-    return _.reduce(this.modules, (acc, c: any) => {
+    return _.reduce(this.modules, (acc, c) => {
       let loadersFn = _.isFunction(c.webpackLoaders) ? c.webpackLoaders : () => [];
       return acc.concat(loadersFn(resolve));
     }, []);

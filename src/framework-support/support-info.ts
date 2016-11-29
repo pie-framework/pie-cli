@@ -10,5 +10,5 @@ export type SupportInfo = {
     js?: string[],
     css?: string[]
   },
-  webpackLoaders: (fn: ResolveFn) => LoaderInfo[]
+  webpackLoaders: (ResolveFn) => LoaderInfo[]
 }

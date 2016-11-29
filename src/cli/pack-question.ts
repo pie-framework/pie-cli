@@ -1,5 +1,5 @@
 import { buildLogger } from '../log-factory';
-import Question from '../question';
+import Question, { CleanMode } from '../question';
 import CliCommand from './cli-command';
 import { resolve, join } from 'path';
 import ExampleApp from '../example-app';
@@ -7,14 +7,15 @@ import { softWrite } from '../file-helper';
 import { removeSync } from 'fs-extra';
 import tmpSupport from './tmp-support';
 import manifest from './manifest';
+
 const logger = buildLogger();
 
 export class PackQuestionOpts {
-  constructor(readonly dir,
-    readonly clean,
-    readonly buildExample,
-    readonly exampleFile,
-    readonly keepBuildAssets) { }
+  constructor(readonly dir: string,
+    readonly clean: boolean,
+    readonly buildExample: boolean,
+    readonly exampleFile: string,
+    readonly keepBuildAssets: boolean) { }
 
 
   static build(args) {
@@ -41,8 +42,9 @@ class PackQuestionCommand extends CliCommand {
 
     logger.silly('[run] packOpts? ', packOpts);
 
-    let maybeDeleteBuildAssets = packOpts.keepBuildAssets ? Promise.resolve() : () => {
-      return question.clean()
+    let maybeDeleteBuildAssets = packOpts.keepBuildAssets ? () => Promise.resolve() : () => {
+      let mode = packOpts.buildExample ? CleanMode.BUILD_ONLY : CleanMode.ALL
+      return question.clean(mode)
         .then(() => {
           if (!packOpts.buildExample) {
             removeSync(join(dir, packOpts.exampleFile));
@@ -79,8 +81,11 @@ class PackQuestionCommand extends CliCommand {
           return softWrite(examplePath, markup);
         }
       })
-      .then(maybeDeleteBuildAssets)
-      .then(() => manifest.run({ outfile: args.manifestOutfile }));
+      .then(() => manifest.run({ dir: dir, outfile: args.manifestOutfile }))
+      .then((manifestResult) => {
+        return maybeDeleteBuildAssets()
+          .then(() => manifestResult);
+      });
   }
 }
 
