@@ -15,7 +15,7 @@ export default class NpmDir {
     logger.debug(`rootDir: ${rootDir}`);
   }
 
-  _spawnPromise(args, ignoreExitCode: boolean = false) {
+  _spawnPromise(args: string[], ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
 
     logger.debug('[_spawnPromise] args: ', args);
 
@@ -47,7 +47,7 @@ export default class NpmDir {
         input: s.stdout,
         terminal: false
       }).on('line', (line) => {
-        logger.verbose(line);
+        logger.silly(line);
         out += line;
       });
 
@@ -135,4 +135,27 @@ export default class NpmDir {
     logger.silly('[install] > final cmd: ', cmd.join(' '));
     return this._spawnPromise(cmd);
   };
+
+  get _installed() {
+    return fs.existsSync(path.join(this.rootDir, 'node_modules'));
+  }
+
+  ls() {
+    logger.info('[ls]');
+    if (!this._installed) {
+      return this._install()
+        .then(() => this.ls())
+    } else {
+      return this._spawnPromise(['ls', '--json'], true)
+        .then((result) => {
+          logger.debug('[ls] got ls result..');
+          try {
+            return JSON.parse(result.stdout)
+          } catch (e) {
+            logger.error('[ls] failed to parse stdout as json: ', result.stdout);
+            throw e;
+          }
+        });
+    }
+  }
 }

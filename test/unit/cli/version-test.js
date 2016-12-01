@@ -26,7 +26,7 @@ describe('version', () => {
 
 
   it('does not add git-sha if .git dir doesnt exist', () => {
-    cmd.run(log);
+    cmd.run({ log: log });
     assert.calledWith(log, 'version: 1.0.0');
   });
 
@@ -38,7 +38,7 @@ describe('version', () => {
     });
 
     it('does add git-sha if .git dir exists', () => {
-      cmd.run(log);
+      cmd.run({ log: log });
       assert.calledWith(log, 'version: 1.0.0, git-sha: HASH');
     });
 

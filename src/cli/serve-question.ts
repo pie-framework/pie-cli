@@ -4,8 +4,11 @@ import CliCommand from './cli-command';
 import { resolve } from 'path';
 import * as watchMaker from '../watch/watchmaker';
 import * as webpack from 'webpack';
-import ExampleApp from '../example-app';
+import ExampleApp, { App } from '../example-app';
+import { Server } from '../example-app/server';
 import tmpSupport from './tmp-support';
+import { ReloadableConfig } from '../question/config';
+
 
 const logger = buildLogger();
 
@@ -31,11 +34,11 @@ class Cmd extends CliCommand {
     )
   }
 
-  run(args) {
+  run(args, app: App = new ExampleApp()) {
     args = args || {};
     logger.silly('args: ', args);
 
-    let startServer = (server) => new Promise((resolve, reject) => {
+    let startServer = (server: Server) => new Promise((resolve, reject) => {
       server.on('error', (e) => {
         logger.error(e);
         reject(e);
@@ -51,9 +54,8 @@ class Cmd extends CliCommand {
 
     let opts = ServeQuestionOpts.build(args);
     let dir = resolve(opts.dir);
-    let exampleApp = new ExampleApp();
     let questionOpts = Question.buildOpts(args);
-    let question = new Question(dir, questionOpts, tmpSupport, exampleApp);
+    let question = new Question(dir, questionOpts, tmpSupport, app);
 
     return question.prepareWebpackConfigs(opts.clean)
       .then(({ client, controllers }) => {
@@ -63,20 +65,15 @@ class Cmd extends CliCommand {
         });
       })
       .then(compilers => {
-        let opts = {
-          paths: {
-            controllers: questionOpts.controllers.filename,
-            client: questionOpts.client.bundleName,
-            externals: question.client.externals
-          },
-          ids: {
-            controllers: question.controllers.uid
-          },
-          markup: () => question.config.readMarkup(),
-          model: () => question.config.readConfig()
+        let paths = {
+          controllers: questionOpts.controllers.filename,
+          client: questionOpts.client.bundleName,
+          externals: question.client.externals
         };
-
-        return exampleApp.server(compilers, opts);
+        let ids = {
+          controllers: question.controllers.uid
+        }
+        return app.server(compilers, paths, ids, new ReloadableConfig(question.config));
       })
       .then(server => {
         startServer(server);

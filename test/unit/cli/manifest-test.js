@@ -3,7 +3,7 @@ import { assert, stub } from 'sinon';
 import { expect } from 'chai';
 
 describe('manifest', () => {
-  let cmd, make, manifestResult, cmdResult, fsExtra;
+  let cmd, make, manifestResult, cmdResult, fsExtra, config, configConstructor;
 
   beforeEach(() => {
     process.cwd = stub().returns('dir');
@@ -12,14 +12,18 @@ describe('manifest', () => {
       writeJsonSync: stub()
     }
 
-    manifestResult = { hash: 'XXX', src: 'src', dependencies: {} };
+    config = {
+      manifest: {
+        hash: 'xxxxxx'
+      }
+    };
 
-    make = stub().returns(manifestResult);
+    configConstructor = stub().returns(config);
 
     cmd = proxyquire('../../../lib/cli/manifest', {
       'fs-extra': fsExtra,
-      '../question/manifest': {
-        make: make
+      '../question/config': {
+        JsonConfig: configConstructor
       }
     }).default;
   });
@@ -42,10 +46,10 @@ describe('manifest', () => {
       beforeEach(run());
 
       it('calls makeManifest with default dir', () => {
-        assert.calledWith(make, 'dir');
+        assert.calledWith(configConstructor, 'dir');
       });
 
-      it('gets the result', () => expect(cmdResult).to.eql(JSON.stringify(manifestResult)));
+      it('gets the result', () => expect(cmdResult).to.eql(JSON.stringify(config.manifest)));
 
     });
 
@@ -53,10 +57,10 @@ describe('manifest', () => {
       beforeEach(run({ outfile: 'manifest.json' }));
 
       it('calls writeJsonSync', () => {
-        assert.calledWith(fsExtra.writeJsonSync, 'manifest.json', manifestResult);
+        assert.calledWith(fsExtra.writeJsonSync, 'manifest.json', config.manifest);
       });
 
-      it('gets the result', () => expect(cmdResult).to.eql(JSON.stringify(manifestResult)));
+      it('gets the result', () => expect(cmdResult).to.eql(JSON.stringify(config.manifest)));
     });
 
     describe('with dir', () => {
@@ -64,7 +68,7 @@ describe('manifest', () => {
       beforeEach(run({ dir: 'other-dir' }));
 
       it('calls makeManifest with passed in dir opt', () => {
-        assert.calledWith(make, 'other-dir');
+        assert.calledWith(configConstructor, 'other-dir');
       });
     });
 

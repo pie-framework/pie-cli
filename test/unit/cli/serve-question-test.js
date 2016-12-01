@@ -143,20 +143,18 @@ describe('serve-question', () => {
 
 
     it('calls app.server', () => {
-      let opts = {
-        paths: {
-          controllers: 'controllers.js',
-          client: 'pie.js',
-          externals: {
-            js: ['a.js'],
-            css: ['a.css']
-          }
-        },
-        ids: {
-          controllers: 'uid'
-        },
-        markup: match.func,
-        model: match.func
+      let paths = {
+        controllers: 'controllers.js',
+        client: 'pie.js',
+        externals: {
+          js: ['a.js'],
+          css: ['a.css']
+        }
+      }
+
+      let ids = {
+        controllers: 'uid'
+
       }
 
       assert.calledWith(exampleApp.server,
@@ -169,7 +167,7 @@ describe('serve-question', () => {
             stubCompiler: true,
             config: match.object
           }
-        }, opts);
+        }, paths, ids, match.object);
     });
 
     it('calls server.listen', () => {

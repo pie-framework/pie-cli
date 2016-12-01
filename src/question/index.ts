@@ -1,6 +1,6 @@
 import { ClientBuildable, BuildOpts as ClientBuildOpts } from './client';
 import { ControllersBuildable, BuildOpts as ControllersBuildOpts } from './controllers';
-import { QuestionConfig, BuildOpts as QuestionConfigBuildOpts } from './question-config';
+import { JsonConfig, Config, FileNames } from './config';
 import { removeSync } from 'fs-extra';
 import { buildLogger } from '../log-factory';
 import { BuildInfo } from './build-info';
@@ -21,11 +21,11 @@ export default class Question {
     return {
       client: ClientBuildOpts.build(args),
       controllers: ControllersBuildOpts.build(args),
-      question: QuestionConfigBuildOpts.build(args)
+      question: FileNames.build(args)
     }
   }
 
-  readonly config: QuestionConfig;
+  readonly config: JsonConfig;
   readonly client: ClientBuildable;
   readonly controllers: ControllersBuildable;
 
@@ -34,7 +34,7 @@ export default class Question {
 
     logger.silly('[constructor] opts: ', JSON.stringify(opts));
 
-    this.config = new QuestionConfig(dir, opts.question);
+    this.config = new JsonConfig(dir, opts.question);
     this.client = new ClientBuildable(this.config, clientFrameworkSupport, opts.client, app);
     this.controllers = new ControllersBuildable(this.config, opts.controllers);
   }

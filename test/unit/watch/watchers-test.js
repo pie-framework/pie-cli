@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import proxyquire from 'proxyquire'
-import sinon from 'sinon';
+import { spy, stub, assert, match } from 'sinon';
 import { resolve } from 'path';
 
 describe('watchers', () => {
@@ -12,7 +12,7 @@ describe('watchers', () => {
       constructor() {
         this.handlers = {};
 
-        this.on = sinon.spy((key, handler) => {
+        this.on = spy((key, handler) => {
           this.handlers[key] = handler;
           return this;
         });
@@ -28,12 +28,12 @@ describe('watchers', () => {
     chokidarWatcher = new MockWatcher();
 
     chokidar = {
-      watch: sinon.stub().returns(chokidarWatcher)
+      watch: stub().returns(chokidarWatcher)
     };
 
     fs = {
-      copy: sinon.stub(),
-      remove: sinon.stub()
+      copy: stub(),
+      remove: stub()
     }
 
     watchers = proxyquire('../../../lib/watch/watchers', {
@@ -68,24 +68,24 @@ describe('watchers', () => {
       });
 
       it('calls chokidar.watch', () => {
-        sinon.assert.calledWith(chokidar.watch, 'srcRoot', sinon.match.any);
+        assert.calledWith(chokidar.watch, 'srcRoot', match.any);
       });
 
       describe('changes', () => {
 
         it('add calls fs.copy', () => {
           chokidarWatcher.run('add', 'path');
-          sinon.assert.calledWith(fs.copy, 'path');
+          assert.calledWith(fs.copy, 'path');
         });
 
         it('change calls fs.copy', () => {
           chokidarWatcher.run('change', 'path');
-          sinon.assert.calledWith(fs.copy, 'path');
+          assert.calledWith(fs.copy, 'path');
         });
 
         it('unlink calls fs.remove', () => {
           chokidarWatcher.run('unlink', 'path');
-          sinon.assert.calledWith(fs.remove, 'path');
+          assert.calledWith(fs.remove, 'path');
         });
       });
     });
@@ -93,21 +93,52 @@ describe('watchers', () => {
   });
 
 
-  describe('PieClientWatch', () => {
+  describe('FileWatch', () => {
+    let watch, onChange;
+
+    beforeEach(() => {
+      onChange = stub();
+      watch = new watchers.FileWatch('path', onChange);
+    });
+
+    describe('constructor', () => {
+      it('is not undefined', () => {
+        expect(watch).not.to.be.undefined;
+      });
+    });
+
+    describe('start', () => {
+
+      beforeEach(() => {
+        watch.start();
+        chokidarWatcher.run('change', 'path');
+      });
+
+      it('calls chokidar.watch', () => {
+        assert.calledWith(chokidar.watch, 'path', { ignoreInitial: true });
+      });
+
+      it('calls onChange handler', () => {
+        assert.calledWith(onChange, 'path');
+      });
+    });
+  });
+
+  describe('PackageWatch', () => {
 
     let watch;
 
     beforeEach(() => {
-      watch = new watchers.PieClientWatch('my-pie', '../../my-pie', '.');
+      watch = new watchers.PackageWatch('my-pie', '../../my-pie', '.', []);
     });
 
     describe('constructor', () => {
-      it('is not null', () => {
+      it('is not undefined', () => {
         expect(watch).not.eql(undefined);
       });
 
       it('has controllers in ignored', () => {
-        expect(watch.ignores).to.eql([/.*controller.*/]);
+        expect(watch.ignores).to.eql([]);
       });
     });
 
@@ -154,12 +185,13 @@ describe('watchers', () => {
 
     let watch;
     beforeEach(() => {
+
       watch = new watchers.PieWatch('my-pie', '../../my-pie', '.');
       watch.client = {
-        start: sinon.stub()
+        start: stub()
       }
       watch.controller = {
-        start: sinon.stub()
+        start: stub()
       }
     });
 
@@ -174,11 +206,11 @@ describe('watchers', () => {
       });
 
       it('calls client.start', () => {
-        sinon.assert.called(watch.client.start);
+        assert.called(watch.client.start);
       });
 
       it('calls controller.start', () => {
-        sinon.assert.called(watch.controller.start);
+        assert.called(watch.controller.start);
       });
     });
   });

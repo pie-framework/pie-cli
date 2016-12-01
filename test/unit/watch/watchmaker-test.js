@@ -1,33 +1,65 @@
 import { expect } from 'chai';
 import proxyquire from 'proxyquire'
-import sinon from 'sinon';
+import { stub, match, assert } from 'sinon';
 import _ from 'lodash';
 
 describe('watchmaker', () => {
 
-  let watchmaker, pieWatchConstructor, watcherStub, fileWatchConstructor;
+  let watchmaker,
+    pieWatchConstructor,
+    pieWatch,
+    fileWatch,
+    watcherStub,
+    fileWatchConstructor,
+    questionConfig,
+    elements;
 
-
-  let questionConfig = (locals) => {
-    return {
-      localDependencies: locals,
-      dir: 'dir',
-      filenames: {
-        config: 'config.json',
-        markup: 'index.html'
+  beforeEach(() => {
+    elements = require('../../../lib/question/config/elements');
+    elements.StubPiePackage = class StubPiePackage extends elements.PiePackage {
+      constructor() {
+        super('key', 'value');
       }
     }
-  }
+
+    questionConfig = (elements) => {
+      return {
+        elements: elements,
+        dir: 'dir',
+        filenames: {
+          json: 'config.json',
+          markup: 'index.html'
+        }
+      }
+    }
+
+  })
 
   beforeEach(() => {
 
 
-    watcherStub = {
-      start: sinon.stub()
-    };
+    let watchers = require('../../../lib/watch/watchers');
 
-    pieWatchConstructor = sinon.stub().returns(watcherStub);
-    fileWatchConstructor = sinon.stub().returns({});
+    class StubPieWatch extends watchers.PieWatch {
+      constructor() {
+        super('stub', 'stub', 'stub');
+        this.start = stub();
+      }
+    }
+
+    class StubFileWatch extends watchers.FileWatch {
+      constructor() {
+        super('', '', '');
+        this.start = stub();
+      }
+    }
+
+    pieWatch = new StubPieWatch()
+    pieWatchConstructor = stub().returns(pieWatch);
+    fileWatch = new StubFileWatch();
+
+    fileWatchConstructor = stub().returns(fileWatch);
+
 
     watchmaker = proxyquire('../../../lib/watch/watchmaker', {
       './watchers': {
@@ -35,7 +67,7 @@ describe('watchmaker', () => {
         FileWatch: fileWatchConstructor
       },
       '../npm/dependency-helper': {
-        pathIsDir: sinon.stub().returns(true)
+        pathIsDir: stub().returns(true)
       }
     });
   });
@@ -55,8 +87,8 @@ describe('watchmaker', () => {
       let watchers, dep;
 
       beforeEach(() => {
-        dep = sinon.stub();
-        watchers = watchmaker.init(questionConfig({ local: dep }), () => { });
+        dep = stub();
+        watchers = watchmaker.init(questionConfig([new elements.StubPiePackage()]), () => { });
       });
 
       it('returns 1 watcher', () => {
@@ -64,19 +96,19 @@ describe('watchmaker', () => {
       });
 
       it('calls constructor', () => {
-        sinon.assert.calledWith(pieWatchConstructor, 'local', dep, 'dir');
+        assert.calledWith(pieWatchConstructor, 'key', 'value', 'dir');
       });
 
       it('calls start', () => {
-        sinon.assert.called(watcherStub.start);
+        assert.called(pieWatch.start);
       });
 
       it('calls file watch constructor for index.html', () => {
-        sinon.assert.calledWith(fileWatchConstructor, 'dir/index.html', sinon.match.func);
+        assert.calledWith(fileWatchConstructor, 'dir/index.html', match.func);
       });
 
       it('calls file watch constructor for config.json', () => {
-        sinon.assert.calledWith(fileWatchConstructor, 'dir/config.json', sinon.match.func);
+        assert.calledWith(fileWatchConstructor, 'dir/config.json', match.func);
       });
 
     });

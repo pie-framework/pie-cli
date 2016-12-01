@@ -33,6 +33,7 @@ describe('ExampleApp', () => {
     }
 
     express = stub().returns(expressInstance);
+    express.static = stub();
 
     webpackDevMiddleware = stub().returns({});
 
@@ -61,7 +62,6 @@ describe('ExampleApp', () => {
         'pie-control-panel': `PieLabs/pie-control-panel#${b}`
       }
     }
-
     it('returns default branch specific dependencies', () => {
       expect(app.dependencies()).to.eql(deps('develop'));
     });
@@ -123,7 +123,10 @@ describe('ExampleApp', () => {
     };
 
     beforeEach(() => {
-      let js = app.entryJs('a');
+      let js = app.entryJs({
+        name: 'a', js: `
+      import A from 'a';
+      customElements.define('a', A);`});
       ast = parse(js, { ecmaVersion: 6, sourceType: 'module' });
     });
 
@@ -153,27 +156,33 @@ describe('ExampleApp', () => {
       }
 
       markup = '<div></div>';
-      model = {
-        pies: []
-      }
 
       app._staticExample = stub().returns('stubbed');
-
-      logger.silly(paths, ids, markup, model);
-      app.staticMarkup(paths, ids, markup, model);
+      app.staticMarkup(paths, ids, {
+        pieModels: [],
+        weights: [],
+        elementModels: [],
+        markup: markup,
+        langs: [],
+        scoringType: 'weighted'
+      });
     });
 
     it('calls _staticExample', () => {
       assert.calledWith(app._staticExample, {
         paths: paths,
         ids: ids,
-        model: model,
+        pieModels: [],
+        elementModels: [],
+        scoringType: 'weighted',
+        weights: [],
+        langs: [],
         markup: markup
       });
     });
 
     it('calls jsesc', () => {
-      assert.calledWith(jsesc, model);
+      assert.calledWith(jsesc, []);
     });
   });
 
@@ -231,6 +240,8 @@ describe('ExampleApp', () => {
         controllers: {}
       }
       opts = {
+        pieModels: () => [],
+        elementModels: () => [],
         paths: {
           controllers: 'controllers.js',
           client: 'pie.js'
@@ -265,17 +276,14 @@ describe('ExampleApp', () => {
   describe('_mkApp', () => {
 
     describe('errors', () => {
-      it('throws an error if opts is not defined', () => {
-        expect(() => app._mkApp({}, undefined)).to.throw('opts and opts.paths must be defined');
-      });
 
       it('throws an error if opts.paths is not defined', () => {
-        expect(() => app._mkApp({}, {})).to.throw('opts and opts.paths must be defined');
+        expect(() => app._mkApp({})).to.throw('paths must be defined');
       });
     });
 
     describe('no errors', () => {
-      let result, compilers, getHandler, opts;
+      let result, compilers, getHandler, config, paths, ids;
 
       beforeEach(() => {
 
@@ -294,20 +302,27 @@ describe('ExampleApp', () => {
               filename: 'controllers.js'
             }
           }
-        }
+        };
 
-        opts = {
-          paths: {
-            client: 'pie.js',
-            controllers: 'controllers.js'
-          },
-          ids: {
-            controllers: '1234'
-          },
-          model: stub().returns({ stubModel: true }),
-          markup: stub().returns('<div>stub</div>')
+        paths = {
+          client: 'pie.js',
+          controllers: 'controllers.js'
+        };
+
+        ids = {
+          controllers: '1234'
+        };
+
+        config = {
+          dir: 'dir',
+          pieModels: [],
+          elementModels: [],
+          markup: '<div>stub</div>',
+          scoringType: 'weighted',
+          weights: [],
+          langs: []
         }
-        result = app._mkApp(compilers, opts);
+        result = app._mkApp(compilers, paths, ids, config);
       });
 
       it('returns the app', () => {
@@ -316,6 +331,10 @@ describe('ExampleApp', () => {
 
       it('calls express', () => {
         assert.called(express);
+      });
+
+      it('calls express.static', () => {
+        assert.calledWith(express.static, 'dir');
       });
 
       it('sets the view engine', () => {
@@ -334,8 +353,8 @@ describe('ExampleApp', () => {
         assert.calledWith(webpackDevMiddleware, compilers.client, { publicPath: '/', noInfo: true });
       });
 
-      it('calls app.use twice', () => {
-        assert.calledTwice(expressInstance.use);
+      it('calls app.use thrice', () => {
+        assert.calledThrice(expressInstance.use);
       });
 
       it('calls render on GET /', () => {
@@ -347,7 +366,16 @@ describe('ExampleApp', () => {
         assert.calledWith(
           res.render,
           'example-with-sock',
-          { paths: opts.paths, ids: opts.ids, model: opts.model(), markup: opts.markup() });
+          {
+            paths: paths,
+            ids: ids,
+            pieModels: config.pieModels,
+            scoringType: 'weighted',
+            weights: config.weights,
+            langs: config.langs,
+            elementModels: config.elementModels,
+            markup: config.markup
+          });
       });
 
     });

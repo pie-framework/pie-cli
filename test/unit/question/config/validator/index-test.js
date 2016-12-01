@@ -1,11 +1,27 @@
 import { expect } from 'chai';
-import { buildLogger } from '../../../lib/log-factory';
+import { buildLogger } from '../../../../../lib/log-factory';
 import _ from 'lodash';
+import {stub} from 'sinon';
+import proxyquire from 'proxyquire';
 
 const logger = buildLogger();
 
 describe('config-validator', () => {
-  let validate = require('../../../lib/question/config-validator').validate;
+
+  let fsExtra, validate;
+
+  beforeEach(() => {
+
+    fsExtra = {
+      readJsonSync: stub().returns({}),
+      existsSync: stub().returns(true)
+    }
+
+    validate = proxyquire('../../../../../lib/question/config/validator', {
+      'fs-extra' : fsExtra
+    }).validate;
+
+  });
 
   describe('validate', () => {
 
@@ -18,10 +34,11 @@ describe('config-validator', () => {
     }
 
     assertValid({}, false);
-    assertValid({ pies: [] }, false);
-    assertValid({ pies: [{ id: '1' }] }, false);
-    assertValid({ pies: [{ pie: { name: 'name', version: 'version' } }] }, false);
-    assertValid({ pies: [{ id: '1', pie: { name: 'name', version: 'version' } }] }, true);
+    assertValid({ elements: [] }, false);
+    assertValid({ elements: {} }, true);
+    assertValid({ elements: {}, models: [] }, false);
+    assertValid({ elements: {}, models: [{ id: '1' }] }, false);
+    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }] }, true);
   });
 
   describe('validate w/ pie schemas for individual pies', () => {
@@ -44,40 +61,48 @@ describe('config-validator', () => {
     }
 
     data = {
-      pies: [
+      elements: {
+        'my-pie': '1.0.0'
+      },
+      models: [
         {
           id: '1',
-          pie: { name: 'my-pie', version: '1.0.0' },
+          element: 'my-pie', 
           prompt: 'What is 1 + 1',
           answer: '2'
         },
         {
           id: '2',
-          pie: { name: 'my-pie', version: '1.0.0' },
+          element: 'my-pie', 
           answer: '3'
         }
       ]
     }
 
     correctData = _.cloneDeep(data);
-    correctData.pies[1].prompt = 'fixed prompt';
+    correctData.models[1].prompt = 'fixed prompt';
 
     let assertValid = (obj, expected, failingId) => {
       let result;
 
       describe(`with ${JSON.stringify(obj)}`, () => {
         beforeEach(() => {
-          result = validate(obj, () => pieSchema);
+
+          fsExtra.existsSync.returns(true);
+          fsExtra.readJsonSync.returns(pieSchema);
+
+          result = validate(obj, [{key: 'my-pie', schemasDir: 'docs/schemas'}  ]);
           logger.debug(result);
         });
 
         it(`returns ${expected} for ${JSON.stringify(obj)}`, () => {
+          console.log('result: ', result)
           expect(result.valid).to.eql(expected);
         });
 
         it(`failing id is ${failingId}`, () => {
           if (!result.valid) {
-            expect(result.failingPieValidations[0].id).to.eql(failingId);
+            expect(result.failingConfigValidations[0].id).to.eql(failingId);
           }
         });
       });

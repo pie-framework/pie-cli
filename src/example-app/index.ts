@@ -7,7 +7,11 @@ import * as jsesc from 'jsesc';
 import { buildLogger } from '../log-factory';
 import * as express from 'express';
 import * as webpackMiddleware from 'webpack-dev-middleware';
-import ExampleAppServer from './server';
+import ExampleAppServer, { Server } from './server';
+import { ElementDeclaration, Declaration } from '../code-gen/declaration';
+import * as webpack from 'webpack';
+import { Weight } from '../question/config/raw';
+import { Config } from '../question/config';
 
 const logger = buildLogger();
 
@@ -15,32 +19,28 @@ const templatePath = join(__dirname, 'views/example.pug');
 
 logger.silly('[templatePath]: ', templatePath);
 
-const pieController = {
+const pieController: Declaration = {
   key: 'pie-controller',
-  initSrc: `
+  js: `
         import Controller from 'pie-controller';
         window.pie = window.pie || {};
         window.pie.Controller = Controller;`
 };
 
-let defineCustomElement = (p, index) => `
-  import comp${index} from '${p}';
-  //customElements v1 
-  customElements.define('${p}', comp${index});
-  `;
+export interface App {
+  entryJs: (defs: Declaration[]) => string;
+  frameworkSupport: () => string[];
+  dependencies: (branch: string) => { [key: string]: string };
+  staticMarkup(paths, ids, config: Config): string;
+  server: (compilers: {
+    client: webpack.compiler.Compiler,
+    controllers: webpack.compiler.Compiler
+  }, paths, ids, config: Config) => Server;
+}
 
-let writeInitLogic = (p, index) => {
-  if (p.hasOwnProperty('initSrc')) {
-    return p.initSrc;
-  }
-  else {
-    return defineCustomElement(p, index);
-  }
-};
+export default class ExampleApp implements App {
 
-export default class ExampleApp {
-
-  private _staticExample;
+  private _staticExample: pug.compileTemplate;
   private _server;
 
   constructor() {
@@ -48,7 +48,7 @@ export default class ExampleApp {
     this._staticExample = pug.compileFile(templatePath, { pretty: true });
   }
 
-  dependencies(branch = 'develop') {
+  dependencies(branch: string = 'develop') {
     return {
       'pie-controller': `PieLabs/pie-controller#${branch}`,
       'pie-player': `PieLabs/pie-player#${branch}`,
@@ -63,10 +63,15 @@ export default class ExampleApp {
     ]
   }
 
-  entryJs(elementNames) {
+  entryJs(defs: Declaration[]) {
+    let defaults = [
+      pieController,
+      new ElementDeclaration('pie-player'),
+      new ElementDeclaration('pie-control-panel')
+    ];
 
-    let all = _.concat([pieController, 'pie-player', 'pie-control-panel'], elementNames);
-    let initLogic = _.map(all, writeInitLogic).join('\n');
+    let all: Declaration[] = _.concat(defaults, defs);
+    let initLogic = _.map(all, d => d.js).join('\n');
 
     return `
     if(!customElements){
@@ -77,13 +82,16 @@ export default class ExampleApp {
     `;
   }
 
-  staticMarkup(paths, ids, markup, model) {
-    let escapedModel = jsesc(model);
+  staticMarkup(paths, ids, config: Config) {
     return this._staticExample({
       paths: paths,
       ids: ids,
-      model: escapedModel,
-      markup: markup
+      pieModels: jsesc(config.pieModels as any),
+      weights: jsesc(config.weights as any),
+      scoringType: config.scoringType,
+      elementModels: jsesc(config.elementModels as any),
+      markup: config.markup,
+      langs: jsesc(config.langs as any)
     });
   };
 
@@ -103,23 +111,22 @@ export default class ExampleApp {
     });
   }
 
-  server(compilers, opts) {
-    opts.paths.sock = ExampleAppServer.SOCK_PREFIX();
-    let app = this._mkApp(compilers, opts);
+  server(compilers, paths, ids, config: Config) {
+    let app = this._mkApp(compilers, paths, ids, config);
     this._server = new ExampleAppServer(app);
     this._linkCompilerToServer('controllers', compilers.controllers, this._server);
     this._linkCompilerToServer('client', compilers.client, this._server);
     return this._server;
   }
 
-  _mkApp(compilers, opts) {
+  _mkApp(compilers, paths, ids, config: Config) {
 
-    if (!opts || !opts.paths) {
-      throw new Error('opts and opts.paths must be defined');
+    if (!paths) {
+      throw new Error('paths must be defined');
     }
 
     //set the sock path
-    opts.paths.sock = ExampleAppServer.SOCK_PREFIX();
+    paths.sock = ExampleAppServer.SOCK_PREFIX();
 
     const app = express();
 
@@ -142,12 +149,18 @@ export default class ExampleApp {
 
     app.get('/', (req, res) => {
       res.render('example-with-sock', {
-        paths: opts.paths,
-        ids: opts.ids,
-        model: jsesc(opts.model()),
-        markup: opts.markup()
+        paths: paths,
+        ids: ids,
+        pieModels: jsesc(config.pieModels as any),
+        weights: jsesc(config.weights as any),
+        scoringType: config.scoringType,
+        langs: jsesc(config.langs as any),
+        elementModels: jsesc(config.elementModels as any),
+        markup: config.markup
       });
     });
+
+    app.use(express.static(config.dir));
 
     return app;
   }

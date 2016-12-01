@@ -5,27 +5,17 @@ import * as _ from 'lodash';
 import * as fs from 'fs-extra';
 
 const logger = buildLogger();
+
 interface Roots {
   srcRoot: string;
   targetRoot: string;
 }
 
-export class FileWatch {
-  private _watch;
-  constructor(readonly filepath, readonly onChange) {
-    logger.silly('[FileWatch] filepath: ', filepath);
-
-    this._watch = chokidar.watch(this.filepath, { ignoreInitial: true });
-    this._watch.on('change', () => {
-      onChange(this.filepath);
-    });
-    this._watch.on('ready', () => {
-      logger.silly('[FileWatch] ready for path: ', filepath);
-    });
-  }
+export interface Watch {
+  start: () => void;
 }
 
-export class BaseWatch implements Roots {
+export class BaseWatch implements Roots, Watch {
 
   private _watcher;
   constructor(private ignores) { }
@@ -38,7 +28,7 @@ export class BaseWatch implements Roots {
     return destination;
   }
 
-  start() {
+  start(): void {
 
     logger.debug('[BaseWatch] [start] srcRoot: ', this.srcRoot);
 
@@ -88,32 +78,34 @@ export class BaseWatch implements Roots {
   }
 }
 
+
+export class PackageWatch extends BaseWatch {
+  constructor(private name: string, private relativePath: string, readonly rootDir: string, ignore: (string | RegExp)[] = []) {
+    super(ignore);
+  }
+
+  get srcRoot() {
+    return resolve(this.rootDir, this.relativePath);
+  }
+
+  get targetRoot() {
+    return resolve(join(this.rootDir, 'node_modules', this.name));
+  }
+}
+
+
 export class PieControllerWatch extends BaseWatch {
 
-  constructor(private name, private relativePieRoot, private questionRoot) {
+  constructor(private name, private relativePath, private rootDir) {
     super([]);
   }
 
   get srcRoot() {
-    return resolve(join(this.questionRoot, this.relativePieRoot, 'controller'));
+    return resolve(join(this.rootDir, this.relativePath, 'controller'));
   }
 
   get targetRoot() {
-    return resolve(join(this.questionRoot, 'controllers', 'node_modules', `${this.name}-controller`));
-  }
-}
-
-export class PieClientWatch extends BaseWatch {
-  constructor(private name, private relativePieRoot, private questionRoot) {
-    super([/.*controller.*/]);
-  }
-
-  get srcRoot() {
-    return resolve(this.questionRoot, this.relativePieRoot);
-  }
-
-  get targetRoot() {
-    return resolve(join(this.questionRoot, 'node_modules', this.name));
+    return resolve(join(this.rootDir, 'controllers', 'node_modules', `${this.name}-controller`));
   }
 }
 
@@ -124,12 +116,31 @@ export class PieWatch {
 
   constructor(name, relativePath, rootDir) {
     logger.debug('[PieWatch] constructor: ', name, relativePath, rootDir);
-    this.client = new PieClientWatch(name, relativePath, rootDir);
+    this.client = new PackageWatch(name, relativePath, rootDir, [/.*controller.*/]);
     this.controller = new PieControllerWatch(name, relativePath, rootDir);
   }
 
   start() {
     this.client.start();
     this.controller.start();
+  }
+}
+
+export class FileWatch implements Watch {
+  private _watch;
+  constructor(readonly filepath, readonly onChange: (string) => void) {
+  }
+
+  start() {
+    logger.silly('[FileWatch] filepath: ', this.filepath);
+
+    this._watch = chokidar.watch(this.filepath, { ignoreInitial: true });
+    this._watch.on('change', () => {
+      this.onChange(this.filepath);
+    });
+
+    this._watch.on('ready', () => {
+      logger.silly('[FileWatch] ready for path: ', this.filepath);
+    });
   }
 }

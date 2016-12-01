@@ -2,9 +2,8 @@ import { buildLogger } from '../log-factory';
 import Question, { CleanMode } from '../question';
 import CliCommand from './cli-command';
 import { resolve, join } from 'path';
-import ExampleApp from '../example-app';
-import { softWrite } from '../file-helper';
-import { removeSync } from 'fs-extra';
+import ExampleApp, { App } from '../example-app';
+import { removeSync, writeFileSync } from 'fs-extra';
 import tmpSupport from './tmp-support';
 import manifest from './manifest';
 
@@ -33,12 +32,11 @@ class PackQuestionCommand extends CliCommand {
     super('pack-question', 'generate a question package');
   }
 
-  run(args) {
+  run(args, app: App = new ExampleApp()) {
     let packOpts = PackQuestionOpts.build(args);
     let dir = resolve(packOpts.dir);
-    let exampleApp = new ExampleApp();
     let questionOpts = Question.buildOpts(args);
-    let question = new Question(dir, questionOpts, tmpSupport, exampleApp);
+    let question = new Question(dir, questionOpts, tmpSupport, app);
 
     logger.silly('[run] packOpts? ', packOpts);
 
@@ -68,7 +66,7 @@ class PackQuestionCommand extends CliCommand {
           }
 
           logger.silly('question: ', question)
-          let markup = exampleApp.staticMarkup(paths, ids, question.config.markup, question.config.config);
+          let markup = app.staticMarkup(paths, ids, question.config);
 
           logger.silly('markup: ', markup);
 
@@ -78,7 +76,7 @@ class PackQuestionCommand extends CliCommand {
             removeSync(examplePath);
           }
 
-          return softWrite(examplePath, markup);
+          return writeFileSync(examplePath, markup, 'utf8');
         }
       })
       .then(() => manifest.run({ dir: dir, outfile: args.manifestOutfile }))

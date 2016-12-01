@@ -2,13 +2,10 @@
   "name": "hello-world",
   "version": "1.0.0",
   "license": "MIT",
-  "description": "Just a test pkg",
+  "description": "A very simple pie package",
   "repository": {},
   "main": "lib/index.js",
-  "dependencies": {
-    "react": "~15.4.0",
-    "react-dom": "~15.4.0"
-  },
+  "dependencies": {},
   "pie": {
     "version": "~1.0.0",
     "build": [

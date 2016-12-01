@@ -4,12 +4,12 @@ import { buildLogger } from '../../log-factory';
 import { dependenciesToHash } from '../../npm/dependency-helper';
 import NpmDir from '../../npm/npm-dir';
 import { writeConfig } from '../../code-gen/webpack-write-config';
-import { removeFiles } from '../../file-helper';
 import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import * as _ from 'lodash';
 import buildDependencies from '../build-dependencies';
 import { BuildInfo } from '../build-info';
-import { QuestionConfig } from '../question-config';
+import { JsonConfig } from '../config';
+import { PiePackage } from '../config/elements'
 
 let logger = buildLogger();
 
@@ -28,11 +28,12 @@ export class BuildOpts {
 exports.NPM_DEPENDENCIES = buildDependencies;
 
 const CONTROLLERS_DIR = 'controllers';
+
 export class ControllersBuildable {
 
   private npmDir;
 
-  constructor(private config: QuestionConfig, private opts) {
+  constructor(private config: JsonConfig, private opts) {
     fs.ensureDirSync(this.controllersDir);
     this.npmDir = new NpmDir(this.controllersDir);
     logger.silly('[constructor] this.controllersDir', this.controllersDir);
@@ -42,19 +43,14 @@ export class ControllersBuildable {
     return join(this.config.dir, CONTROLLERS_DIR);
   }
 
-  private get dependencies() {
-    return _.reduce(this.config.pies, (acc, p: any) => {
-      let pieControllerDir = join(p.installedPath, 'controller');
-      logger.silly('[get dependencies] pieControllerDir: ', pieControllerDir);
-      if (fs.existsSync(pieControllerDir)) {
-        let modulePath = relative(this.controllersDir, pieControllerDir);
-        acc[p.name] = modulePath;
-      }
-      else {
-        logger.warn('[build] the following path doesnt exist: ', pieControllerDir);
-      }
+  private get dependencies(): { [key: string]: string } {
+    let out = _.reduce(this.config.installedPies, (acc, p: PiePackage) => {
+      let modulePath = relative(this.controllersDir, p.controllerDir);
+      acc[p.key] = modulePath;
       return acc;
     }, {});
+    logger.silly('[get dependencies] out: ', out);
+    return out;
   }
 
   get uid() { return dependenciesToHash(this.dependencies); }

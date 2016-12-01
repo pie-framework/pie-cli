@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import sinon from 'sinon';
+import {stub, assert, spy, match} from 'sinon';
 import proxyquire from 'proxyquire';
 import path from 'path';
 
@@ -10,17 +10,18 @@ describe('npm-dir', () => {
     handlers = {};
 
     spawned = {
-      on: sinon.spy(function (name, handler) {
+      on: spy(function (name, handler) {
         handlers[name] = handler;
       })
     }
 
     fs = {
-      writeJsonSync: sinon.stub()
+      writeJsonSync: stub(),
+      existsSync: stub().returns(true)
     }
 
     childProcess = {
-      spawn: sinon.stub().returns(spawned)
+      spawn: stub().returns(spawned)
     }
 
     NpmDir = proxyquire('../../../lib/npm/npm-dir', {
@@ -28,12 +29,12 @@ describe('npm-dir', () => {
       'fs-extra': fs,
       'child_process': childProcess,
       'readline': {
-        createInterface: sinon.stub().returns({
-          on: sinon.stub()
+        createInterface: stub().returns({
+          on: stub()
         })
       },
       '../file-helper': {
-        removeFiles: sinon.stub()
+        removeFiles: stub()
       }
     }).default;
   });
@@ -51,7 +52,7 @@ describe('npm-dir', () => {
     let dir;
     beforeEach(() => {
       dir = new NpmDir(__dirname);
-      dir._exists = sinon.stub();
+      dir._exists = stub();
     });
 
     it('writes package.json when installing', (done) => {
@@ -59,7 +60,7 @@ describe('npm-dir', () => {
       withCloseHandler(() => {
         dir.install({})
           .then(() => {
-            sinon.assert.calledWith(fs.writeJsonSync, path.join(__dirname, 'package.json'), sinon.match.object);
+            assert.calledWith(fs.writeJsonSync, path.join(__dirname, 'package.json'), match.object);
             done();
           })
           .catch(done);
@@ -70,7 +71,7 @@ describe('npm-dir', () => {
       withCloseHandler(() => {
         dir.install({})
           .then(() => {
-            sinon.assert.calledWith(childProcess.spawn, 'npm', ['install'], { cwd: __dirname });
+            assert.calledWith(childProcess.spawn, 'npm', ['install'], { cwd: __dirname });
             done();
           })
           .catch(done);
@@ -94,7 +95,7 @@ describe('npm-dir', () => {
     let dir;
     beforeEach(() => {
       dir = new NpmDir(__dirname);
-      dir._exists = sinon.stub();
+      dir._exists = stub();
     });
 
     it('skips the install if all the dependencies exist', (done) => {
@@ -122,11 +123,59 @@ describe('npm-dir', () => {
 
         dir.installMoreDependencies({ a: '1.0.0', b: '1.0.0' })
           .then(() => {
-            sinon.assert.calledWith(childProcess.spawn, 'npm', ['install', 'a@1.0.0'], { cwd: __dirname });
+            assert.calledWith(childProcess.spawn, 'npm', ['install', 'a@1.0.0'], { cwd: __dirname });
             done();
           }).catch(done);
 
       });
     });
-  })
+  });
+
+  describe('ls', () => {
+
+    let dir;
+
+    let call = (firstExistsSyncResult, done) => {
+        dir = new NpmDir(__dirname);
+        fs.existsSync
+          .onFirstCall().returns(firstExistsSyncResult)
+          .onSecondCall().returns(true);
+
+        dir._spawnPromise = stub().returns(Promise.resolve({stdout: '{}'}));
+        dir._install = stub().returns(Promise.resolve());
+        dir.ls()
+         .then(done.bind(null, null))
+         .catch(done);
+    }
+
+    describe('when installed', () => {
+
+      beforeEach((done) => {
+        call(true, done);
+      });
+
+      it('does not call _install', () => {
+        assert.notCalled(dir._install);
+      });
+
+      it('calls _spawnPromise', () => {
+        assert.calledWith(dir._spawnPromise, ['ls', '--json'], true);
+      });
+    });
+
+    describe('when not installed', () => {
+
+      beforeEach((done) => {
+        call(false, done);
+      });
+
+      it('calls _install', () => {
+        assert.called(dir._install);
+      });
+
+      it('calls _spawnPromise', () => {
+        assert.calledWith(dir._spawnPromise, ['ls', '--json'], true);
+      });
+    });
+  });
 });

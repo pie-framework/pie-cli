@@ -45,6 +45,6 @@ let toSrc = (dependencies) => {
   return keyed.join(',');
 };
 
-let hash = (s) => {
+export let hash = (s: string) => {
   return crypto.createHash('md5').update(s).digest('hex');
 }
