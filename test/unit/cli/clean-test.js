@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import { assert, stub, spy } from 'sinon';
 
-describe('clean-question', () => {
+describe('clean', () => {
 
   let cmd, questionConstructor, questionInstance, buildOpts, fsExtra, path;
 
@@ -39,7 +39,7 @@ describe('clean-question', () => {
 
     questionConstructor.buildOpts = stub().returns(buildOpts);
 
-    cmd = proxyquire('../../../lib/cli/clean-question', {
+    cmd = proxyquire('../../../lib/cli/clean', {
       '../question': {
         default: questionConstructor
       },
@@ -50,8 +50,8 @@ describe('clean-question', () => {
 
   describe('match', () => {
 
-    it('returns true for clean-question', () => {
-      expect(cmd.match({ _: ['clean-question'] })).to.eql(true);
+    it('returns true for clean', () => {
+      expect(cmd.match({ _: ['clean'] })).to.eql(true);
     });
   });
 
