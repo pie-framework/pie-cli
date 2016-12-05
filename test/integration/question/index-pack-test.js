@@ -32,7 +32,7 @@ describe('Question', () => {
 
   describe('post pack cleanup', () => {
 
-    let packCmd = require('../../../lib/cli/pack-question').default;
+    let packCmd = require('../../../lib/cli/pack').default;
 
     before(function (done) {
       this.timeout(120000);

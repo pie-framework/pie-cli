@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import { assert, stub, spy } from 'sinon';
 
-describe('pack-question', () => {
+describe('pack', () => {
 
   let cmd,
     questionConstructor,
@@ -64,7 +64,7 @@ describe('pack-question', () => {
       staticMarkup: stub().returns('<div>hi</div>')
     }
 
-    cmd = proxyquire('../../../lib/cli/pack-question', {
+    cmd = proxyquire('../../../lib/cli/pack', {
       '../question': {
         default: questionConstructor
       },
@@ -82,8 +82,8 @@ describe('pack-question', () => {
 
   describe('match', () => {
 
-    it('returns true for pack-question', () => {
-      expect(cmd.match({ _: ['pack-question'] })).to.eql(true);
+    it('returns true for pack', () => {
+      expect(cmd.match({ _: ['pack'] })).to.eql(true);
     });
   });
 
