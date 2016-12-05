@@ -1,5 +1,5 @@
-import { QuestionConfig } from '../../../src/question/question-config';
-import NpmDir from '../../../src/npm/npm-dir';
+import { QuestionConfig } from '../../../lib/question/question-config';
+import NpmDir from '../../../lib/npm/npm-dir';
 import { expect } from 'chai';
 import { join } from 'path';
 import { setUpTmpQuestionAndComponents } from '../integration-test-helper';

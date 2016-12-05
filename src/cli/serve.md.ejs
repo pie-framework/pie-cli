@@ -1,0 +1,21 @@
+# serve 
+---
+
+Run a server to serve this question. Any changes to the `pie` source code, the `config.json` or the `index.html` will be picked up. However if you add a new component to the `config.json` this won't be picked up, you'll have to restart the server.
+
+## Options
+  `--dir` - the relative path to a directory to use as the root. This should contain `config.json` and `index.html` (default: the current working directory)
+  `--port` - the port to use - default `4000`
+  `--clean` - clean build assets before serving. Do this if you've added a new component. default: `false`
+  `--bundleName` - the name of the generated bundle - default `pie.js`
+  `--controllersFilename` - the name of the generated controllers file - default `controllers.js`
+  `--pieBranch` - what branch of the pie dependencies (pie-player, pie-control-panel, etc) to use: default: `develop`
+  `--questionConfigFile` - the name of the pie data file - default `config.json`
+  `--questionDependenciesFile` - the name of the pie data file - default `dependencies.json`
+  `--questionMarkupFile` - the name of layout file - default `index.html`
+  
+## Examples
+```shell
+pie serve --dir ../path/to/dir
+```
+

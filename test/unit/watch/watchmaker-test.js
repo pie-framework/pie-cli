@@ -29,7 +29,7 @@ describe('watchmaker', () => {
     pieWatchConstructor = sinon.stub().returns(watcherStub);
     fileWatchConstructor = sinon.stub().returns({});
 
-    watchmaker = proxyquire('../../../src/watch/watchmaker', {
+    watchmaker = proxyquire('../../../lib/watch/watchmaker', {
       './watchers': {
         PieWatch: pieWatchConstructor,
         FileWatch: fileWatchConstructor

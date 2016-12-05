@@ -1,20 +1,20 @@
 import proxyquire from 'proxyquire';
-import {assert, stub} from 'sinon';
+import { assert, stub } from 'sinon';
 
 describe('version', () => {
-  
+
   let cmd, log, gitExists;
 
   let getCmd = () => {
-    return proxyquire('../../../src/cli/version', {
-      'fs-extra' : {
-        readJsonSync: stub().returns({version: '1.0.0'}),
+    return proxyquire('../../../lib/cli/version', {
+      'fs-extra': {
+        readJsonSync: stub().returns({ version: '1.0.0' }),
         existsSync: stub().returns(gitExists)
       },
-      'child_process' : {
+      'child_process': {
         execSync: stub().returns('HASH')
       }
-    }); 
+    }).default;
   }
 
   beforeEach(() => {
@@ -42,5 +42,5 @@ describe('version', () => {
       assert.calledWith(log, 'version: 1.0.0, git-sha: HASH');
     });
 
-  }); 
+  });
 });

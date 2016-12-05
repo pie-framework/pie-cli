@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import { stub } from 'sinon';
 import { join } from 'path';
-import { buildLogger } from '../../../src/log-factory';
+import { buildLogger } from '../../../lib/log-factory';
 const logger = buildLogger();
 
 describe('QuestionConfig', () => {
@@ -20,7 +20,7 @@ describe('QuestionConfig', () => {
   class Proxy {
 
     get m() {
-      return proxyquire('../../../src/question/question-config', {
+      return proxyquire('../../../lib/question/question-config', {
         'fs-extra': fsExtra,
         './config-validator': {
           validate: stub().returns({ valid: true, errors: [] })

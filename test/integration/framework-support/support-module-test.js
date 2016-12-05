@@ -8,7 +8,7 @@ describe('support-module', () => {
   let supportModule;
 
   beforeEach(() => {
-    supportModule = require('../../../src/framework-support/support-module');
+    supportModule = require('../../../lib/framework-support/support-module');
   })
 
   let expected = {

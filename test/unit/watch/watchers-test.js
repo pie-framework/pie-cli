@@ -36,7 +36,7 @@ describe('watchers', () => {
       remove: sinon.stub()
     }
 
-    watchers = proxyquire('../../../src/watch/watchers', {
+    watchers = proxyquire('../../../lib/watch/watchers', {
       chokidar: chokidar,
       'fs-extra': fs
     });
