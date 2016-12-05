@@ -9,7 +9,7 @@ import manifest from './manifest';
 
 const logger = buildLogger();
 
-export class PackQuestionOpts {
+export class PackOpts {
   constructor(readonly dir: string,
     readonly clean: boolean,
     readonly buildExample: boolean,
@@ -18,7 +18,7 @@ export class PackQuestionOpts {
 
 
   static build(args) {
-    return new PackQuestionOpts(
+    return new PackOpts(
       args.dir || process.cwd(),
       args.clean === 'true' || args.clean === true,
       args.buildExample !== 'false' && args.buildExample !== false,
@@ -27,13 +27,13 @@ export class PackQuestionOpts {
   }
 }
 
-class PackQuestionCommand extends CliCommand {
+class PackCommand extends CliCommand {
   constructor() {
-    super('pack-question', 'generate a question package');
+    super('pack', 'generate a question package');
   }
 
   run(args, app: App = new ExampleApp()) {
-    let packOpts = PackQuestionOpts.build(args);
+    let packOpts = PackOpts.build(args);
     let dir = resolve(packOpts.dir);
     let questionOpts = Question.buildOpts(args);
     let question = new Question(dir, questionOpts, tmpSupport, app);
@@ -87,5 +87,5 @@ class PackQuestionCommand extends CliCommand {
   }
 }
 
-let cmd = new PackQuestionCommand();
+let cmd = new PackCommand();
 export default cmd;

@@ -9,7 +9,7 @@ let noCallThruStub = (returnValue) => {
   return s;
 }
 
-describe('serve-question', () => {
+describe('serve', () => {
   let cmd, proxy, question, questionConstructor, exampleApp, exampleAppConstructor, webpack, watchmaker;
 
   beforeEach(() => {
@@ -72,19 +72,19 @@ describe('serve-question', () => {
       '../watch/watchmaker': watchmaker,
       '../example-app': exampleAppConstructor
     }
-    cmd = proxyquire('../../../lib/cli/serve-question', proxy);
+    cmd = proxyquire('../../../lib/cli/serve', proxy);
   });
 
-  describe('ServeQuestionOpts', () => {
+  describe('ServeOpts', () => {
 
-    let ServeQuestionOpts;
+    let ServeOpts;
 
     beforeEach(() => {
-      ServeQuestionOpts = cmd.ServeQuestionOpts;
+      ServeOpts = cmd.ServeOpts;
     });
 
     it('build defaults', () => {
-      expect(ServeQuestionOpts.build()).to.eql({
+      expect(ServeOpts.build()).to.eql({
         dir: process.cwd(),
         clean: false,
         port: 4000
@@ -95,7 +95,7 @@ describe('serve-question', () => {
       let opts;
 
       before(() => {
-        opts = ServeQuestionOpts.build({
+        opts = ServeOpts.build({
           port: 3000,
           clean: true,
           dir: 'dir'

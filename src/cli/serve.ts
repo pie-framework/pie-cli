@@ -12,13 +12,13 @@ import { ReloadableConfig } from '../question/config';
 
 const logger = buildLogger();
 
-export class ServeQuestionOpts {
+export class ServeOpts {
   constructor(readonly dir, readonly clean, readonly port) {
   }
 
   static build(args) {
     args = args || {};
-    return new ServeQuestionOpts(
+    return new ServeOpts(
       args.dir || process.cwd(),
       args.clean === 'true' || args.clean === true || false,
       args.port || 4000)
@@ -29,7 +29,7 @@ class Cmd extends CliCommand {
 
   constructor() {
     super(
-      'serve-question',
+      'serve',
       'run a dev server'
     )
   }
@@ -52,7 +52,7 @@ class Cmd extends CliCommand {
       server.listen(opts.port);
     });
 
-    let opts = ServeQuestionOpts.build(args);
+    let opts = ServeOpts.build(args);
     let dir = resolve(opts.dir);
     let questionOpts = Question.buildOpts(args);
     let question = new Question(dir, questionOpts, tmpSupport, app);
