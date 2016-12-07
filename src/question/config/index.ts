@@ -78,7 +78,7 @@ export class JsonConfig implements Config {
   readonly scoringType: ScoringType = WEIGHTED;
 
   constructor(readonly dir, readonly filenames: FileNames = new FileNames()) {
-    this._raw = this._readRaw();
+    this.reload();
   }
 
 
@@ -87,6 +87,13 @@ export class JsonConfig implements Config {
    */
   reload() {
     this._raw = this._readRaw();
+
+    //validate the main config (not the pies).
+    let result = validate(this._raw, []);
+
+    if (!result.valid) {
+      throw new Error(`Invalid base config: ${JSON.stringify(result.mainErrors)}`);
+    }
   }
 
   private _readRaw(): RawConfig {
