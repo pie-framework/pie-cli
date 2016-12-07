@@ -178,11 +178,8 @@ export class JsonConfig implements Config {
     }
 
     return _(this._raw.models)
-      .map('element')
+      .map(m => m.element)
       .map(e => {
-        if (!e) {
-          throw new Error(`a model is missing a required property: 'element': ${JSON.stringify(this._raw.models)}`)
-        }
         return { key: e, value: join(this.dir, 'node_modules', e) }
       })
       .map(({key, value}) => PiePackage.build(key, value))
