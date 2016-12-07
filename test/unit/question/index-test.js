@@ -4,7 +4,7 @@ import proxyquire from 'proxyquire';
 
 
 describe('Question', () => {
-  let q, Question, CleanMode, controllers, client, questionConfig, app, fs, fileHelper;
+  let q, Question, CleanMode, controllers, client, configConstructor, FileNames, app, fs, fileHelper;
 
   beforeEach(() => {
 
@@ -62,15 +62,6 @@ describe('Question', () => {
     }
 
 
-    questionConfig = new function () {
-      this.BuildOpts = {
-        build: stub().returns({ questionConfig: true })
-      };
-      this.instance = {};
-
-      this.QuestionConfig = stub().returns(this.instance);
-    };
-
     fs = {
       removeSync: stub().returns(Promise.resolve())
     }
@@ -81,13 +72,20 @@ describe('Question', () => {
       })
     }
 
+    configConstructor = stub().returns({});
+
     let proxied = proxyquire('../../../lib/question', {
       'fs-extra': fs,
       './client': client,
       './controllers': controllers,
-      './question-config': questionConfig,
+      './config': {
+        JsonConfig: configConstructor,
+      },
       '../file-helper': fileHelper
     });
+
+
+    FileNames = require('../../../lib/question/config').FileNames;
 
     Question = proxied.default;
     CleanMode = proxied.CleanMode;
@@ -110,23 +108,23 @@ describe('Question', () => {
       expect(opts.controllers).to.eql(controllers.BuildOpts.build())
     });
 
-    it('builds the questionConfig opts', () => {
-      expect(opts.question).to.eql(questionConfig.BuildOpts.build())
+    it('builds the questionConfig filenames', () => {
+      expect(opts.question).to.eql(require('../../../lib/question/config').FileNames.build());
     });
   });
 
   describe('constructor', () => {
 
     it('calls new QuestionConfig', () => {
-      assert.calledWith(questionConfig.QuestionConfig, 'dir', questionConfig.BuildOpts.build());
+      assert.calledWith(configConstructor, 'dir', FileNames.build());
     });
 
     it('calls new ClientBuildable', () => {
-      assert.calledWith(client.ClientBuildable, questionConfig.instance, [], client.BuildOpts.build());
+      assert.calledWith(client.ClientBuildable, {}, [], client.BuildOpts.build());
     });
 
     it('calls new ControllersBuildable', () => {
-      assert.calledWith(controllers.ControllersBuildable, questionConfig.instance, controllers.BuildOpts.build());
+      assert.calledWith(controllers.ControllersBuildable, {}, controllers.BuildOpts.build());
     });
   });
 
@@ -140,7 +138,6 @@ describe('Question', () => {
             done()
           })
           .catch(done);
-
       }
     }
 

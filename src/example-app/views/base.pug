@@ -17,7 +17,40 @@ html
 
       window.pie = window.pie || {};
       window.pie.env = {mode: 'gather'};
-      window.pie.model = !{model};
+      window.pie.model = {
+        weights: !{weights},
+        scoringType: '!{scoringType || 'weighted'}',
+        pies: !{pieModels},
+        langs: !{langs}
+      };
+      
+      window._customElements = {
+        models: !{elementModels}
+      };
+      
+      document.addEventListener('DOMContentLoaded', () => {
+        let upgradePromises = _.map(_customElements.models, (m) => {
+          return customElements.whenDefined(m.element);
+        });
+
+        Promise.all(upgradePromises).then(() => {
+          console.log('all elements are upgraded, set the models...');
+          console.log('elementModels: ', _customElements.models);
+          _.forEach(_customElements.models, (m) => {
+            let el = document.querySelector(`${m.element}[data-id="${m.id}"]`);
+            if (el) {
+              _.forEach(m, (value, key) => {
+                if(key !== 'id' && key !== 'element'){
+                  el[key] = value;
+                }
+              });
+            } else {
+              throw new Error(`can't find element for:  ${m.element}, ${m.id}`);
+            }
+          });
+        });
+      }); 
+
       window.pie.session = [];
       
       document.addEventListener('pie.player-ready', function(event){
@@ -33,6 +66,9 @@ html
         
         pieController.getLanguages().then(function(l) {
           panel.languages = l;
+        })
+        .catch(e => {
+          console.error(e);
         });
 
         panel.addEventListener('envChanged', function(event){

@@ -4,9 +4,21 @@ import { assert, stub, spy } from 'sinon';
 import _ from 'lodash';
 
 describe('client', () => {
-  let index, npmDirConstructor, npmDirInstance, removeFiles, frameworkSupport, emptyApp;
+  let index,
+    npmDirConstructor,
+    npmDirInstance,
+    removeFiles,
+    frameworkSupport,
+    emptyApp,
+    config,
+    filterLs;
 
   beforeEach(() => {
+
+    config = {
+      dir: 'dir',
+      valid: stub().returns(true)
+    }
 
     emptyApp = {
       frameworkSupport: stub().returns([]),
@@ -14,24 +26,25 @@ describe('client', () => {
     }
 
     npmDirInstance = {
-      clean: stub().returns(Promise.resolve())
+      clean: stub().returns(Promise.resolve()),
+      ls: stub().returns(Promise.resolve({}))
     };
 
     npmDirConstructor = stub().returns(npmDirInstance);
-
-    removeFiles = stub().returns(Promise.resolve());
 
     frameworkSupport = {
       bootstrap: stub().returns(frameworkSupport)
     };
 
+    filterLs = {
+      filterFirstLevelDependencies: stub().returns([])
+    }
+
     index = proxyquire('../../../../lib/question/client', {
       '../../npm/npm-dir': {
         default: npmDirConstructor
       },
-      '../../file-helper': {
-        removeFiles: removeFiles
-      },
+      '../../npm/filter-ls': filterLs,
       '../../framework-support': {
         default: frameworkSupport
       }
@@ -65,7 +78,7 @@ describe('client', () => {
 
     describe('constructor', () => {
       beforeEach(() => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
+        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' }, emptyApp);
       });
 
       it('calls new NpmDir', () => {
@@ -77,7 +90,7 @@ describe('client', () => {
     describe('pack', () => {
       let buildable;
       beforeEach((done) => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
+        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' }, emptyApp);
         buildable.prepareWebpackConfig = stub().returns(Promise.resolve());
         buildable.bundle = stub().returns(Promise.resolve());
         buildable.pack()
@@ -97,7 +110,7 @@ describe('client', () => {
     describe('prepareWebpackConfig', () => {
       let buildable;
       beforeEach((done) => {
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
+        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' }, emptyApp);
         buildable.clean = stub().returns(Promise.resolve());
         buildable._install = stub().returns(Promise.resolve());
         buildable.writeEntryJs = stub().returns(Promise.resolve());
@@ -121,34 +134,22 @@ describe('client', () => {
       });
 
       it('calls isConfigValid', () => {
-        assert.called(buildable.config.isConfigValid);
+        assert.called(buildable.config.valid);
       });
 
     });
 
     describe('_buildFrrameworkConfig', () => {
-      let buildable;
+      let buildable, filtered;
       beforeEach((done) => {
+
         let config = {
           dir: 'dir',
-          piePackages: [
-            {
-              name: 'pie-one',
-              dependencies: {
-                a: '1.0.0',
-                b: '1.0.0'
-              }
-            }
-          ],
-          readPackages: spy(keys => {
-            return _.map(keys, k => {
-              let o = { dependencies: {} }
-              o.dependencies[k] = '1.0.0';
-              return o;
-            });
-          })
+          valid: () => true
         };
 
+        filtered = [{ a: '1.0.0' }];
+        filterLs.filterFirstLevelDependencies.returns(filtered);
         emptyApp.dependencies = stub().returns({ appDependency: '1.0.0' });
 
         buildable = new ClientBuildable(config, [], { bundleName: 'pie.js', pieBranch: 'develop' }, emptyApp);
@@ -163,8 +164,12 @@ describe('client', () => {
           .catch(done);
       });
 
+      it('calls filterFirstLevelDependencies', () => {
+        assert.calledWith(filterLs.filterFirstLevelDependencies, {}, ['appDependency']);
+      });
+
       it('calls buildConfigFromPieDependencies', () => {
-        assert.calledWith(buildable.frameworkSupport.buildConfigFromPieDependencies, { a: ['1.0.0'], b: ['1.0.0'], appDependency: ['1.0.0'] });
+        assert.calledWith(buildable.frameworkSupport.buildConfigFromPieDependencies, filtered);
       });
 
       it('sets _supportConfig', () => {
@@ -174,6 +179,10 @@ describe('client', () => {
       it('call app.dependencies with pieBranch', () => {
         assert.calledWith(emptyApp.dependencies, 'develop');
       })
+    });
+
+    describe('writeEntryJs', () => {
+      it('todo', () => {});
     });
 
     describe('buildInfo', () => {
@@ -189,12 +198,12 @@ describe('client', () => {
 
     describe('webpackConfig', () => {
 
-      let buildable, loader, config;
+      let buildable, loader;
 
       beforeEach((done) => {
         loader = { test: /Iamaloader/ };
 
-        buildable = new ClientBuildable({ dir: 'dir' }, [], { bundleName: 'pie.js' }, emptyApp);
+        buildable = new ClientBuildable(config, [], { bundleName: 'pie.js' }, emptyApp);
         buildable._supportConfig = {
           webpackLoaders: stub().returns([loader])
         }

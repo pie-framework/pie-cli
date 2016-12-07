@@ -1,18 +1,18 @@
 import * as _ from 'lodash';
 import { Help } from './help';
 import version from './version';
-import packQuestion from './pack-question';
-import cleanQuestion from './clean-question';
-import serveQuestion from './serve-question';
+import pack from './pack';
+import clean from './clean';
+import serve from './serve';
 import manifest from './manifest';
 import { normalizeOpts } from './helper';
 
 import CliCommand from './cli-command';
 let commands: CliCommand[] = [
   version,
-  packQuestion,
-  cleanQuestion,
-  serveQuestion,
+  pack,
+  clean,
+  serve,
   manifest
 ];
 

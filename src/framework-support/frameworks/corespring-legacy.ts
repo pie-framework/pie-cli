@@ -23,7 +23,7 @@ export function support(dependencies) : SupportInfo {
       webpackLoaders: () => {
         return [
           {
-            test: /\.(eot|svg|ttf|woff|woff2)([#?].*)?$/,
+            test: /fonts\/.*\.(eot|svg|ttf|woff|woff2)([#?].*)?$/,
             loader: 'file?{"name":"public/fonts/[name].[ext]"}'
           },
           {

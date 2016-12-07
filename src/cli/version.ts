@@ -3,13 +3,19 @@ import { execSync } from 'child_process';
 import { join } from 'path';
 import * as isEmpty from 'lodash/isEmpty';
 import CliCommand from './cli-command';
+import * as _ from 'lodash';
 
 class VersionCommand extends CliCommand {
   constructor() {
     super('--version', 'get the version');
   }
 
-  run(log = console.log) {
+  match(args) {
+    return args.version || args.v;
+  }
+
+  run(opts) {
+    let log = _.isFunction(opts.log) ? opts.log : console.log;
     let pkg = readJsonSync(join(__dirname, '..', '..', 'package.json'));
     let projectRoot = join(__dirname, '../..');
     let gitDir = join(projectRoot, '.git');

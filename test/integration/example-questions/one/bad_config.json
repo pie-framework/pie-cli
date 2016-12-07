@@ -1,12 +1,12 @@
 {
   "elements": {
-    "hello-world": "../../example-components/hello-world"
+    "hello-world": "../../example-components/hellow-world"
   },
   "models": [
     {
       "id": "1",
       "element": "hello-world",
-      "prompt": "hello world"
+      "my-prompt": "hi"
     }
   ]
 }
