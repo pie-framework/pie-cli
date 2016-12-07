@@ -1,7 +1,6 @@
 import { join, resolve as pathResolve } from 'path';
 import FrameworkSupport, { BuildConfig } from '../../framework-support';
 import { buildLogger } from '../../log-factory';
-import { removeFiles, softWrite } from '../../file-helper';
 import NpmDir from '../../npm/npm-dir';
 import * as _ from 'lodash';
 import * as resolve from 'resolve';
@@ -9,6 +8,10 @@ import { build as buildWebpack } from '../../code-gen/webpack-builder';
 import { configToJsString, writeConfig } from '../../code-gen/webpack-write-config';
 import buildDependencies from '../build-dependencies';
 import { BuildInfo } from '../build-info';
+import { Config, JsonConfig } from '../config';
+import { writeFileSync } from 'fs-extra';
+import { filterFirstLevelDependencies } from '../../npm/filter-ls';
+import { App } from '../../example-app';
 
 const logger = buildLogger();
 
@@ -46,7 +49,7 @@ export class BuildOpts {
     args = args || {};
     return new BuildOpts(
       args.bundleName || 'pie.js',
-      args.pieBranch || 'develop');
+      args.pieBranch || process.env.PIE_BRANCH || 'develop');
   }
 }
 
@@ -54,7 +57,7 @@ export class ClientBuildable {
   private frameworkSupport: FrameworkSupport;
   private npmDir;
   private _supportConfig: BuildConfig;
-  constructor(private config, private support, private opts, private app) {
+  constructor(private config: JsonConfig, private support, private opts: BuildOpts, private app: App) {
     this.frameworkSupport = FrameworkSupport.bootstrap(support.concat(app.frameworkSupport()));
     this.npmDir = new NpmDir(this.dir);
   }
@@ -75,7 +78,7 @@ export class ClientBuildable {
   prepareWebpackConfig() {
     return this._install()
       .then(() => {
-        let isValid = this.config.isConfigValid();
+        let isValid = this.config.valid();
         logger.silly('isConfigValid() ? ', isValid)
         return isValid ? Promise.resolve() : Promise.reject('config is invalid');
       })
@@ -89,11 +92,9 @@ export class ClientBuildable {
   }
 
   writeEntryJs() {
-    let pieNames = _.map(this.config.pies, 'name');
-    logger.silly('[writeEntryJs] pieNames: ', pieNames);
-    let js = this.app.entryJs(_.map(this.config.pies, 'name'));
+    let js = this.app.entryJs(this.config.declarations);
     logger.silly('[writeEntryJs] js: ', js);
-    return softWrite(this.entryJsPath, js);
+    return writeFileSync(this.entryJsPath, js, 'utf8');
   }
 
   get buildInfo(): BuildInfo {
@@ -140,34 +141,26 @@ export class ClientBuildable {
    */
   _buildFrameworkConfig() {
 
-    let mergeDependencies = (acc, deps) => {
-      return _.reduce(deps, (acc, value, key) => {
-        if (acc[key]) {
-          acc[key].push(value);
-        }
-        else {
-          acc[key] = [value];
-        }
-        return acc;
-      }, acc);
-    };
-
-    //Note: we can only read piePackages after an npm install.
     let appDependencyKeys = _.keys(this.app.dependencies(this.opts.pieBranch));
     logger.silly('[_buildFrameworkConfig] appDependencyKeys: ', appDependencyKeys);
-    let appPackages = this.config.readPackages(appDependencyKeys);
-    let allPackages = _.concat(this.config.piePackages, appPackages);
-
-    let merged = _(allPackages).map('dependencies').reduce(mergeDependencies, {});
-
-    this._supportConfig = this.frameworkSupport.buildConfigFromPieDependencies(merged);
-    return Promise.resolve();
+    return this.npmDir.ls()
+      .then((lsResult) => {
+        let keys = _.concat(appDependencyKeys, _.keys(this.config.dependencies));
+        let filtered = filterFirstLevelDependencies(lsResult, keys);
+        this._supportConfig = this.frameworkSupport.buildConfigFromPieDependencies(filtered);
+        logger.silly('[_buildFrameworkConfig] this._supportConfig: ', this._supportConfig);
+        return this._supportConfig;
+      })
+      .catch((e) => {
+        logger.error(e.stack);
+        throw new Error(e)
+      });
   }
 
   _install() {
     let dependencies = _.extend({},
       clientDependencies,
-      this.config.npmDependencies,
+      this.config.dependencies,
       this.app.dependencies(this.opts.pieBranch));
 
     logger.silly('[_install] dependencies: ', dependencies);
@@ -178,6 +171,8 @@ export class ClientBuildable {
   }
 
   _installFrameworkDependencies() {
+
+    logger.debug('[_installFrameworkDependencies] ...');
 
     if (!this._supportConfig) {
       return Promise.reject(new Error('no support config - has it been initialised?'));

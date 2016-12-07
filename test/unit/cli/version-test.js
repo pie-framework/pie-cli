@@ -1,5 +1,6 @@
 import proxyquire from 'proxyquire';
 import { assert, stub } from 'sinon';
+import { expect } from 'chai';
 
 describe('version', () => {
 
@@ -24,22 +25,39 @@ describe('version', () => {
     cmd = getCmd();
   });
 
+  describe('match', () => {
 
-  it('does not add git-sha if .git dir doesnt exist', () => {
-    cmd.run(log);
-    assert.calledWith(log, 'version: 1.0.0');
-  });
-
-  describe('if .git dir exists', () => {
-
-    beforeEach(() => {
-      gitExists = true;
-      cmd = getCmd();
+    it('returns false for empty object', () => {
+      expect(cmd.match({})).not.to.be.true;
     });
 
-    it('does add git-sha if .git dir exists', () => {
-      cmd.run(log);
-      assert.calledWith(log, 'version: 1.0.0, git-sha: HASH');
+    it('returns true for v ', () => {
+      expect(cmd.match({ v: true })).to.be.true;
+    });
+
+    it('returns true for version ', () => {
+      expect(cmd.match({ version: true })).to.be.true;
+    });
+  });
+
+  describe('run', () => {
+    it('does not add git-sha if .git dir doesnt exist', () => {
+      cmd.run({ log: log });
+      assert.calledWith(log, 'version: 1.0.0');
+    });
+
+    describe('if .git dir exists', () => {
+
+      beforeEach(() => {
+        gitExists = true;
+        cmd = getCmd();
+      });
+
+      it('does add git-sha if .git dir exists', () => {
+        cmd.run({ log: log });
+        assert.calledWith(log, 'version: 1.0.0, git-sha: HASH');
+      });
+
     });
 
   });

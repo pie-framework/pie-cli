@@ -5,8 +5,15 @@ import { buildLogger } from '../log-factory';
 
 const logger = buildLogger();
 
+export interface Server {
+  on: (key: string, handler: (...any) => void) => void;
+  listen: (port: number) => void;
+  reload: (name: string) => void;
+  error: (name: string, errors: any[]) => void;
+}
 
-export default class ExampleAppServer {
+
+export default class ExampleAppServer implements Server {
 
   static SOCK_PREFIX() {
     return '/sock'

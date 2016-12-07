@@ -53,9 +53,9 @@ describe('controllers', () => {
 
     beforeEach(() => {
       buildable = new Controllers({
-        dir: 'dir', pies: [{
-          name: 'my-pie',
-          installedPath: '../my-pie'
+        dir: 'dir', installedPies: [{
+          key: 'my-pie',
+          controllerDir: '../../my-pie',
         }]
       }, { filename: 'controllers.js' });
     });

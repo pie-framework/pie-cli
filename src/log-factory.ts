@@ -47,8 +47,6 @@ function addLogger(label, level?: string) {
     logger.configure(cfg);
     return logger;
   } else {
-
-
     var logger = winston.loggers.add(label, cfg);
     logger.cli();
     return logger;
@@ -70,7 +68,7 @@ export let setConfigFromFile = (configPath) => {
 };
 
 export let setConfig = (cfg) => {
-  config = cfg;
+  config = _.merge({}, config, cfg);
   _.forIn(cfg, (value, key) => {
     addLogger(key, value);
   });

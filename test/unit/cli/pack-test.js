@@ -16,7 +16,8 @@ describe('pack', () => {
   beforeEach(() => {
 
     fsExtra = {
-      removeSync: stub()
+      removeSync: stub(),
+      writeFileSync: stub()
     }
 
     path = {
@@ -28,7 +29,8 @@ describe('pack', () => {
     questionInstance = {
       config: {
         markup: '<div></div>',
-        config: {}
+        pieModels: [{ id: '1', element: 'some-pie' }],
+        elementModels: [{ id: '2', element: 'some-element' }]
       },
       pack: stub().returns(Promise.resolve({
         controllers: {
@@ -113,7 +115,7 @@ describe('pack', () => {
     }
 
     describe('with manifestOutfile', () => {
-      beforeEach(run({ manifestOutfile: 'manifest.json' }));
+      beforeEach(run({ dir: 'dir', manifestOutfile: 'manifest.json' }));
 
       assertBasics();
       it('calls clean', () => {
@@ -139,8 +141,7 @@ describe('pack', () => {
           externals: { js: ['external.js'], css: ['external.css'] }
         },
           { controllers: 'id', },
-          questionInstance.config.markup,
-          questionInstance.config.config
+          questionInstance.config
         );
       });
     });
