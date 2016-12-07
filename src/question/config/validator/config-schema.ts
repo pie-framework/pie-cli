@@ -14,7 +14,8 @@ const schema = {
           weight: {
             type: 'string'
           }
-        }
+        },
+        required: ['id', 'weight']
       }
     },
     langs: {

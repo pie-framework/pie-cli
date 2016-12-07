@@ -39,6 +39,12 @@ describe('config-validator', () => {
     assertValid({ elements: {}, models: [] }, false);
     assertValid({ elements: {}, models: [{ id: '1' }] }, false);
     assertValid({ elements: {}, models: [{ id: '1', element: 'a' }] }, true);
+    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [] }, true);
+    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [{}] }, false);
+    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [{id: '1'}] }, false);
+    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [{id: '1', weight: '1'}] }, true); 
+    assertValid({ elements: {}, langs: [1], models: [{ id: '1', element: 'a' }] }, false); 
+    assertValid({ elements: {}, langs: ['en-US'], models: [{ id: '1', element: 'a' }] }, true); 
   });
 
   describe('validate w/ pie schemas for individual pies', () => {
