@@ -91,12 +91,24 @@ describe('JsonConfig', () => {
       it('calls fromPath', () => {
         assert.calledWith(raw.fromPath, 'dir/config.json');
       });
+
+      it('calls validate', () => {
+        assert.calledWith(validator.validate, rawConfig, []);
+      });
     });
 
     describe('reload', () => {
-      it('calls raw._readRaw()', () => {
+
+      beforeEach(() => {
         c.reload();
+      });
+
+      it('calls raw._readRaw()', () => {
         assert.calledTwice(raw.fromPath);
+      });
+
+      it('calls raw._readRaw()', () => {
+        assert.calledWith(validator.validate, rawConfig, []);
       });
     });
 
@@ -256,7 +268,6 @@ describe('JsonConfig', () => {
 
     beforeEach(() => {
       c = init(new mod.FileNames('c.json', 'i.html'));
-      console.log('c: ', c);
     });
 
     describe('constructor', () => {
