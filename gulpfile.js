@@ -3,7 +3,9 @@ const gulp = require('gulp'),
   releaseHelper = require('release-helper'),
   ts = require('gulp-typescript'),
   tsProject = ts.createProject('tsconfig.json'),
-  fsExtra = require('fs-extra');
+  fsExtra = require('fs-extra'),
+  runSequence = require('run-sequence'), 
+  path = require('path');
 
 //Init custom release tasks
 releaseHelper.init(gulp);
@@ -18,6 +20,7 @@ let watch = (suffix, tasks) => {
 gulp.task('pug', () => glue('pug'));
 gulp.task('md', () => glue('md'));
 gulp.task('ejs', () => glue('ejs'));
+gulp.task('json', () => glue('json'));
 
 gulp.task('ts', () => {
   let tsResult = tsProject.src()
@@ -41,10 +44,11 @@ gulp.task('it', ['build'], () => {
 });
 
 gulp.task('clean', (done) => {
-  return fsExtra.remove('lib', done);
+  fsExtra.remove('lib', done);
 })
 
-gulp.task('build', ['clean', 'md', 'ejs', 'pug', 'ts']);
+
+gulp.task('build', done => runSequence('clean', ['md', 'ejs', 'pug', 'ts', 'json'], done));
 
 gulp.task('dev', ['build', 'watch-md', 'watch-ejs', 'watch-pug', 'watch-ts']);
 

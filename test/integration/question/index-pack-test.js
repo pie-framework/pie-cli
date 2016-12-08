@@ -7,52 +7,38 @@ describe('Question', () => {
 
   let questionPath;
 
-  let packCmd = require('../../../lib/cli/pack-question').default;
+  let packCmd = require('../../../lib/cli/pack').default;
 
-  before(function (done) {
+  before(function () {
     this.timeout(120000);
-
-    let emptyApp = {
-      entryJs: () => '',
-      frameworkSupport: () => [],
-      dependencies: () => { },
-      staticMarkup: () => `<html></html>`,
-      server: () => null
-    };
-
-    let tmpPath = setUpTmpQuestionAndComponents('post-pack-cleanup');
+    let tmpPath = setUpTmpQuestionAndComponents('index-pack-test');
     questionPath = `${tmpPath}/example-questions/one`;
-    console.log('packCmd: ', packCmd)
-    packCmd.run({ dir: questionPath }, emptyApp)
-      .then(done.bind(null, null))
-      .catch(done);
+    console.log('questionPath: ', questionPath);
+    return packCmd.run({ dir: questionPath, includeComplete: true });
   });
 
-
-  it('builds pie.js', () => {
-    expect(fs.existsSync(join(questionPath, 'pie.js'))).to.eql(true);
+  it('builds pie-view.js', () => {
+    expect(fs.existsSync(join(questionPath, 'pie-view.js'))).to.eql(true);
   });
 
-  it('builds controllers.js', () => {
-    expect(fs.existsSync(join(questionPath, 'controllers.js'))).to.eql(true);
+  it('builds pie-controller.js', () => {
+    expect(fs.existsSync(join(questionPath, 'pie-controller.js'))).to.eql(true);
+  });
+
+  it('builds pie-item.js', () => {
+    expect(fs.existsSync(join(questionPath, 'pie-item.js'))).to.eql(true);
   });
 
   it('removes node_modules', () => {
     expect(fs.existsSync(join(questionPath, 'node_modules'))).to.eql(false);
   });
 
-
   it('removes controllers', () => {
     expect(fs.existsSync(join(questionPath, 'controllers'))).to.eql(false);
   });
 
-
   it('removes package.json', () => {
     expect(fs.existsSync(join(questionPath, 'package.json'))).to.eql(false);
-  });
-
-  it('removes entry.js', () => {
-    expect(fs.existsSync(join(questionPath, 'entry.js'))).to.eql(false);
   });
 
 });

@@ -12,7 +12,7 @@ describe('npm-dir', function () {
   beforeEach((done) => {
     tmpPath = temp.mkdirSync('npm-dir-test');
     npmDir = new NpmDir(tmpPath);
-    npmDir.install({ lodash: '*' })
+    npmDir.install('tmp', { lodash: '*' })
       .then(() => done())
       .catch(done);
   });

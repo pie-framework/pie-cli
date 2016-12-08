@@ -5,6 +5,8 @@ export interface Declaration {
   js: string;
 }
 
+
+
 export class ElementDeclaration implements Declaration {
   constructor(readonly tag: string, readonly path?: string) {
     this.path = this.path || this.tag;

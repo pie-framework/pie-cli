@@ -1,51 +1,19 @@
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import { assert, stub, spy } from 'sinon';
+import { loadStubApp, runCmd } from './helper';
 
 describe('clean', () => {
 
-  let cmd, questionConstructor, questionInstance, buildOpts, fsExtra, path;
+  let cmd, app, stubbed;
 
   beforeEach(() => {
 
-    fsExtra = {
-      removeSync: stub()
+    app = {
+      clean: stub().returns('done')
     }
-
-    path = {
-      resolve: spy(function (i) {
-        return i;
-      })
-    }
-
-    questionInstance = {
-      pack: stub().returns(Promise.resolve({
-        controllers: {
-          filename: 'controller.js',
-          library: 'id'
-        },
-        client: 'pie.js'
-      })),
-      clean: stub().returns(Promise.resolve())
-    };
-
-    questionConstructor = stub().returns(questionInstance);
-
-    buildOpts = {
-      client: {},
-      controllers: {},
-      config: {}
-    }
-
-    questionConstructor.buildOpts = stub().returns(buildOpts);
-
-    cmd = proxyquire('../../../lib/cli/clean', {
-      '../question': {
-        default: questionConstructor
-      },
-      'fs-extra': fsExtra,
-      'path': path
-    }).default;
+    stubbed = loadStubApp('../../../lib/cli/clean', app);
+    cmd = stubbed.module.default;
   });
 
   describe('match', () => {
@@ -57,20 +25,14 @@ describe('clean', () => {
 
   describe('run', () => {
 
-    beforeEach((done) => {
-      cmd.run({ dir: 'dir', buildExample: false })
-        .then(() => {
-          done();
-        })
-        .catch(done);
+    beforeEach((done) => runCmd(cmd, { dir: 'dir' }, done));
+
+    it('calls loadApp', () => {
+      assert.calledWith(stubbed.loadApp, { dir: 'dir' });
     });
 
-    it('calls question.clean', () => {
-      assert.called(questionInstance.clean);
-    });
-
-    it('calls removeSync on example.html', () => {
-      assert.calledWith(fsExtra.removeSync, 'dir/example.html');
+    it('calls app.clean', () => {
+      assert.called(app.clean);
     });
   });
 });

@@ -5,6 +5,7 @@ import { buildLogger } from '../log-factory';
 import * as vm from 'vm';
 import { readFileSync } from 'fs-extra';
 import * as m from 'module';
+import { SupportInfo } from './support-info';
 
 const logger = buildLogger();
 
@@ -30,7 +31,7 @@ class Sandbox {
  * Note: We must run in *this* context to allow `instanceof` to continue to function. 
  * @see: https://github.com/nodejs/node-v0.x-archive/issues/1277
  */
-export function mkFromSrc(src, path) {
+export function mkFromSrc(src, path): SupportInfo {
   logger.debug('[mkFromSrc] path: ', path);
 
   let babelised = transform(src, {
@@ -50,11 +51,10 @@ export function mkFromSrc(src, path) {
   let fn = script.runInThisContext();
   fn(sandbox.exports, () => null, sandbox.module, path);
   logger.silly('[mkFromSrc] sandbox: ', JSON.stringify(sandbox));
-
   return sandbox.exports.default ? sandbox.exports.default : sandbox.exports;
 }
 
-export function mkFromPath(path) {
+export function mkFromPath(path): SupportInfo {
   logger.silly('[mkFromPath] path: ', path);
   let src = readFileSync(path, 'utf8');
   return mkFromSrc(src, path);

@@ -1,0 +1,28 @@
+# info 
+---
+
+Run a server that'll load an info page about the pie. The info page will contain: 
+
+* README.md
+* Schemas
+* A Demo
+
+This command should be run at the root of a pie (or use `--dir` to point to the root of a pie).
+
+> Note: For this command to run the build assets need to be present. So after you stop the command these files will be in the directory. To remove them run `pie clean -a info`. We'll add a feature soon to automatically remove them when the server is stopped.
+
+## Options
+  <%= loadFile('common-opts.md') %>
+  `--port` - the port to use - default `4000`
+  
+## Examples
+
+```shell
+cd pie-root
+pie info 
+```
+--
+```shell
+pie info --dir ../path/pie-root
+```
+

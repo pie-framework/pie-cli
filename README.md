@@ -36,6 +36,36 @@ npm run dev # runs -> 'gulp dev'
 pie --help
 ```
 
+#### Debugging
+
+To debug typescript you'll need to generate the sourcemaps. `gulp-typescript` doesn't do this at the moment, so we use `tsc` instead.
+
+* run `npm run source-maps`
+* run `node --debug-brk $(which pie) ....`
+
+Node is now running in debug mode on `5858` so boot up a debugger. Visual Studio Code has nice typescript debugging support. In VS: 
+
+* add a breakpoint to the ts src file you want to debug.
+* press `F5`.
+* If you have no debug config it'll ask you to add one.
+* Add the following: 
+
+```json
+ {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Process",
+      "port": 5858,
+      "outFiles": [
+        "${workspaceRoot}/lib/**/*.js"
+      ],
+      "sourceMaps": true
+    }
+```
+
+* select this runner and the app will start and hit your breakpoint.
+
+
 #### Contributing
 
 If you are commiting a code change that is worthy of being included in the release information, write your commit message using the [angular commit conventions outlined here](https://github.com/conventional-changelog/conventional-changelog-angular/blob/master/convention.md). These commit formats will automatically be included in the release notes.
@@ -64,6 +94,12 @@ To run them all:
 npm run it 
 ```
 
+##### Test Coverage 
+
+```shell 
+npm install -g nyc 
+nyc npm test
+```
 #### Build
 
 ```
