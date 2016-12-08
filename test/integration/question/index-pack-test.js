@@ -7,26 +7,26 @@ describe('Question', () => {
 
   let questionPath;
 
-  let packCmd = require('../../../lib/cli/pack-question').default;
+  let packCmd = require('../../../lib/cli/pack').default;
 
   before(function (done) {
-    this.timeout(120000);
+      this.timeout(120000);
 
-    let emptyApp = {
-      entryJs: () => '',
-      frameworkSupport: () => [],
-      dependencies: () => { },
-      staticMarkup: () => `<html></html>`,
-      server: () => null
-    };
+      let emptyApp = {
+        entryJs: () => '',
+        frameworkSupport: () => [],
+        dependencies: () => { },
+        staticMarkup: () => `<html></html>`,
+        server: () => null
+      };
 
-    let tmpPath = setUpTmpQuestionAndComponents('post-pack-cleanup');
-    questionPath = `${tmpPath}/example-questions/one`;
-    console.log('packCmd: ', packCmd)
-    packCmd.run({ dir: questionPath }, emptyApp)
-      .then(done.bind(null, null))
-      .catch(done);
-  });
+      let tmpPath = setUpTmpQuestionAndComponents('post-pack-cleanup');
+      questionPath = `${tmpPath}/example-questions/one`;
+      console.log('packCmd: ', packCmd)
+      packCmd.run({ dir: questionPath }, emptyApp)
+        .then(done.bind(null, null))
+        .catch(done);
+    });
 
 
   it('builds pie.js', () => {
