@@ -1,5 +1,6 @@
 import { Viewer, KeyValue } from './index';
 import { buildLogger } from '../log-factory';
+import * as _ from 'lodash';
 
 const logger = buildLogger();
 
@@ -7,7 +8,11 @@ const toParams = (pattern: KeyValue): any => {
   let [base, ref] = pattern.value.split('#');
   let [owner, repo] = base.split('/');
   repo = repo.indexOf('/') === -1 ? repo : undefined;
-  return { owner, repo, ref };
+  if (repo.includes('..') || owner.includes('..')) {
+    return {};
+  } else {
+    return { owner, repo, ref };
+  }
 }
 
 export class Github implements Viewer {
@@ -17,13 +22,21 @@ export class Github implements Viewer {
   match(pattern: KeyValue): boolean {
     try {
       let {owner, repo, ref} = toParams(pattern);
-      return owner && repo;
+      return owner && repo ? true : false;
     } catch (e) {
       return false;
     }
   }
 
   view(pattern: KeyValue, property: string): Promise<any | undefined> {
+
+    if (!pattern) {
+      return Promise.reject(new Error(`pattern is undefined`));
+    }
+
+    if (!property) {
+      return Promise.reject(new Error(`property is undefined`));
+    }
 
     logger.info('[view], pattern: ', pattern, ' property: ', property);
 
@@ -70,8 +83,10 @@ export class Github implements Viewer {
           logger.silly('end: ', result.toString('utf8'));
           let all = JSON.parse(result.toString('utf8'));
           let pkgString = Buffer.from(all.content, 'base64').toString('utf8');
-          let data = JSON.parse(pkgString);
-          let out = data[property];
+          logger.silly('pkgString: ', pkgString);
+          let parsed = JSON.parse(pkgString);
+          logger.silly('parsed: ', parsed);
+          let out = parsed[property];
           logger.silly('out: ', out);
           resolve(out);
         });
