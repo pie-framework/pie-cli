@@ -1,7 +1,6 @@
 import { existsSync, readJsonSync } from 'fs-extra';
 import { execSync } from 'child_process';
 import { join } from 'path';
-import * as isEmpty from 'lodash/isEmpty';
 import CliCommand from './cli-command';
 import * as _ from 'lodash';
 
@@ -25,7 +24,7 @@ class VersionCommand extends CliCommand {
       gitSha = gitSha.trim();
     }
     let message = `version: ${pkg.version}`;
-    message += isEmpty(gitSha) ? '' : `, git-sha: ${gitSha}`;
+    message += _.isEmpty(gitSha) ? '' : `, git-sha: ${gitSha}`;
     log(message);
     process.exit(0);
   };
