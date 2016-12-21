@@ -5,11 +5,11 @@ import * as _ from 'lodash';
 
 const ROOT = '../../../lib';
 
-let stat = (opts) => {
-  opts = _.extend({ isFile: false, isDirectory: false }, opts);
+let stat = (isFile) => {
+  isFile = isFile === undefined ? false : true;
+
   return {
-    isFile: stub().returns(opts.isFile),
-    isDirectory: stub().returns(opts.isDirectory)
+    isFile: stub().returns(isFile),
   }
 }
 
@@ -19,7 +19,6 @@ describe('local', () => {
   beforeEach(() => {
     deps = {
       'fs-extra': {
-        stat: stub().returns(Promise.resolve(stat())),
         statSync: stub().returns(stat()),
         readJson: stub().returns({})
       }
@@ -37,7 +36,7 @@ describe('local', () => {
 
       beforeEach(() => {
         statSync = deps['fs-extra'].statSync;
-        statSync.returns(stat({ isFile: true }));
+        statSync.returns(stat(true));
         result = local.match({ key: 'any', value: '../..' });
       });
 
@@ -67,5 +66,51 @@ describe('local', () => {
         expect(result).to.eql(false);
       });
     });
+  });
+
+  describe('view', () => {
+
+    let fsExtra, result;
+
+    beforeEach(() => {
+      fsExtra = deps['fs-extra'];
+    });
+
+    describe('with missing package.json', () => {
+
+      beforeEach(() => {
+        local.match = stub().returns(false);
+        fsExtra.readJson.yields(null, { dependencies: { a: '1.0.0' } })
+        return local.view({ key: 'any', value: '../..' }, 'dependencies')
+          .then(r => result = r);
+      });
+
+      it('does not call readJson', () => {
+        assert.notCalled(fsExtra.readJson);
+      });
+
+      it('returns undefined', () => {
+        expect(result).to.be.undefined;
+      });
+    });
+
+    describe('with found package.json', () => {
+
+      beforeEach(() => {
+        fsExtra.statSync.returns(stat(true));
+        fsExtra.readJson.yields(null, { dependencies: { a: '1.0.0' } })
+        return local.view({ key: 'any', value: '../..' }, 'dependencies')
+          .then(r => result = r);
+      });
+
+      it('calls readJson', () => {
+        assert.calledWith(fsExtra.readJson, local.pkgPath({ value: '../..' }))
+      });
+
+      it('returns the data', () => {
+        expect(result).to.eql({ a: '1.0.0' });
+      });
+    });
+
   });
 });
