@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import {stub, assert, spy, match} from 'sinon';
+import { stub, assert, spy, match } from 'sinon';
 import proxyquire from 'proxyquire';
 import path from 'path';
 
@@ -91,61 +91,21 @@ describe('npm-dir', () => {
     close();
   }
 
-  describe('installMoreDependencies', () => {
-    let dir;
-    beforeEach(() => {
-      dir = new NpmDir(__dirname);
-      dir._exists = stub();
-    });
-
-    it('skips the install if all the dependencies exist', (done) => {
-
-      withCloseHandler(() => {
-        dir._exists
-          .withArgs('node_modules/a').returns(true)
-          .withArgs('node_modules/b').returns(true);
-
-        dir.installMoreDependencies({ a: '1.0.0', b: '1.0.0' })
-          .then((result) => {
-            expect(result.skipped).to.eql(true);
-            done();
-          }).catch(done);
-
-      });
-    });
-
-    it('calls \'npm install a@1.0.0\'', (done) => {
-
-      withCloseHandler(() => {
-        dir._exists
-          .withArgs('node_modules/a').returns(false)
-          .withArgs('node_modules/b').returns(true);
-
-        dir.installMoreDependencies({ a: '1.0.0', b: '1.0.0' })
-          .then(() => {
-            assert.calledWith(childProcess.spawn, 'npm', ['install', 'a@1.0.0'], { cwd: __dirname });
-            done();
-          }).catch(done);
-
-      });
-    });
-  });
-
   describe('ls', () => {
 
     let dir;
 
     let call = (firstExistsSyncResult, done) => {
-        dir = new NpmDir(__dirname);
-        fs.existsSync
-          .onFirstCall().returns(firstExistsSyncResult)
-          .onSecondCall().returns(true);
+      dir = new NpmDir(__dirname);
+      fs.existsSync
+        .onFirstCall().returns(firstExistsSyncResult)
+        .onSecondCall().returns(true);
 
-        dir._spawnPromise = stub().returns(Promise.resolve({stdout: '{}'}));
-        dir._install = stub().returns(Promise.resolve());
-        dir.ls()
-         .then(done.bind(null, null))
-         .catch(done);
+      dir._spawnPromise = stub().returns(Promise.resolve({ stdout: '{}' }));
+      dir._install = stub().returns(Promise.resolve());
+      dir.ls()
+        .then(done.bind(null, null))
+        .catch(done);
     }
 
     describe('when installed', () => {

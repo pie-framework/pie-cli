@@ -5,10 +5,14 @@ import * as _ from 'lodash';
 import { readFileSync, existsSync, readJsonSync } from 'fs-extra';
 import { hash as mkHash } from '../../npm/dependency-helper';
 import { Element, LocalFile, LocalPackage, PiePackage, NotInstalledPackage } from './elements';
-import { ElementDeclaration } from '../../code-gen/declaration';
-import { KeyMap, Manifest } from './manifest';
+import { ElementDeclaration, Declaration } from '../../code-gen/declaration';
+import { Manifest } from './manifest';
 import { validate } from './validator';
 import { ScoringType, WEIGHTED } from './scoring-type';
+import { KeyMap } from '../../npm/types';
+
+export { Manifest };
+export { ElementDeclaration, Declaration };
 
 const logger = buildLogger();
 

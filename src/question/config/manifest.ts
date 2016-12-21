@@ -1,4 +1,4 @@
-export type KeyMap = { [key: string]: string };
+import { KeyMap } from '../../npm/types';
 
 export type Manifest = {
   hash: string;

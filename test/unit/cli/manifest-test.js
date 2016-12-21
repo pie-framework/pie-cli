@@ -1,76 +1,56 @@
 import proxyquire from 'proxyquire';
 import { assert, stub } from 'sinon';
 import { expect } from 'chai';
+import { loadStubApp, runCmd } from './helper';
 
 describe('manifest', () => {
-  let cmd, make, manifestResult, cmdResult, fsExtra, config, configConstructor;
+  let cmd, app, stubbed, cmdResult;
 
   beforeEach(() => {
-    process.cwd = stub().returns('dir');
-
-    fsExtra = {
-      writeJsonSync: stub()
+    app = {
+      manifest: stub().returns('done')
     }
 
-    config = {
-      manifest: {
-        hash: 'xxxxxx'
-      }
-    };
-
-    configConstructor = stub().returns(config);
-
-    cmd = proxyquire('../../../lib/cli/manifest', {
-      'fs-extra': fsExtra,
-      '../question/config': {
-        JsonConfig: configConstructor
-      }
-    }).default;
+    stubbed = loadStubApp('../../../lib/cli/manifest', app);
+    cmd = stubbed.module.default;
   });
 
-  let run = (args) => {
-    args = args || {};
-    return (done) => {
-      cmd.run(args)
-        .then((m) => {
-          cmdResult = m;
-          done()
-        })
-        .catch(done);
-    }
-  }
-
   describe('run', () => {
-    describe('with no opts', () => {
 
-      beforeEach(run());
+    describe('with dir', () => {
+      beforeEach((done) => runCmd(cmd, {}, done));
 
-      it('calls makeManifest with default dir', () => {
-        assert.calledWith(configConstructor, 'dir');
+      it('calls loadApp', () => {
+        assert.calledWith(stubbed.loadApp, {});
       });
 
-      it('gets the result', () => expect(cmdResult).to.eql(JSON.stringify(config.manifest)));
-
+      it('calls app.manifest', () => {
+        assert.calledWith(app.manifest, { dir: process.cwd(), outfile: undefined });
+      });
     });
 
-    describe('with outfile', () => {
-      beforeEach(run({ outfile: 'manifest.json' }));
+    describe('with dir and outfile', () => {
+      beforeEach((done) => runCmd(cmd, { dir: 'dir', outfile: 'out.json' }, done));
 
-      it('calls writeJsonSync', () => {
-        assert.calledWith(fsExtra.writeJsonSync, 'manifest.json', config.manifest);
+      it('calls loadApp', () => {
+        assert.calledWith(stubbed.loadApp, { dir: 'dir', outfile: 'out.json' });
       });
 
-      it('gets the result', () => expect(cmdResult).to.eql(JSON.stringify(config.manifest)));
+      it('calls app.manifest', () => {
+        assert.calledWith(app.manifest, { dir: 'dir', outfile: 'out.json' });
+      });
     });
 
     describe('with dir', () => {
+      beforeEach((done) => runCmd(cmd, { dir: 'dir' }, done));
 
-      beforeEach(run({ dir: 'other-dir' }));
+      it('calls loadApp', () => {
+        assert.calledWith(stubbed.loadApp, { dir: 'dir' });
+      });
 
-      it('calls makeManifest with passed in dir opt', () => {
-        assert.calledWith(configConstructor, 'other-dir');
+      it('calls app.manifest', () => {
+        assert.calledWith(app.manifest, { dir: 'dir', outfile: undefined });
       });
     });
-
   });
 });

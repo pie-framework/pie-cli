@@ -1,85 +1,25 @@
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 import { assert, stub, spy } from 'sinon';
+import { loadStubApp, runCmd, types } from './helper';
 
 describe('pack', () => {
 
   let cmd,
-    questionConstructor,
-    questionInstance,
-    buildOpts,
-    fsExtra,
-    path,
-    manifest,
-    exampleApp;
+    cmdResult,
+    stubbed,
+    app;
 
   beforeEach(() => {
 
-    fsExtra = {
-      removeSync: stub(),
-      writeFileSync: stub()
+
+    app = {
+      build: stub().returns('done'),
+      manifest: stub().returns('done')
     }
 
-    path = {
-      resolve: spy(function (i) {
-        return i;
-      })
-    }
-
-    questionInstance = {
-      config: {
-        markup: '<div></div>',
-        pieModels: [{ id: '1', element: 'some-pie' }],
-        elementModels: [{ id: '2', element: 'some-element' }]
-      },
-      pack: stub().returns(Promise.resolve({
-        controllers: {
-          filename: 'controller.js',
-          library: 'id'
-        },
-        client: 'pie.js'
-      })),
-      clean: stub().returns(Promise.resolve()),
-      client: {
-        externals: { js: ['external.js'], css: ['external.css'] }
-      }
-    };
-
-    questionConstructor = stub().returns(questionInstance);
-
-    buildOpts = {
-      client: {},
-      controllers: {},
-      config: {}
-    }
-
-    questionConstructor.buildOpts = stub().returns(buildOpts);
-    questionConstructor['@noCallThru'] = true;
-
-    manifest = {
-      default: {
-        run: stub().returns(Promise.resolve()),
-      }
-    }
-
-    exampleApp = {
-      staticMarkup: stub().returns('<div>hi</div>')
-    }
-
-    cmd = proxyquire('../../../lib/cli/pack', {
-      '../question': {
-        default: questionConstructor
-      },
-      '../file-helper': {
-        softWrite: stub()
-      },
-      'fs-extra': fsExtra,
-      'path': path,
-      './manifest': manifest,
-      '../example-app': {
-        default: stub().returns(exampleApp)
-      }
-    }).default;
+    stubbed = loadStubApp('../../../lib/cli/pack', app);
+    cmd = stubbed.module.default;
   });
 
   describe('match', () => {
@@ -91,69 +31,19 @@ describe('pack', () => {
 
   describe('run', () => {
 
-    let run = (opts) => {
-      return function (done) {
-        cmd.run(opts)
-          .then(() => {
-            done();
-          })
-          .catch(e => {
-            done(e);
-          });
-      }
-    }
+    beforeEach((done) => runCmd(cmd, {}, done));
 
-    let assertBasics = () => {
-      it('calls pack', () => {
-        try {
-          assert.calledWith(questionInstance.pack, false);
-        } catch (e) {
-          console.log(e);
-          console.log(e.stack);
-        }
-      });
-    }
-
-    describe('with manifestOutfile', () => {
-      beforeEach(run({ dir: 'dir', manifestOutfile: 'manifest.json' }));
-
-      assertBasics();
-      it('calls clean', () => {
-        assert.called(questionInstance.clean);
-      });
-
-      it('calls manifestCmd.run', () => {
-        assert.calledWith(manifest.default.run, { dir: 'dir', outfile: 'manifest.json' });
-      });
+    it('calls loadApp', () => {
+      assert.calledWith(stubbed.loadApp, {});
     });
 
-    describe('with buildExample=true', () => {
-      beforeEach(run({ buildExample: true }));
-
-      assertBasics();
-
-      it('calls exampleApp.staticMarkup', () => {
-
-
-        assert.calledWith(exampleApp.staticMarkup, {
-          client: 'pie.js',
-          controllers: 'controller.js',
-          externals: { js: ['external.js'], css: ['external.css'] }
-        },
-          { controllers: 'id', },
-          questionInstance.config
-        );
-      });
+    it('calls app.build', () => {
+      assert.calledWith(app.build, types.BuildOpts.build({}));
     });
 
-    describe('with keepBuildAssets=false', () => {
-      beforeEach(run({ dir: 'dir', buildExample: false }));
-
-      assertBasics();
-
-      it('calls removeSync if buildExample=false', () => {
-        assert.calledWith(fsExtra.removeSync, 'dir/example.html');
-      });
+    it('calls app.manifest', () => {
+      assert.calledWith(app.manifest, types.ManifestOpts.build({}));
     });
   });
+
 });

@@ -1,18 +1,13 @@
 # serve 
 ---
 
-Run a server to serve this question. Any changes to the `pie` source code, the `config.json` or the `index.html` will be picked up. However if you add a new component to the `config.json` this won't be picked up, you'll have to restart the server.
+Run a server to serve this question. Changes to local pie src, `config.json` and `index.html` will be picked up and reload the browser.
+
+> Note: For this command to run the build assets need to be present. So after you stop the command these files will be in the directory. To remove them run `pie clean`. We'll add a feature soon to automatically remove them when the server is stopped.
 
 ## Options
-  `--dir` - the relative path to a directory to use as the root. This should contain `config.json` and `index.html` (default: the current working directory)
+  <%= loadFile('common-opts.md') %>
   `--port` - the port to use - default `4000`
-  `--clean` - clean build assets before serving. Do this if you've added a new component. default: `false`
-  `--bundleName` - the name of the generated bundle - default `pie.js`
-  `--controllersFilename` - the name of the generated controllers file - default `controllers.js`
-  `--pieBranch` - what branch of the pie dependencies (pie-player, pie-control-panel, etc) to use: default: `develop`
-  `--questionConfigFile` - the name of the pie data file - default `config.json`
-  `--questionDependenciesFile` - the name of the pie data file - default `dependencies.json`
-  `--questionMarkupFile` - the name of layout file - default `index.html`
   
 ## Examples
 ```shell

@@ -1,19 +1,22 @@
 import * as _ from 'lodash';
 import { Help } from './help';
-import version from './version';
 import pack from './pack';
-import clean from './clean';
 import serve from './serve';
+import clean from './clean';
 import manifest from './manifest';
-import { normalizeOpts } from './helper';
+import info from './info';
+import version from './version';
 
+import { normalizeOpts } from './helper';
 import CliCommand from './cli-command';
+
 let commands: CliCommand[] = [
-  version,
   pack,
-  clean,
   serve,
-  manifest
+  clean,
+  manifest,
+  info,
+  version
 ];
 
 export default function (opts) {

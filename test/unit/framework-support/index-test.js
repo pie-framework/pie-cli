@@ -68,66 +68,8 @@ describe('framework-support', () => {
     });
 
     it('handles modules with no externals', () => {
-      let config = new BuildConfig([{}, { externals: { js:['a'], css:['b']}}]);
-      expect(config.externals).to.eql({ js:['a'], css:['b']});
-    });
-  });
-
-  describe('bootstrap', () => {
-
-    let FrameworkSupport, support, fsExtra, resolve, supportModule;
-
-    beforeEach(() => {
-
-      let supportModuleResult = {
-        npmDependencies: {},
-        webpackLoaders: (/*resolve*/) => {
-          return []
-        }
-      };
-
-      fsExtra = {
-        readdirSync: stub().returns(['support.js']),
-        lstatSync: stub().returns({ isFile: stub().returns(true) })
-      };
-
-      supportModule = {
-        mkFromPath: stub().returns(supportModuleResult)
-      }
-
-      resolve = {
-        sync: spy(function (p) { return p; })
-      }
-
-      FrameworkSupport = proxyquire('../../../lib/framework-support', {
-        'fs-extra': fsExtra,
-        resolve: resolve,
-        './support-module': supportModule
-      }).default;
-    });
-
-    it('reads in modules from the dir', () => {
-      support = FrameworkSupport.bootstrap(['path/to/support.js']);
-      expect(support.frameworks.length).to.eql(1);
-    });
-
-    it('reads in 2 modules from the dir', () => {
-      support = FrameworkSupport.bootstrap([
-        'path/to/support.js',
-        'some/other/path.js']);
-      expect(support.frameworks.length).to.eql(2);
-    });
-
-    it('uses module from support-module', () => {
-      supportModule.mkFromPath.returns({
-        npmDependencies: {
-          a: '1.0.0'
-        }
-      })
-
-      support = FrameworkSupport.bootstrap(['some/other/path.js']);
-      let config = support.buildConfigFromPieDependencies({});
-      expect(config.npmDependencies).to.eql({ a: '1.0.0' });
+      let config = new BuildConfig([{}, { externals: { js: ['a'], css: ['b'] } }]);
+      expect(config.externals).to.eql({ js: ['a'], css: ['b'] });
     });
   });
 

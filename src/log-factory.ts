@@ -13,7 +13,9 @@ export let init = (log) => {
   if (!log) {
     return;
   }
-  if (isLogLevel(log)) {
+  if (_.isObject(log)) {
+    setConfig(log);
+  } else if (isLogLevel(log)) {
     setDefaultLevel(log);
   } else {
     try {
