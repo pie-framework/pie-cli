@@ -63,6 +63,15 @@ export class Github implements Viewer {
         }
       };
 
+      let safeParse = (s: string): any => {
+        try {
+          return JSON.parse(s);
+        }
+        catch (e) {
+          return {}
+        }
+      }
+
       let req = https.get(options, (res) => {
         logger.debug('statusCode:', res.statusCode);
 
@@ -81,10 +90,15 @@ export class Github implements Viewer {
 
         res.on('end', (d) => {
           logger.silly('end: ', result.toString('utf8'));
-          let all = JSON.parse(result.toString('utf8'));
+          let all = safeParse(result.toString('utf8'));
+
+          if (!_.isString(all.content)) {
+            reject(new Error(`github response is missing 'content' property`));
+          }
+
           let pkgString = Buffer.from(all.content, 'base64').toString('utf8');
           logger.silly('pkgString: ', pkgString);
-          let parsed = JSON.parse(pkgString);
+          let parsed = safeParse(pkgString);
           logger.silly('parsed: ', parsed);
           let out = parsed[property];
           logger.silly('out: ', out);
