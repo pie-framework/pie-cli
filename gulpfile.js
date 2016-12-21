@@ -2,7 +2,9 @@ const gulp = require('gulp'),
   mocha = require('gulp-mocha'),
   releaseHelper = require('release-helper'),
   ts = require('gulp-typescript'),
-  tsProject = ts.createProject('tsconfig.json');
+  tsProject = ts.createProject('tsconfig.json'),
+  fsExtra = require('fs-extra'),
+  runSequence = require('run-sequence');
 
 //Init custom release tasks
 releaseHelper.init(gulp);
@@ -39,7 +41,11 @@ gulp.task('it', ['build'], () => {
     .pipe(mocha({ require: ['babel-register'] }));
 });
 
-gulp.task('build', ['md', 'ejs', 'pug', 'ts']);
+gulp.task('clean', (done) => {
+  return fsExtra.remove('lib', done);
+})
+
+gulp.task('build', done => runSequence('clean', ['md', 'ejs', 'pug', 'ts'], done));
 
 gulp.task('dev', ['build', 'watch-md', 'watch-ejs', 'watch-pug', 'watch-ts']);
 

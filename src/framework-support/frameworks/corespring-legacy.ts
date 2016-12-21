@@ -1,9 +1,13 @@
-import {SupportInfo} from '../support-info';
+import { SupportInfo } from '../support-info';
 
-export function support(dependencies) : SupportInfo {
+
+let startsWith = (s: string, t: string): boolean => s.indexOf(t) === 0;
+let endsWith = (s: string, t: string): boolean => s.indexOf(t) === (s.length - t.length);
+
+export function support(dependencies): SupportInfo {
 
   let isLegacy = Object.getOwnPropertyNames(dependencies).filter(name => {
-    return name.indexOf('corespring-legacy') === 0;
+    return startsWith(name, 'corespring-') && endsWith(name, '-ng15');
   }).length > 0;
 
   if (isLegacy) {

@@ -1,6 +1,6 @@
 {
   "name": "pie",
-  "version": "4.0.0",
+  "version": "4.0.1-prerelease",
   "description": "The Portable Interaction Elements framework CLI",
   "preferGlobal": true,
   "bin": {
@@ -12,7 +12,8 @@
     "build": "gulp build",
     "it": "./node_modules/.bin/gulp it",
     "dev": "./node_modules/.bin/gulp dev",
-    "release": "./node_modules/.bin/gulp release"
+    "release": "./node_modules/.bin/gulp release",
+    "source-maps": "gulp build && ./node_modules/.bin/tsc"
   },
   "repository": {
     "type": "git",
