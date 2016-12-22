@@ -24,7 +24,8 @@ export function packExample(testName, exampleQuestion, support) {
   let cmd = require('../../lib/cli/pack').default;
   return cmd.run({
     dir: questionPath,
-    includeComplete: true
+    includeComplete: true,
+    configuration: require('../../lib/cli/configuration').default
   })
     .then(() => {
       return {

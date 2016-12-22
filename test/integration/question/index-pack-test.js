@@ -14,7 +14,8 @@ describe('Question', () => {
     let tmpPath = setUpTmpQuestionAndComponents('index-pack-test');
     questionPath = `${tmpPath}/example-questions/one`;
     console.log('questionPath: ', questionPath);
-    return packCmd.run({ dir: questionPath, includeComplete: true });
+    let configuration = require('../../../lib/cli/configuration').default;
+    return packCmd.run({ dir: questionPath, includeComplete: true, configuration: configuration });
   });
 
   it('builds pie-view.js', () => {
