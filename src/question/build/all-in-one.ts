@@ -25,9 +25,10 @@ export default class AllInOne {
     readonly config: JsonConfig,
     private supportConfig: SupportConfig,
     private entryPath: string,
-    readonly fileout: string) {
-    this.client = new ClientBuild(config, supportConfig.webpackLoaders(p => p));
-    this.controllers = new ControllersBuild(config);
+    readonly fileout: string,
+    private writeWebpackConfig: boolean) {
+    this.client = new ClientBuild(config, supportConfig.webpackLoaders(p => p), writeWebpackConfig);
+    this.controllers = new ControllersBuild(config, writeWebpackConfig);
   }
 
   async install(client: { dependencies: KeyMap, devDependencies: KeyMap }): Promise<any> {
@@ -84,8 +85,8 @@ export default class AllInOne {
     let m = config.module as any;
     m.loaders = (m.loaders || []).concat(this.supportConfig.webpackLoaders(p => p));
 
-    if (process.env.WRITE_WEBPACK_CONFIG) {
-      writeConfig(join(this.config.dir, 'all-in-one.webpack-config.js'), config);
+    if (this.writeWebpackConfig) {
+      writeConfig(join(this.config.dir, '.all-in-one.webpack.config.js'), config);
     }
 
     return config;

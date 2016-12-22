@@ -11,10 +11,13 @@ import * as http from 'http';
 
 export class BuildOpts {
   constructor(readonly clean: boolean = false,
-    readonly keepBuildAssets: boolean = false) { }
+    readonly keepBuildAssets: boolean = false
+  ) { }
 
   static build(args: any) {
-    return new BuildOpts(args.clean, args.keepBuildAssets === true);
+    return new BuildOpts(
+      args.clean,
+      args.keepBuildAssets === true);
   }
 }
 

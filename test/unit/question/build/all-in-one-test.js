@@ -27,6 +27,7 @@ describe('all-in-one', () => {
         instance: controllers,
         default: stub().returns(controllers)
       }
+
     };
 
     supportConfig = {
@@ -106,10 +107,8 @@ describe('all-in-one', () => {
   });
 
   describe('build', () => {
-    beforeEach((done) => {
-      instance.build('//js...')
-        .then(() => done())
-        .catch(done);
+    beforeEach(() => {
+      return instance.build('//js...');
     });
 
     it('calls writeFileSync', () => {
@@ -118,6 +117,18 @@ describe('all-in-one', () => {
 
     it('calls buildWebpack', () => {
       assert.calledWith(mod.deps('webpack-builder').build, expectedConfig);
+    });
+
+    describe('with writeWebpackConfig', () => {
+      beforeEach(() => {
+        instance = new AllInOne(jsonConfig, supportConfig, 'entry.js', 'fileout.js', true);
+        return instance.build('//js...');
+      });
+
+      it('calls writeWebpackConfig', () => {
+        let configPath = path.join('dir', '.all-in-one.webpack.config.js');
+        assert.calledWith(mod.deps('webpack-write-config').writeConfig, configPath, match.object);
+      });
     });
   });
 

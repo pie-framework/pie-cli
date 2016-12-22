@@ -11,6 +11,7 @@ import { writeFileSync } from 'fs-extra';
 import { build as buildWebpack, BuildResult } from '../../code-gen/webpack-builder';
 import * as webpack from 'webpack';
 import { buildLogger } from '../../log-factory';
+import { writeConfig } from '../../code-gen/webpack-write-config';
 
 const logger = buildLogger();
 
@@ -18,7 +19,7 @@ export default class ClientBuild {
 
   private npmDir: NpmDir;
 
-  constructor(private config: JsonConfig, readonly loaders: LoaderInfo[]) {
+  constructor(private config: JsonConfig, readonly loaders: LoaderInfo[], private writeWebpackConfig: boolean) {
     this.npmDir = new NpmDir(this.config.dir);
   }
 
@@ -61,6 +62,11 @@ export default class ClientBuild {
 
     let m = config.module as any;
     m.loaders = (m.loaders || []).concat(this.loaders);
+
+    if (this.writeWebpackConfig) {
+      writeConfig(join(this.config.dir, '.client.webpack.config.js'), config);
+    }
+
     return config;
   }
 }
