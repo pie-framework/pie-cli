@@ -32,14 +32,7 @@ describe('ControllersBuild', () => {
 
     let result;
 
-    beforeEach((done) => {
-      instance.build('out.js', 'lib')
-        .then(r => {
-          result = r;
-          done();
-        })
-        .catch(done);
-    });
+    beforeEach(() => instance.build('out.js', 'lib').then(r => result = r));
 
     it('writes out the entry.js', () => {
       assert.calledWith(
@@ -59,14 +52,22 @@ describe('ControllersBuild', () => {
     it('returns the filename', () => {
       expect(result).to.eql('out.js');
     });
+
+
+    describe('with writeWebpackConfig=true', () => {
+
+      it('calls buildWebpack', () => {
+        instance = new ControllersBuild({ dir: 'dir' }, true);
+        return instance.build('out.js', 'lib')
+          .then(() => {
+            assert.calledWith(mod.deps('webpack-write-config').writeConfig, 'dir/.controllers.webpack.config.js', match.object);
+          });
+      });
+    });
   });
 
   describe('install', () => {
-    beforeEach((done) => {
-      instance.install()
-        .then(() => done())
-        .catch(done);
-    });
+    beforeEach(() => instance.install());
 
     it('calls npmDir.install', () => {
       assert.calledWith(

@@ -31,11 +31,7 @@ describe('ClientBuild', () => {
 
   describe('install', () => {
 
-    beforeEach((done) => {
-      instance.install()
-        .then(() => done())
-        .catch(done);
-    });
+    beforeEach(() => instance.install());
 
     it('calls npmDir.install', () => {
       assert.calledWith(mod.deps('npm-dir').instance.install,
@@ -48,14 +44,7 @@ describe('ClientBuild', () => {
 
   describe('build', () => {
     let result;
-    beforeEach((done) => {
-      instance.build('//js..', 'out.js')
-        .then((r) => {
-          result = r;
-          done()
-        })
-        .catch(done);
-    });
+    beforeEach(() => instance.build('//js..', 'out.js').then(r => result = r));
 
     it('calls fs-extra writeFileSync', () => {
       let writeFileSync = mod.deps('fs-extra').writeFileSync;
@@ -73,6 +62,17 @@ describe('ClientBuild', () => {
 
     it('calls buildWebpack', () => {
       assert.calledWith(mod.deps('webpack-builder').build, expectedConfig);
+    });
+
+    describe('with writeWebpackConfig=true', () => {
+
+      it('calls buildWebpack', () => {
+        instance = new ClientBuild({ dir: 'dir' }, [], true);
+        return instance.build('//js..', 'out.js')
+          .then(() => {
+            assert.calledWith(mod.deps('webpack-write-config').writeConfig, 'dir/.client.webpack.config.js', match.object);
+          });
+      });
     });
   });
 

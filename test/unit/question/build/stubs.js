@@ -27,6 +27,9 @@ export function stubs(path, deps) {
     '../../code-gen/webpack-builder': {
       build: stub().returns({ duration: 1000 })
     },
+    '../../code-gen/webpack-write-config': {
+      writeConfig: stub()
+    },
     '../../npm/npm-dir': {
       instance: npmDir,
       default: stub().returns(npmDir)

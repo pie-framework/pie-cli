@@ -119,7 +119,8 @@ export abstract class BaseApp implements App {
       config,
       support,
       this.names.build.entryFile,
-      this.names.out.completeItemTag.path);
+      this.names.out.completeItemTag.path,
+      this.args.writeWebpackConfig !== false);
   }
 
   protected logBuild(name: string): void {

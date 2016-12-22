@@ -9,6 +9,7 @@ import baseConfig from './base-config';
 import { writeFileSync } from 'fs-extra';
 import { build as buildWebpack, BuildResult } from '../../code-gen/webpack-builder';
 import * as webpack from 'webpack';
+import { writeConfig } from '../../code-gen/webpack-write-config';
 
 const logger = buildLogger();
 
@@ -18,7 +19,7 @@ export default class ControllersBuild {
 
   private npmDir: NpmDir;
 
-  constructor(private config: JsonConfig) {
+  constructor(private config: JsonConfig, private writeWebpackConfig: boolean) {
     ensureDirSync(this.controllersDir);
     this.npmDir = new NpmDir(this.controllersDir);
   }
@@ -66,7 +67,7 @@ export default class ControllersBuild {
   }
 
   private _config(fileout: string, libraryName: string) {
-    return _.extend({
+    let config = _.extend({
       context: this.controllersDir,
       entry: this.entryJsPath,
       output: {
@@ -75,5 +76,11 @@ export default class ControllersBuild {
         libraryTarget: 'umd'
       }
     }, baseConfig(this.controllersDir));
+
+    if (this.writeWebpackConfig) {
+      writeConfig(join(this.config.dir, '.controllers.webpack.config.js'), config);
+    }
+
+    return config;
   }
 }
