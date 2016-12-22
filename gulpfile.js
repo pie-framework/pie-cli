@@ -4,7 +4,8 @@ const gulp = require('gulp'),
   ts = require('gulp-typescript'),
   tsProject = ts.createProject('tsconfig.json'),
   fsExtra = require('fs-extra'),
-  runSequence = require('run-sequence');
+  runSequence = require('run-sequence'), 
+  path = require('path');
 
 //Init custom release tasks
 releaseHelper.init(gulp);
@@ -42,7 +43,7 @@ gulp.task('it', ['build'], () => {
 });
 
 gulp.task('clean', (done) => {
-  return fsExtra.remove('lib', done);
+  fsExtra.remove('lib', done);
 })
 
 gulp.task('build', done => runSequence('clean', ['md', 'ejs', 'pug', 'ts'], done));

@@ -136,6 +136,7 @@ export class FileWatch implements Watch {
 
     this._watch = chokidar.watch(this.filepath, { ignoreInitial: true });
     this._watch.on('change', () => {
+      logger.silly('[FileWatch] on change: ', this.filepath);
       this.onChange(this.filepath);
     });
 

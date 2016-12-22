@@ -94,6 +94,12 @@ To run them all:
 npm run it 
 ```
 
+##### Test Coverage 
+
+```shell 
+npm install -g nyc 
+nyc npm test
+```
 #### Build
 
 ```

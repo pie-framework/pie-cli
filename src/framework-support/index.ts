@@ -4,9 +4,20 @@ import * as resolve from 'resolve';
 import { mkFromPath } from './support-module';
 import { LoaderInfo, SupportInfo, ResolveFn } from './support-info';
 
+import react from './frameworks/react';
+import less from './frameworks/less';
+import { support as legacySupport } from './frameworks/corespring-legacy';
+export { react, less, legacySupport };
+
 let logger = buildLogger();
 
-export class BuildConfig {
+export interface SupportConfig {
+  npmDependencies: { [key: string]: string };
+  externals: { js: string[], css: string[] };
+  webpackLoaders(resolve: ResolveFn): LoaderInfo[];
+}
+
+export class BuildConfig implements SupportConfig {
 
   constructor(private modules: SupportInfo[]) {
     logger.debug('[BuildConfig:constructor]', modules);
@@ -49,7 +60,6 @@ export default class FrameworkSupport {
         return;
       }
 
-
       if (_.isFunction(framework)) {
         return framework(dependencies);
       } else if (_.isFunction(framework.support)) {
@@ -62,26 +72,5 @@ export default class FrameworkSupport {
     let rawModules = _(this.frameworks).map(readSupport).compact().value();
     return new BuildConfig(rawModules);
   }
-
-  /**
-   * @param _require - convert src at given path to an object (used for testing)
-   */
-  static bootstrap(modules) {
-
-    let loadModule = (f) => {
-      logger.debug('f: ', f);
-      let path = resolve.sync(f);
-      logger.debug('path: ', path);
-      return mkFromPath(path);
-    };
-
-    logger.silly(`modules`, modules);
-
-    let loadedModules = _.map(modules, loadModule);
-
-    logger.silly(`loadedModules`, loadedModules);
-
-    return new FrameworkSupport(loadedModules);
-  };
 
 }

@@ -4,7 +4,7 @@ declare module "webpack-dev-middleware" {
 
   namespace webpack {
     interface DevMiddleware {
-      (config: webpackMain.Configuration, opts?: any): any
+      (config: webpackMain.compiler.Compiler, opts?: any): any
     }
   }
 

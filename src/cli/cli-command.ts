@@ -1,8 +1,9 @@
 import { resolve, dirname, extname, join } from 'path';
 import { existsSync, readFileSync } from 'fs-extra';
 import * as _ from 'lodash';
-import { buildLogger } from '../log-factory';
+import { buildLogger, getLogger } from '../log-factory';
 import * as ejs from 'ejs';
+import * as winston from 'winston';
 
 const logger = buildLogger();
 
@@ -15,10 +16,13 @@ marked.setOptions({
 
 export default class CliCommand {
 
+  protected cliLogger: winston.LoggerInstance;
+
   constructor(readonly name, readonly summary, readonly usage?) {
     this.name = name;
     this.summary = `${name} - ${summary}`;
     this.usage = this._initUsage(usage);
+    this.cliLogger = getLogger(`CLI`);
   }
 
   _initUsage(usageValue) {

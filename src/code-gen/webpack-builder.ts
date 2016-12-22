@@ -6,7 +6,7 @@ import { configToJsString } from './webpack-write-config';
 
 const logger = buildLogger();
 
-type BuildResult = { stats: webpack.compiler.Stats, duration: number };
+export type BuildResult = { stats: webpack.compiler.Stats, duration: number };
 
 export function build(config): Promise<BuildResult> {
 

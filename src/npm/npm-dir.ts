@@ -6,6 +6,7 @@ import * as readline from 'readline';
 import * as helper from './dependency-helper';
 import { buildLogger } from '../log-factory';
 import { removeFiles } from '../file-helper';
+import { KeyMap } from './types';
 
 let logger = buildLogger();
 
@@ -15,7 +16,65 @@ export default class NpmDir {
     logger.debug(`rootDir: ${rootDir}`);
   }
 
-  _spawnPromise(args: string[], ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
+  install(name: string, dependencies: KeyMap, devDeps: KeyMap) {
+    logger.info('[install] ...');
+    return this._writePackageJson(name, dependencies, devDeps)
+      .then(() => this._install());
+  };
+
+  ls() {
+    logger.info('[ls]');
+    if (!this._installed) {
+      return this._install()
+        .then(() => this.ls())
+    } else {
+      return this._spawnPromise(['ls', '--json'], true)
+        .then((result) => {
+          logger.debug('[ls] got ls result..');
+          try {
+            return JSON.parse(result.stdout)
+          } catch (e) {
+            logger.error('[ls] failed to parse stdout as json: ', result.stdout);
+            throw e;
+          }
+        });
+    }
+  }
+
+  private get _installed() {
+    return fs.existsSync(path.join(this.rootDir, 'node_modules'));
+  }
+
+  private _exists(name) {
+    return fs.existsSync(path.join(this.rootDir, name));
+  }
+
+  private _writePackageJson(name: string, dependencies: KeyMap, devDeps: KeyMap) {
+
+    logger.silly('dependencies: ', dependencies);
+
+    let pkg = {
+      name: name,
+      version: '0.0.1',
+      private: true,
+      dependencies: dependencies,
+      devDependencies: devDeps
+    };
+
+    fs.writeJsonSync(path.join(this.rootDir, 'package.json'), pkg);
+    return Promise.resolve(pkg);
+  };
+
+
+  private _install(args?: any[]) {
+    args = args || [];
+    let cmd = ['install'].concat(args);
+    logger.silly('[install] > final cmd: ', cmd.join(' '));
+    return this._spawnPromise(cmd);
+  };
+
+
+  private _spawnPromise(args: string[], ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
 
     logger.debug('[_spawnPromise] args: ', args);
 
@@ -63,99 +122,4 @@ export default class NpmDir {
     return p;
   };
 
-  _writePackageJson(dependencies) {
-
-    logger.silly('dependencies: ', dependencies);
-
-    let pkg = {
-      name: 'tmp',
-      version: '0.0.1',
-      private: true,
-      dependencies: dependencies
-    };
-
-    fs.writeJsonSync(path.join(this.rootDir, 'package.json'), pkg);
-
-    return Promise.resolve(pkg);
-  };
-
-  /**
-   * Clean all npm related files
-   */
-  clean() {
-    return removeFiles(this.rootDir, ['node_modules', 'package.json']);
-  }
-
-  //TODO: Clean up api here - install <> installMoreDependencies
-  //Get it to more accurately reflect what actions are being taken.
-
-  _exists(name) {
-    return fs.existsSync(path.join(this.rootDir, name));
-  }
-  /**
-   * install more dependencies
-   */
-  installMoreDependencies(dependencies, opts) {
-
-    logger.info('[installMoreDependencies] ', dependencies);
-
-    let needsInstalling = (value, key) => !this._exists(`node_modules/${key}`);
-
-    let getInstallName = (value, key) => {
-      if (helper.isSemver(value)) {
-        return `${key}@${value}`;
-      } else {
-        return value;
-      }
-    }
-
-    let deps = _(dependencies).pickBy(needsInstalling).map(getInstallName).value();
-
-    logger.silly('[installMoreDependencies] deps:', JSON.stringify(deps));
-
-    let save = (opts && opts.save) ? ['--save'] : [];
-
-    if (deps.length === 0) {
-      logger.info(`skipping the installation of ${_.keys(dependencies).join(', ')}`);
-      return Promise.resolve({ skipped: true });
-    } else {
-      return this._install(deps.concat(save));
-    }
-  };
-
-  install(dependencies) {
-    logger.info('[install] ...');
-    return this._writePackageJson(dependencies)
-      .then(() => this._install());
-  };
-
-  _install(args?: any[]) {
-    args = args || [];
-    let cmd = ['install'].concat(args);
-    logger.silly('[install] > final cmd: ', cmd.join(' '));
-    return this._spawnPromise(cmd);
-  };
-
-  get _installed() {
-    return fs.existsSync(path.join(this.rootDir, 'node_modules'));
-  }
-
-  ls() {
-    logger.info('[ls]');
-    if (!this._installed) {
-      return this._install()
-        .then(() => this.ls())
-    } else {
-      return this._spawnPromise(['ls', '--json'], true)
-        .then((result) => {
-          logger.debug('[ls] got ls result..');
-          try {
-            return JSON.parse(result.stdout)
-          } catch (e) {
-            logger.error('[ls] failed to parse stdout as json: ', result.stdout);
-            throw e;
-          }
-        });
-    }
-  }
 }

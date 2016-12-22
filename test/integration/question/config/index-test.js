@@ -10,15 +10,13 @@ describe('config', () => {
 
   let questionPath, config, npmDir;
 
-  before((done) => {
+  before(() => {
     let tmpPath = setUpTmpQuestionAndComponents('config-test');
     questionPath = join(tmpPath, 'example-questions', 'one');
     config = new JsonConfig(questionPath);
     npmDir = new NpmDir(questionPath);
     console.log('dependencies: ', config.dependencies);
-    npmDir.install(config.dependencies)
-      .then(done.bind(null, null))
-      .catch(done);
+    return npmDir.install('config-test', config.dependencies);
   });
 
 
