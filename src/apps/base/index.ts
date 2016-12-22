@@ -31,13 +31,7 @@ export function logBuild<T>(name: string, p: Promise<T>): Promise<T> {
   });
 }
 
-let clientDependencies = (branch: string) => {
-  return {
-    'pie-controller': `PieLabs/pie-controller#${branch}`,
-    'pie-player': `PieLabs/pie-player#${branch}`,
-    'pie-control-panel': `PieLabs/pie-control-panel#${branch}`
-  }
-}
+let clientDependencies = (args: any) => args.configuration.app.dependencies;
 
 type BuildNames = {
   entryFile: string;
@@ -246,7 +240,7 @@ export abstract class BaseApp implements App {
 
   protected async install(): Promise<void> {
     await this.allInOneBuild.install({
-      dependencies: clientDependencies(this.branch),
+      dependencies: clientDependencies(this.args),
       devDependencies: this.support.npmDependencies || {}
     });
   }

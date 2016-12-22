@@ -72,7 +72,13 @@ describe('BaseApp', function () {
 
     BaseApp = mod.BaseApp;
     names = mod.getNames({});
-    app = new BaseApp({}, jsonConfig, supportConfig, names);
+    app = new BaseApp({
+      configuration: {
+        app: {
+          dependencies: {}
+        }
+      }
+    }, jsonConfig, supportConfig, names);
   });
 
   describe('constructor', () => {
