@@ -4,13 +4,15 @@ import { SupportInfo } from '../support-info';
 let startsWith = (s: string, t: string): boolean => s.indexOf(t) === 0;
 let endsWith = (s: string, t: string): boolean => s.indexOf(t) === (s.length - t.length);
 
-export function support(dependencies): SupportInfo {
+export function support(config): SupportInfo {
 
-  let isLegacy = Object.getOwnPropertyNames(dependencies).filter(name => {
-    return startsWith(name, 'corespring-') && endsWith(name, '-ng15');
-  }).length > 0;
+  let isLegacy = (config) => {
+    return (config._raw && config._raw.elements) ? Object.getOwnPropertyNames(config._raw.elements).filter(name => {
+      return startsWith(name, 'corespring-') && endsWith(name, '-ng15');
+    }).length > 0 : false;
+  };
 
-  if (isLegacy) {
+  if (isLegacy(config)) {
     return {
       /** 
        * Note: This is a temporary option only present to handle the

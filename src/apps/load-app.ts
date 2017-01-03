@@ -30,7 +30,7 @@ export default async function loadApp(args: any): Promise<App> {
         logger.silly('dependencies: ', JSON.stringify(results, null, '  '));
         let merged = _.reduce(results, _.merge, {});
         logger.silly('merged: ', JSON.stringify(merged, null, '  '));
-        let legacy = legacySupport(merged)
+        let legacy = legacySupport(config);
         let supportInfo = [react, less];
 
         if (legacy) {
