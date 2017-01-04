@@ -18,9 +18,6 @@ describe('loadApp', () => {
 
   beforeEach((done) => {
     deps = {
-      '../package-info': {
-        info: stub()
-      },
       '../framework-support': {
         legacySupport: stub(),
         react: 'react',
@@ -67,27 +64,14 @@ describe('loadApp', () => {
     };
 
     describe('loadSupportConfig', () => {
-      beforeEach(() => {
-        deps['../package-info'].info
-          .onFirstCall().returns({ b: '1.0.0' })
-          .onSecondCall().returns({ c: '2.0.0' });
-      });
 
       describe('with no legacy', () => {
         beforeEach((done) => {
           load(done);
         });
 
-        it('calls info for 1st dependency', () => {
-          assert.calledWith(deps['../package-info'].info, { key: 'a', value: '1.0.0' }, 'dependencies', 'dir')
-        });
-
-        it('calls info for 2nd dependency', () => {
-          assert.calledWith(deps['../package-info'].info, { key: 'aa', value: '1.0.0' }, 'dependencies', 'dir')
-        });
-
         it('calls legacySupport', () => {
-          assert.calledWith(deps['../framework-support'].legacySupport, { b: '1.0.0', c: '2.0.0' });
+          assert.calledWith(deps['../framework-support'].legacySupport, { a: '1.0.0', aa: '1.0.0' });
         });
 
         it('calls new BuildConfig', () => {
