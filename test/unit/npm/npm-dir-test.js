@@ -5,7 +5,7 @@ import path from 'path';
 
 describe('npm-dir', () => {
 
-  let NpmDir, fs, childProcess, spawned, handlers;
+  let NpmDir, fs, io, spawned, handlers;
   beforeEach(() => {
     handlers = {};
 
@@ -20,14 +20,14 @@ describe('npm-dir', () => {
       existsSync: stub().returns(true)
     }
 
-    childProcess = {
-      spawn: stub().returns(spawned)
+    io = {
+      spawnPromise: stub().returns(Promise.resolve({}))
     }
 
     NpmDir = proxyquire('../../../lib/npm/npm-dir', {
 
       'fs-extra': fs,
-      'child_process': childProcess,
+      '../io': io,
       'readline': {
         createInterface: stub().returns({
           on: stub()
@@ -71,7 +71,7 @@ describe('npm-dir', () => {
       withCloseHandler(() => {
         dir.install({})
           .then(() => {
-            assert.calledWith(childProcess.spawn, 'npm', ['install'], { cwd: __dirname });
+            assert.calledWith(io.spawnPromise, 'npm', __dirname, ['install'], false);
             done();
           })
           .catch(done);

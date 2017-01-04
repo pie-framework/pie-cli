@@ -14,7 +14,14 @@ class PackCommand extends CliCommand {
     let a: App = await loadApp(args);
     let buildOpts = BuildOpts.build(args);
     let files = await a.build(buildOpts);
-    this.cliLogger.info('build complete, run manifest');
+    this.cliLogger.info(`build files: ${files}`);
+    this.cliLogger.info('build complete, run manifest...');
+
+    if (buildOpts.createArchive) {
+      let zip = await a.createArchive(files);
+      this.cliLogger.info('archive: ', zip);
+    }
+
     let manifestOpts = ManifestOpts.build(args);
     return a.manifest(manifestOpts);
   }

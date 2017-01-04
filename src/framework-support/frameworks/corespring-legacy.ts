@@ -27,16 +27,21 @@ export function support(dependencies): SupportInfo {
       webpackLoaders: () => {
         return [
           {
+            //mathquill support
+            test: /font\/.*\.(eot|svg|ttf|woff|woff2|otf)([#?].*)?$/,
+            loader: "file-loader?{\"name\":\"public/font/[name].[ext]\"}"
+          },
+          {
             test: /fonts\/.*\.(eot|svg|ttf|woff|woff2)([#?].*)?$/,
-            loader: 'file?{"name":"public/fonts/[name].[ext]"}'
+            loader: 'file-loader?{"name":"public/fonts/[name].[ext]"}'
           },
           {
             test: /libs\/styles\/images\/.*\.(svg|png)([#?].*)?$/,
-            loader: 'file?{"name":"public/[path][name].[ext]", "context":"./node_modules/corespring-legacy-component-dependencies/libs/styles"}'
+            loader: 'file-loader?{"name":"public/[path][name].[ext]", "context":"./node_modules/corespring-legacy-component-dependencies/libs/styles"}'
           },
           {
             test: /\/images\/feedback\/.*\.png/,
-            loader: 'file?{"name":"public/images/feedback/[name].[ext]"}'
+            loader: 'file-loader?{"name":"public/images/feedback/[name].[ext]"}'
           }
         ];
       }

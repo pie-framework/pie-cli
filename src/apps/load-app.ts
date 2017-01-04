@@ -1,4 +1,4 @@
-import { App, DefaultApp, InfoApp } from './types';
+import { App, DefaultApp, InfoApp, CatalogApp } from './types';
 import { JsonConfig } from '../question/config';
 import { BuildConfig, react, less, legacySupport } from '../framework-support';
 import * as _ from 'lodash';
@@ -8,8 +8,10 @@ const logger = buildLogger();
 
 const appMap = {
   'default': DefaultApp,
-  'info': InfoApp
+  'info': InfoApp,
+  'catalog': CatalogApp
 }
+
 
 export default async function loadApp(args: any): Promise<App> {
 
