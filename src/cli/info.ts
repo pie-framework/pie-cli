@@ -3,6 +3,7 @@ import CliCommand from './cli-command';
 import loadApp from '../apps/load-app';
 import { App, ServeOpts } from '../apps/types';
 import { startServer } from '../apps/server/utils';
+import * as _ from 'lodash';
 
 const logger = buildLogger();
 
@@ -16,7 +17,7 @@ class Cmd extends CliCommand {
   }
 
   async run(args) {
-    let a: App = await loadApp({ app: 'info' });
+    let a: App = await loadApp(_.merge(args, { app: 'info' }));
     let opts = ServeOpts.build(args);
     let {server, reload} = await a.server(opts);
     this.cliLogger.info('starting server...')
