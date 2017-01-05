@@ -5,7 +5,6 @@ import { spawn } from 'child_process';
 import * as readline from 'readline';
 import * as helper from './dependency-helper';
 import { buildLogger } from '../log-factory';
-import { removeFiles } from '../file-helper';
 import { KeyMap } from './types';
 
 let logger = buildLogger();
