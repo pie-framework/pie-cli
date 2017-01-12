@@ -55,41 +55,21 @@ describe('npm-dir', () => {
       dir._exists = stub();
     });
 
-    it('writes package.json when installing', (done) => {
-
-      withCloseHandler(() => {
-        dir.install({})
-          .then(() => {
-            assert.calledWith(fs.writeJsonSync, path.join(__dirname, 'package.json'), match.object);
-            done();
-          })
-          .catch(done);
-      });
+    it('writes package.json when installing', () => {
+      return dir.install({})
+        .then(() => {
+          assert.calledWith(fs.writeJsonSync, path.join(__dirname, 'package.json'), match.object);
+        });
     });
 
-    it('calls \'npm install\' in a child_process', (done) => {
-      withCloseHandler(() => {
-        dir.install({})
-          .then(() => {
-            assert.calledWith(io.spawnPromise, 'npm', __dirname, ['install'], false);
-            done();
-          })
-          .catch(done);
-      });
+    it('calls \'npm install\' in a child_process', () => {
+      return dir.install({})
+        .then(() => {
+          assert.calledWith(io.spawnPromise, 'npm', __dirname, ['install'], false);
+        });
     });
   });
 
-  let withCloseHandler = (bodyFn) => {
-    bodyFn();
-    let close = () => {
-      if (handlers.close) {
-        handlers.close(0);
-      } else {
-        setTimeout(close);
-      }
-    }
-    close();
-  }
 
   describe('ls', () => {
 
