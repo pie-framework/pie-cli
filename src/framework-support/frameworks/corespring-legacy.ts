@@ -78,6 +78,7 @@ export function support(dependencies, rootDir: string): SupportInfo {
               options: {
                 name: "public/[path][name].[ext]",
                 context: resolve(rootDir, "./node_modules/corespring-legacy-component-dependencies/libs/styles")
+                context: "./node_modules/corespring-legacy-component-dependencies/libs/styles"
               }
             }
           ]
