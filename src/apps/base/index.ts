@@ -14,6 +14,9 @@ import * as webpack from 'webpack';
 import * as http from 'http';
 import { ReloadOrError, HasServer } from '../server/types';
 import * as bundled from './elements/bundled';
+import archive, { ArchiveEntry } from '../../archive';
+
+export { ArchiveEntry };
 
 export type Compiler = webpack.compiler.Compiler;
 
@@ -54,14 +57,16 @@ export class Out {
     readonly completeItemTag: Tag = new Tag('pie-item'),
     readonly viewElements: string = 'pie-view.js',
     readonly controllers: string = 'pie-controller.js',
-    readonly example: string = 'example.html') { }
+    readonly example: string = 'example.html',
+    readonly archive: string = 'pie-item.zip') { }
 
   static build(args) {
     return new Out(
       args.questionItemTagName ? new Tag(args.questionItemTagName) : undefined,
       args.questionElements,
       args.questionControllers,
-      args.questionExample
+      args.questionExample,
+      args.questionArchive
     )
   }
 }
@@ -95,7 +100,8 @@ export let build = (
     });
 }
 
-type BuildStep = { label: string, fn: () => Promise<string[]> };
+export type BuildStep = { label: string, fn: () => Promise<string[]> };
+
 
 export abstract class BaseApp implements App {
 
@@ -121,6 +127,25 @@ export abstract class BaseApp implements App {
     logger.info(`[build] building ${name}`);
   }
 
+  protected get zipRoot(): string {
+    return resolve(this.config.dir);
+  }
+
+  async createArchive(files: string[]): Promise<string> {
+    let allArchiveFiles = _.concat(files, this.archiveFiles);
+    let resolvedFiles = _.map(allArchiveFiles, (rp) => resolve(join(this.config.dir, rp)));
+    let entries = await this.archiveEntries;
+    let all: (string | ArchiveEntry)[] = _.concat<string | ArchiveEntry>(resolvedFiles, entries);
+    return archive(this.zipRoot, this.names.out.archive, all);
+  }
+
+  protected get archiveFiles(): string[] {
+    return ['public']
+  }
+
+  protected get archiveEntries(): Promise<ArchiveEntry[]> {
+    return Promise.resolve([]);
+  }
   /**
    * A set of build steps to be executed serially...
    */
@@ -130,9 +155,13 @@ export abstract class BaseApp implements App {
     ];
   }
 
+  protected updateConfig(c: any): any {
+    return c;
+  }
+
   protected async buildAllInOne(): Promise<string[]> {
     let src = this.prepareWebpackJs();
-    let out = await this.allInOneBuild.build(src);
+    let out = await this.allInOneBuild.build(src, this.updateConfig);
     logger.info(`build: ${this.names.out.example}`);
     let example = this.buildExample();
     return [out.file, example];

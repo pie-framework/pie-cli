@@ -1,11 +1,8 @@
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as _ from 'lodash';
-import { spawn } from 'child_process';
-import * as readline from 'readline';
-import * as helper from './dependency-helper';
+import { existsSync, writeJsonSync } from 'fs-extra';
+import { join } from 'path';
 import { buildLogger } from '../log-factory';
 import { KeyMap } from './types';
+import { spawnPromise } from '../io';
 
 let logger = buildLogger();
 
@@ -41,11 +38,11 @@ export default class NpmDir {
   }
 
   private get _installed() {
-    return fs.existsSync(path.join(this.rootDir, 'node_modules'));
+    return existsSync(join(this.rootDir, 'node_modules'));
   }
 
   private _exists(name) {
-    return fs.existsSync(path.join(this.rootDir, name));
+    return existsSync(join(this.rootDir, name));
   }
 
   private _writePackageJson(name: string, dependencies: KeyMap, devDeps: KeyMap) {
@@ -60,10 +57,9 @@ export default class NpmDir {
       devDependencies: devDeps
     };
 
-    fs.writeJsonSync(path.join(this.rootDir, 'package.json'), pkg);
+    writeJsonSync(join(this.rootDir, 'package.json'), pkg);
     return Promise.resolve(pkg);
   };
-
 
   private _install(args?: any[]) {
     args = args || [];
@@ -74,51 +70,6 @@ export default class NpmDir {
 
 
   private _spawnPromise(args: string[], ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
-
-    logger.debug('[_spawnPromise] args: ', args);
-
-    let p = new Promise((resolve, reject) => {
-
-      let s = spawn('npm', args, { cwd: this.rootDir });
-
-      let out = '';
-
-      s.on('error', () => {
-        logger.error('npm install command failed - is npm installed?');
-        reject();
-      });
-
-      readline.createInterface({
-        input: s.stderr,
-        terminal: false
-      }).on('line', (line) => {
-        //@see: https://github.com/npm/npm/issues/13656 an issue w/ npm 3.10.7
-        let eventEmitterWarning = 'Possible EventEmitter memory leak detected';
-        if (line.indexOf(eventEmitterWarning) !== -1) {
-          logger.silly(line);
-        } else {
-          logger.error(line);
-        }
-      });
-
-      readline.createInterface({
-        input: s.stdout,
-        terminal: false
-      }).on('line', (line) => {
-        logger.silly(line);
-        out += line;
-      });
-
-      s.on('close', (code) => {
-        if (code !== 0 && !ignoreExitCode) {
-          logger.error(args + ' failed. code: ' + code);
-          reject();
-        } else {
-          resolve({ stdout: out });
-        }
-      });
-    });
-    return p;
+    return spawnPromise('npm', this.rootDir, args, ignoreExitCode);
   };
-
 }

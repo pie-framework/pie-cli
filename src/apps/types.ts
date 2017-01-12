@@ -4,20 +4,23 @@ import { Manifest } from '../question/config/manifest';
 
 import InfoApp from './info';
 import DefaultApp from './default';
+import CatalogApp from './catalog';
 
-export { InfoApp, DefaultApp }
+export { InfoApp, DefaultApp, CatalogApp }
 
 import * as http from 'http';
 
 export class BuildOpts {
   constructor(readonly clean: boolean = false,
-    readonly keepBuildAssets: boolean = false
+    readonly keepBuildAssets: boolean = false,
+    readonly createArchive: boolean = false
   ) { }
 
   static build(args: any) {
     return new BuildOpts(
       args.clean,
-      args.keepBuildAssets === true);
+      args.keepBuildAssets === true,
+      args.createArchive === true);
   }
 }
 
@@ -51,5 +54,6 @@ export interface App {
   manifest(opts: ManifestOpts): Promise<Manifest>
   server(opts: ServeOpts): Promise<{ server: http.Server, reload: (string) => void }>
   clean(): Promise<any>
+  createArchive(files: string[]): Promise<string>
   config: JsonConfig;
 }
