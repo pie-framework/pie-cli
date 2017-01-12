@@ -1,10 +1,10 @@
 import { SupportInfo } from '../support-info';
-
+import { resolve } from 'path';
 
 let startsWith = (s: string, t: string): boolean => s.indexOf(t) === 0;
 let endsWith = (s: string, t: string): boolean => s.indexOf(t) === (s.length - t.length);
 
-export function support(dependencies): SupportInfo {
+export function support(dependencies, rootDir: string): SupportInfo {
 
   let isLegacy = Object.getOwnPropertyNames(dependencies).filter(name => {
     return startsWith(name, 'corespring-') && endsWith(name, '-ng15');
@@ -77,7 +77,7 @@ export function support(dependencies): SupportInfo {
               loader: 'file-loader',
               options: {
                 name: "public/[path][name].[ext]",
-                context: "./node_modules/corespring-legacy-component-dependencies/libs/styles"
+                context: resolve(rootDir, "./node_modules/corespring-legacy-component-dependencies/libs/styles")
               }
             }
           ]

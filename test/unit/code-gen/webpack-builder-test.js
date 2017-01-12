@@ -81,7 +81,8 @@ describe('webpack-builder', () => {
         hasErrors: stub().returns(true),
         compilation: {
           errors: []
-        }
+        },
+        toJson: stub().returns({ errors: [] })
       };
 
       webpack = spy(function (config, done) {

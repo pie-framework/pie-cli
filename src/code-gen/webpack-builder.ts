@@ -20,6 +20,7 @@ export function build(config): Promise<BuildResult> {
   }
 
   return new Promise((resolve, reject) => {
+
     webpack(config, (err, stats) => {
       if (err) {
         logger.error(err.message);

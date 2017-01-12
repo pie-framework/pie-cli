@@ -52,7 +52,7 @@ export default class FrameworkSupport {
    */
   constructor(private frameworks) { }
 
-  buildConfigFromPieDependencies(dependencies) {
+  buildConfigFromPieDependencies(dependencies, rootDir: string) {
 
     let readSupport = (framework) => {
       if (!framework) {
@@ -60,9 +60,9 @@ export default class FrameworkSupport {
       }
 
       if (_.isFunction(framework)) {
-        return framework(dependencies);
+        return framework(dependencies, rootDir);
       } else if (_.isFunction(framework.support)) {
-        return framework.support(dependencies);
+        return framework.support(dependencies, rootDir);
       } else if (_.isObject(framework)) {
         return framework;
       }
