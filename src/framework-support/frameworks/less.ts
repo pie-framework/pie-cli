@@ -4,10 +4,11 @@ let config: SupportInfo = {
   npmDependencies: {
     'less-loader': '^2.2.3'
   },
-  webpackLoaders: () => [
+  rules: [
     {
+
       test: /\.less$/,
-      loader: "style-loader!css-loader!less-loader"
+      use: ['style-loader', 'css-loader', 'less-loader']
     }
   ]
 };

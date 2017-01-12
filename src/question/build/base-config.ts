@@ -4,15 +4,15 @@ import * as webpack from 'webpack';
 export default (root): any => {
   return {
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.css$/,
-          loader: 'style-loader!css-loader'
+          use: ['style-loader', 'css-loader']
         }
       ]
     },
     resolveLoader: {
-      modules: [resolve(join(root, 'node_modules'))],
+      modules: ['node_modules', resolve(join(root, 'node_modules'))],
     }
   };
 };

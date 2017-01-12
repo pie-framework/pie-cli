@@ -20,13 +20,14 @@ describe('framework-support', () => {
         let config = new BuildConfig([{}, { npmDependencies: { a: '1.0.0' } }]);
         expect(config.npmDependencies).to.eql({ a: '1.0.0' });
       });
-
     });
 
-    describe('webpackLoaders()', () => {
-      it('handles modules with no webpackLoaders function', () => {
-        let config = new BuildConfig([{}, { webpackLoaders: () => [{ test: 't' }] }]);
-        expect(config.webpackLoaders()).to.eql([{ test: 't' }]);
+
+    describe('rules', () => {
+
+      it('flattens rules', () => {
+        let config = new BuildConfig([{ rules: [{ test: 'a' }] }, { rules: [{ test: 't' }] }]);
+        expect(config.rules).to.eql([{ test: 'a' }, { test: 't' }]);
       });
     });
 
@@ -86,11 +87,9 @@ describe('framework-support', () => {
               npmDependencies: {
                 'babel-preset-react': '1.0'
               },
-              webpackLoaders: (/*resolve*/) => {
-                return [
-                  { test: 'test' }
-                ];
-              }
+              rules: [
+                { test: 'test' }
+              ]
             }
           }
         }
@@ -108,14 +107,23 @@ describe('framework-support', () => {
       });
     }
 
-    let assertWebpackLoaders = (expected) => {
-      it('returns the webpack loaders', () => {
+    let assertRules = (expected) => {
+      it('returns the rules', () => {
         let config = frameworkSupport.buildConfigFromPieDependencies({
           react: ['1.2.3']
         });
-        expect(config.webpackLoaders()).to.eql([expected]);
+        expect(config.rules).to.eql([expected]);
+
       });
     }
+    // let assertWebpackLoaders = (expected) => {
+    //   it('returns the webpack loaders', () => {
+    //     let config = frameworkSupport.buildConfigFromPieDependencies({
+    //       react: ['1.2.3']
+    //     });
+    //     expect(config.webpackLoaders()).to.eql([expected]);
+    //   });
+    // }
 
     describe('with support function', () => {
       beforeEach(() => {
@@ -123,7 +131,7 @@ describe('framework-support', () => {
       });
 
       assertNpmDependencies({ 'babel-preset-react': '1.0' });
-      assertWebpackLoaders({ test: 'test' });
+      assertRules({ test: 'test' });
     });
 
     describe('with default function', () => {
@@ -133,15 +141,15 @@ describe('framework-support', () => {
             npmDependencies: {
               'babel-preset-react': '1.0'
             },
-            webpackLoaders: () => {
-              return { test: 'test' };
-            }
+            rules: [
+              { test: 'test' }
+            ]
           }
         }]);
       });
 
       assertNpmDependencies({ 'babel-preset-react': '1.0' });
-      assertWebpackLoaders({ test: 'test' });
+      assertRules({ test: 'test' });
     });
 
     describe('with object', () => {
@@ -151,15 +159,13 @@ describe('framework-support', () => {
             npmDependencies: {
               'babel-preset-react': '1.0'
             },
-            webpackLoaders: () => {
-              return { test: 'test' };
-            }
+            rules: [{ test: 'test' }]
           }
         ]);
       });
 
       assertNpmDependencies({ 'babel-preset-react': '1.0' });
-      assertWebpackLoaders({ test: 'test' });
+      assertRules({ test: 'test' });
     });
 
 
@@ -177,8 +183,8 @@ describe('framework-support', () => {
         expect(config.npmDependencies).to.eql({});
       });
 
-      it('returns an empty webpack loaders array', () => {
-        expect(config.webpackLoaders()).to.eql([]);
+      it('returns an empty rules array', () => {
+        expect(config.rules).to.eql([]);
       });
     });
   });

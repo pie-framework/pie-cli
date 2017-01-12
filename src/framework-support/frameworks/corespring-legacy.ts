@@ -24,27 +24,76 @@ export function support(dependencies): SupportInfo {
         'file-loader': '^0.9.0',
         'less-loader': '^2.2.3'
       },
-      webpackLoaders: () => {
-        return [
-          {
-            //mathquill support
-            test: /font\/.*\.(eot|svg|ttf|woff|woff2|otf)([#?].*)?$/,
-            loader: "file-loader?{\"name\":\"public/font/[name].[ext]\"}"
-          },
-          {
-            test: /fonts\/.*\.(eot|svg|ttf|woff|woff2)([#?].*)?$/,
-            loader: 'file-loader?{"name":"public/fonts/[name].[ext]"}'
-          },
-          {
-            test: /libs\/styles\/images\/.*\.(svg|png)([#?].*)?$/,
-            loader: 'file-loader?{"name":"public/[path][name].[ext]", "context":"./node_modules/corespring-legacy-component-dependencies/libs/styles"}'
-          },
-          {
-            test: /\/images\/feedback\/.*\.png/,
-            loader: 'file-loader?{"name":"public/images/feedback/[name].[ext]"}'
-          }
-        ];
-      }
+      rules: [
+        //Mathquill font support
+        {
+          test: /font\/.*\.(otf|eot|svg|ttf|woff|woff2)([#?].*)?$/,
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                name: "public/font/[name].[ext]"
+              }
+            }
+          ]
+        },
+
+        {
+          test: /fonts\/.*\.(eot|svg|ttf|woff|woff2)([#?].*)?$/,
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                name: "public/fonts/[name].[ext]"
+              }
+            }
+          ]
+        },
+        /* Ignore other asset links to legacy-component-dependencies */
+        {
+          test: /.*corespring-legacy-component-dependencies.*\.(svg|png)/,
+
+          include: [
+            //libs with a nested reference to component-dependencies
+            /.*node_modules\/.*node_modules.*/
+          ],
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                emitFile: false,
+              }
+            }
+          ]
+        },
+        {
+          test: /.*corespring-legacy-component-dependencies.*\.(svg|png)/,
+          exclude: [
+            //libs with a nested reference to component-dependencies
+            /.*node_modules\/.*node_modules.*/
+          ],
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                name: "public/[path][name].[ext]",
+                context: "./node_modules/corespring-legacy-component-dependencies/libs/styles"
+              }
+            }
+          ]
+        },
+        {
+          test: /\/images\/feedback\/.*\.png/,
+          use: [
+            {
+              loader: 'file-loader',
+              options: {
+                name: 'public/images/feedback/[name].[ext]'
+              }
+            }
+          ]
+        }
+      ]
     }
   }
 }

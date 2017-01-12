@@ -6,20 +6,19 @@ import * as _ from 'lodash';
 import { join } from 'path';
 import buildDependencies from './build-dependencies';
 import baseConfig from './base-config';
-import { LoaderInfo } from '../../framework-support/support-info';
 import { writeFileSync } from 'fs-extra';
 import { build as buildWebpack, BuildResult } from '../../code-gen/webpack-builder';
 import * as webpack from 'webpack';
 import { buildLogger } from '../../log-factory';
 import { writeConfig } from '../../code-gen/webpack-write-config';
-
+import { Rule } from 'webpack';
 const logger = buildLogger();
 
 export default class ClientBuild {
 
   private npmDir: NpmDir;
 
-  constructor(private config: JsonConfig, readonly loaders: LoaderInfo[], private writeWebpackConfig: boolean) {
+  constructor(private config: JsonConfig, readonly rules: Rule[], private writeWebpackConfig: boolean) {
     this.npmDir = new NpmDir(this.config.dir);
   }
 
@@ -60,8 +59,7 @@ export default class ClientBuild {
       output: { filename: fileout, path: this.config.dir }
     }, baseConfig(this.config.dir));
 
-    let m = config.module as any;
-    m.loaders = (m.loaders || []).concat(this.loaders);
+    config.module.rules = (config.module.rules || []).concat(this.rules);
 
     if (this.writeWebpackConfig) {
       writeConfig(join(this.config.dir, '.client.webpack.config.js'), config);

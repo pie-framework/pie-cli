@@ -31,7 +31,7 @@ describe('all-in-one', () => {
     };
 
     supportConfig = {
-      webpackLoaders: () => []
+      rules: [{ test: 'a-rule' }]
     }
 
     jsonConfig = {
@@ -40,7 +40,7 @@ describe('all-in-one', () => {
 
     mod = stubs('question/build/all-in-one', deps);
     AllInOne = mod.default;
-    instance = new AllInOne(jsonConfig, supportConfig, 'entry.js', 'fileout.js');
+    instance = new AllInOne(jsonConfig, supportConfig, 'entry.js', 'fileout.js', false);
 
     expectedConfig = {
       context: 'dir',
@@ -49,12 +49,12 @@ describe('all-in-one', () => {
         filename: 'fileout.js', path: 'dir'
       },
       module: {
-        loaders: []
+        rules: supportConfig.rules
       },
       resolve: {
         modules: [
-          path.resolve('dir/controllers/node_modules'),
-          'node_modules'
+          'node_modules',
+          path.resolve('dir/controllers/node_modules')
         ],
         extensions: ['.js', '.jsx']
       }
@@ -65,7 +65,7 @@ describe('all-in-one', () => {
   describe('constructor', () => {
 
     it('calls new ClientBuild', () => {
-      assert.calledWith(mod.deps('client').default, { dir: 'dir' }, []);
+      assert.calledWith(mod.deps('client').default, { dir: 'dir' }, [{ test: 'a-rule' }], false);
     });
 
     it('calls new ControllersBuild', () => {
