@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
 import * as resolve from 'resolve';
 import { mkFromPath } from './support-module';
-import { LoaderInfo, SupportInfo, ResolveFn } from './support-info';
+import { Rule, SupportInfo } from './support-info';
 
 import react from './frameworks/react';
 import less from './frameworks/less';
@@ -14,7 +14,7 @@ let logger = buildLogger();
 export interface SupportConfig {
   npmDependencies: { [key: string]: string };
   externals: { js: string[], css: string[] };
-  webpackLoaders(resolve: ResolveFn): LoaderInfo[];
+  rules: Rule[];
 }
 
 export class BuildConfig implements SupportConfig {
@@ -38,11 +38,10 @@ export class BuildConfig implements SupportConfig {
     }, { js: [], css: [] });
   }
 
-  webpackLoaders(resolve: ResolveFn): LoaderInfo[] {
-    return _.reduce(this.modules, (acc, c) => {
-      let loadersFn = _.isFunction(c.webpackLoaders) ? c.webpackLoaders : () => [];
-      return acc.concat(loadersFn(resolve));
-    }, []);
+  get rules(): Rule[] {
+    let r: Rule[][] = _.map(this.modules, m => m.rules);
+    let flattened = _.flatten(r);
+    return _.compact(flattened);
   }
 }
 

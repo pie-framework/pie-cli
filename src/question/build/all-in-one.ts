@@ -27,7 +27,7 @@ export default class AllInOne {
     private entryPath: string,
     readonly fileout: string,
     private writeWebpackConfig: boolean) {
-    this.client = new ClientBuild(config, supportConfig.webpackLoaders(p => p), writeWebpackConfig);
+    this.client = new ClientBuild(config, supportConfig.rules, writeWebpackConfig);
     this.controllers = new ControllersBuild(config, writeWebpackConfig);
   }
 
@@ -77,14 +77,14 @@ export default class AllInOne {
       },
       resolve: {
         modules: [
-          resolve(join(this.config.dir, 'controllers/node_modules')),
+          //Note: the order is important here - always look in the regular node_modules dir first.
           'node_modules',
+          resolve(join(this.config.dir, 'controllers/node_modules'))
         ],
         extensions: ['.js', '.jsx']
       }
     });
-    let m = config.module as any;
-    m.loaders = (m.loaders || []).concat(this.supportConfig.webpackLoaders(p => p));
+    config.module.rules = (config.module.rules || []).concat(this.supportConfig.rules);
 
     let out = updateConfig(config);
     if (this.writeWebpackConfig) {

@@ -16,7 +16,7 @@ describe('ClientBuild', () => {
       context: 'dir',
       entry: instance.entryJsPath,
       module: {
-        loaders: []
+        rules: []
       },
       output: { filename: 'out.js', path: 'dir' }
     };

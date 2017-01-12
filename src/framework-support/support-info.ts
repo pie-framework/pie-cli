@@ -1,8 +1,6 @@
-export type LoaderInfo = {
-  test: RegExp,
-  loader: string
-}
-export type ResolveFn = (p: string) => string;
+import { Rule } from 'webpack';
+
+export { Rule }
 
 export type SupportInfo = {
   npmDependencies: { [key: string]: string },
@@ -10,5 +8,5 @@ export type SupportInfo = {
     js?: string[],
     css?: string[]
   },
-  webpackLoaders: (ResolveFn) => LoaderInfo[]
+  rules: Rule[];
 }
