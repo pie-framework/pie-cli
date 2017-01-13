@@ -20,6 +20,7 @@ export default class AllInOne {
 
   readonly client: ClientBuild;
   readonly controllers: ControllersBuild;
+  readonly writtenWebpackConfig: string;
 
   constructor(
     readonly config: JsonConfig,
@@ -29,6 +30,7 @@ export default class AllInOne {
     private writeWebpackConfig: boolean) {
     this.client = new ClientBuild(config, supportConfig.rules, writeWebpackConfig);
     this.controllers = new ControllersBuild(config, writeWebpackConfig);
+    this.writtenWebpackConfig = '.all-in-one.webpack.config.js';
   }
 
   async install(client: { dependencies: KeyMap, devDependencies: KeyMap }): Promise<any> {
@@ -88,7 +90,7 @@ export default class AllInOne {
 
     let out = updateConfig(config);
     if (this.writeWebpackConfig) {
-      writeConfig(join(this.config.dir, '.all-in-one.webpack.config.js'), out);
+      writeConfig(join(this.config.dir, this.writtenWebpackConfig), out);
     }
 
     return out;
