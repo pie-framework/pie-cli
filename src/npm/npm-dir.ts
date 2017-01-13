@@ -16,6 +16,8 @@ export default class NpmDir {
     logger.info('[install] ...');
     return this._writePackageJson(name, dependencies, devDeps)
       .then(() => this._install());
+    //TODO - useful to dedupe?
+    //.then(() => this._dedupe());
   };
 
   ls() {
@@ -60,6 +62,10 @@ export default class NpmDir {
     writeJsonSync(join(this.rootDir, 'package.json'), pkg);
     return Promise.resolve(pkg);
   };
+
+  private _dedupe() {
+    return spawnPromise('npm', this.rootDir, ['dedupe'], false);
+  }
 
   private _install(args?: any[]) {
     args = args || [];

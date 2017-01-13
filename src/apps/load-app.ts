@@ -1,8 +1,8 @@
 import { App, DefaultApp, InfoApp, CatalogApp } from './types';
-import { JsonConfig } from '../question/config';
 import { BuildConfig, react, less, legacySupport } from '../framework-support';
 import * as _ from 'lodash';
 import { buildLogger } from '../log-factory';
+import { JsonConfig } from '../question/config'
 
 const logger = buildLogger();
 
@@ -18,8 +18,8 @@ export default async function loadApp(args: any): Promise<App> {
   /**
    * prepare support config using the Apps config object.
    */
-  let loadSupportConfig = (config) => {
-    let legacy = legacySupport(config.dependencies)
+  let loadSupportConfig = (config: JsonConfig) => {
+    let legacy = legacySupport(config.dependencies, config.dir)
     let supportInfo = [react, less];
 
     if (legacy) {

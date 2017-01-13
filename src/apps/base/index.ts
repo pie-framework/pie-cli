@@ -303,6 +303,7 @@ export abstract class BaseApp implements App {
 
   protected get buildAssets(): string[] {
     return [
+      this.allInOneBuild.writtenWebpackConfig,
       this.names.build.bundledItem.path,
       this.names.build.controllersMap,
       this.names.build.entryFile,
@@ -314,6 +315,7 @@ export abstract class BaseApp implements App {
 
   protected get generatedAssets(): string[] {
     return [
+      this.names.out.archive,
       this.names.out.completeItemTag.path,
       this.names.out.example,
       this.names.out.viewElements,

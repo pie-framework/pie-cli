@@ -107,4 +107,5 @@ export default class CatalogApp extends BaseApp {
       markup: this.names.out.completeItemTag.tag,
     });
   }
+
 }
