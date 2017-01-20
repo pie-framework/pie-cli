@@ -11,7 +11,7 @@ export default {
     dependencies: {
       'pie-player': '~2.1.0',
       'pie-controller': '~2.0.0',
-      'pie-control-panel': '~1.2.0'
+      'pie-control-panel': '~1.3.0'
     }
   }
 }

@@ -66,7 +66,35 @@ export let js = (
       });
       
       this.innerHTML = \`
-        <pie-control-panel></pie-control-panel> 
+
+        <style>
+          * {
+            font-family: 'Roboto', sans-serif;
+          }
+
+          .control-panel-holder {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0,0,0,0.1);
+            padding: 0;
+            margin: 0;
+            padding-left: 10px;
+            border-radius: 3px;
+            box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.31);
+            margin-bottom: 20px;
+          }
+
+          .control-panel-holder > label {
+            text-transform: uppercase;
+            font-size: 14px;
+            color: rgba(0,0,0,0.5);
+          } 
+
+        </style>
+        <div class="control-panel-holder">
+          <label>Control Panel</label>
+          <pie-control-panel></pie-control-panel> 
+        </div>
         <pie-player>
           ${config.markup}
         </pie-player>
