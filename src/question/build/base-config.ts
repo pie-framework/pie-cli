@@ -1,22 +1,18 @@
 import { resolve, join } from 'path';
 import * as webpack from 'webpack';
 
-export default (root): webpack.Configuration => {
+export default (root): any => {
   return {
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.css$/,
-          loader: 'style!css'
+          use: ['style-loader', 'css-loader']
         }
       ]
     },
     resolveLoader: {
-      root: resolve(join(root, 'node_modules')),
-    },
-    resolve: {
-      root: resolve(join(root, 'node_modules')),
-      extensions: ['', '.js', '.jsx']
+      modules: ['node_modules', resolve(join(root, 'node_modules'))],
     }
   };
 };

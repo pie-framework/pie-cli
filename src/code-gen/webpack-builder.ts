@@ -20,12 +20,15 @@ export function build(config): Promise<BuildResult> {
   }
 
   return new Promise((resolve, reject) => {
+
     webpack(config, (err, stats) => {
       if (err) {
         logger.error(err.message);
         reject(err);
       } else if (stats.hasErrors()) {
-        _.forEach((stats as any).compilation.errors, (e) => logger.error(e));
+
+        let out = stats.toJson({ errorDetails: true });
+        _.forEach(out.errors, (e) => logger.error(e));
         reject(new Error('Webpack build errors - see the logs'));
       } else {
         let endTime = (stats as any).endTime;

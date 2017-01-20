@@ -18,6 +18,8 @@ export function configToJsString(config) {
     .replace(/\\\\/g, '\\');
 
   return ` 
+  //auto generated on: ${new Date().toString()}
+  
   module.exports = ${tweaked};
   `;
 }

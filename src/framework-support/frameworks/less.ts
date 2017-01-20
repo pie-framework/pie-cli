@@ -1,13 +1,14 @@
-import {SupportInfo} from '../support-info';
+import { SupportInfo } from '../support-info';
 
-let config : SupportInfo = {
+let config: SupportInfo = {
   npmDependencies: {
     'less-loader': '^2.2.3'
   },
-  webpackLoaders: () => [
+  rules: [
     {
+
       test: /\.less$/,
-      loader: "style!css!less"
+      use: ['style-loader', 'css-loader', 'less-loader']
     }
   ]
 };

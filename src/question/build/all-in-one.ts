@@ -20,6 +20,7 @@ export default class AllInOne {
 
   readonly client: ClientBuild;
   readonly controllers: ControllersBuild;
+  readonly writtenWebpackConfig: string;
 
   constructor(
     readonly config: JsonConfig,
@@ -27,8 +28,9 @@ export default class AllInOne {
     private entryPath: string,
     readonly fileout: string,
     private writeWebpackConfig: boolean) {
-    this.client = new ClientBuild(config, supportConfig.webpackLoaders(p => p), writeWebpackConfig);
+    this.client = new ClientBuild(config, supportConfig.rules, writeWebpackConfig);
     this.controllers = new ControllersBuild(config, writeWebpackConfig);
+    this.writtenWebpackConfig = '.all-in-one.webpack.config.js';
   }
 
   async install(client: { dependencies: KeyMap, devDependencies: KeyMap }): Promise<any> {
@@ -43,7 +45,7 @@ export default class AllInOne {
       |if(!customElements){
       |   throw new Error('custom elements is not supported');
       |} 
-
+      |
       |//Add declarations
       |${ _.map(declarations, d => d.js).join('\n\n')}`;
   }
@@ -57,17 +59,18 @@ export default class AllInOne {
     return this._config();
   }
 
-  async build(js: string): Promise<{ file: string }> {
+  async build(js: string, updateConfig: (any) => any = (c) => c): Promise<{ file: string }> {
     writeFileSync(join(this.config.dir, this.entryPath), js, 'utf8');
-    let config = this._config();
+    let config = this._config(updateConfig);
     let buildResult = await buildWebpack(config);
     return {
       file: this.fileout
     }
   }
 
-  private _config() {
+  private _config(updateConfig: (any) => any = c => c) {
 
+    //TODO: shouldn't resolveLoader be looking in pie-cli's node_modules instead of config.dir?
     let config = _.extend(baseConfig(this.config.dir), {
       context: this.config.dir,
       entry: this.entryPath,
@@ -76,19 +79,20 @@ export default class AllInOne {
       },
       resolve: {
         modules: [
-          resolve(join(this.config.dir, 'controllers/node_modules')),
+          //Note: the order is important here - always look in the regular node_modules dir first.
           'node_modules',
+          resolve(join(this.config.dir, 'controllers/node_modules'))
         ],
         extensions: ['.js', '.jsx']
       }
     });
-    let m = config.module as any;
-    m.loaders = (m.loaders || []).concat(this.supportConfig.webpackLoaders(p => p));
+    config.module.rules = (config.module.rules || []).concat(this.supportConfig.rules);
 
+    let out = updateConfig(config);
     if (this.writeWebpackConfig) {
-      writeConfig(join(this.config.dir, '.all-in-one.webpack.config.js'), config);
+      writeConfig(join(this.config.dir, this.writtenWebpackConfig), out);
     }
 
-    return config;
+    return out;
   }
 }
