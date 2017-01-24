@@ -8,6 +8,7 @@ import * as _ from 'lodash';
 import * as pug from 'pug';
 import * as jsesc from 'jsesc';
 import { writeFileSync, remove } from 'fs-extra';
+import * as glob from 'glob';
 import * as express from 'express';
 import * as webpackMiddleware from 'webpack-dev-middleware';
 import * as webpack from 'webpack';
@@ -132,7 +133,8 @@ export abstract class BaseApp implements App {
   }
 
   async createArchive(files: string[]): Promise<string> {
-    let allArchiveFiles = _.concat(files, this.archiveFiles);
+    let assets = this.assetFiles(files);
+    let allArchiveFiles = _.concat(files, this.archiveFiles, assets);
     let resolvedFiles = _.map(allArchiveFiles, (rp) => resolve(join(this.config.dir, rp)));
     let entries = await this.archiveEntries;
     let all: (string | ArchiveEntry)[] = _.concat<string | ArchiveEntry>(resolvedFiles, entries);
@@ -140,7 +142,17 @@ export abstract class BaseApp implements App {
   }
 
   protected get archiveFiles(): string[] {
-    return ['public']
+    return ['public'];
+  }
+
+  private isDotfile(filename: string) {
+    return filename.startsWith('.') && !filename.startsWith("..");
+  }
+
+  protected assetFiles(files: string[]): string[] {
+    return glob.sync(`${this.config.dir}/*`)
+      .map(file => file.split("/").pop())
+      .filter(f => !this.isDotfile(f) && !_.concat(files, this.buildAssets, this.generatedAssets).some(x => x == f));
   }
 
   protected get archiveEntries(): Promise<ArchiveEntry[]> {
