@@ -1,4 +1,3 @@
-
 import { App, BuildOpts, ManifestOpts, ServeOpts } from '../types';
 import { JsonConfig } from '../../question/config';
 import { buildLogger } from '../../log-factory';
@@ -9,7 +8,8 @@ import * as pug from 'pug';
 import { writeFileSync, writeJsonSync, readJsonSync, readFileSync } from 'fs-extra';
 import * as webpack from 'webpack';
 import * as express from 'express';
-import { ArchiveEntry, BuildStep, BaseApp, Tag, Out, Names, Compiler, build as buildApp, getNames } from '../base';
+import * as archiver from 'archiver';
+import { BuildStep, BaseApp, Tag, Out, Names, Compiler, build as buildApp, getNames } from '../base';
 import { ReloadOrError, HasServer } from '../server/types';
 import { existsSync } from 'fs-extra';
 import { isGitRepo, tag, sha } from '../../git';
@@ -39,6 +39,13 @@ export default class CatalogApp extends BaseApp {
     this.template = pug.compileFile(templatePath, { pretty: true });
   }
 
+
+  protected addExtrasToArchive(archive: archiver.Archiver): void {
+    archive.file(resolve(join(this.pieRoot, 'package.json')), { name: 'pie-pkg/package.json' });
+    archive.file(resolve(join(this.pieRoot, 'README.md')), { name: 'pie-pkg/README.md' });
+    archive.directory(resolve(join(this.pieRoot, 'docs/schemas')), 'schemas');
+  }
+
   protected mkServer(app: express.Application): ReloadOrError & HasServer {
     throw new Error('not supported');
   }
@@ -64,34 +71,11 @@ export default class CatalogApp extends BaseApp {
     return c;
   }
 
-  private async getVersionInfo(): Promise<ArchiveEntry> {
-    let root = join(this.config.dir, '../..');
-    if (isGitRepo(root)) {
-      let t = await tag(root);
-      let s = await sha(root);
-      let out = { name: 'version-info.json', content: JSON.stringify({ tag: t || 'n/a', sha: s }) };
-      logger.debug('[getVersionInfo] return: ', out);
-      return out;
-    }
-  }
-
-  protected get zipRoot(): string {
-    return resolve(join(this.config.dir, '../..'))
-  }
-
-  protected get archiveEntries(): Promise<ArchiveEntry[]> {
-    return Promise.all([this.getVersionInfo()]).then(results => {
-      logger.debug('[archiveEntries]: ', results);
-      return _.compact(results)
-    });
-  }
-
-  protected get archiveFiles(): string[] {
-    return _.concat(super.archiveFiles,
-      ['../../package.json',
-        '../../README.md',
-        '../../docs/schemas'
-      ]);
+  protected get archiveIgnores() {
+    return _.concat(super.archiveIgnores, [
+      'config.json',
+      'index.html'
+    ]);
   }
 
   private get defaultJs(): string[] {

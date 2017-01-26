@@ -6,17 +6,14 @@ import { join, relative, resolve } from 'path';
 import { buildLogger, getLogger } from '../../log-factory';
 import * as _ from 'lodash';
 import * as pug from 'pug';
-import * as jsesc from 'jsesc';
-import { writeFileSync, remove } from 'fs-extra';
+import { readFileSync, existsSync, writeFileSync, remove, createWriteStream } from 'fs-extra';
 import * as express from 'express';
 import * as webpackMiddleware from 'webpack-dev-middleware';
 import * as webpack from 'webpack';
 import * as http from 'http';
 import { ReloadOrError, HasServer } from '../server/types';
 import * as bundled from './elements/bundled';
-import archive, { ArchiveEntry } from '../../archive';
-
-export { ArchiveEntry };
+import * as archiver from 'archiver';
 
 export type Compiler = webpack.compiler.Compiler;
 
@@ -58,7 +55,7 @@ export class Out {
     readonly viewElements: string = 'pie-view.js',
     readonly controllers: string = 'pie-controller.js',
     readonly example: string = 'example.html',
-    readonly archive: string = 'pie-item.zip') { }
+    readonly archive: string = 'pie-item.tar.gz') { }
 
   static build(args) {
     return new Out(
@@ -107,6 +104,7 @@ export abstract class BaseApp implements App {
 
   protected allInOneBuild: AllInOneBuild;
   protected branch: string;
+  protected gitIgnores: string[];
 
   constructor(
     private args: any,
@@ -115,6 +113,8 @@ export abstract class BaseApp implements App {
     readonly names: Names) {
     this.branch = args.pieBranch || process.env.PIE_BRANCH || 'develop';
 
+    let gitIgnorePath = join(this.config.dir, '.gitignore');
+    this.gitIgnores = existsSync(gitIgnorePath) ? readFileSync(gitIgnorePath, 'utf8').split('\n').map(s => s.trim()) : [];
     this.allInOneBuild = new AllInOneBuild(
       config,
       support,
@@ -123,29 +123,48 @@ export abstract class BaseApp implements App {
       this.args.writeWebpackConfig !== false);
   }
 
-  protected logBuild(name: string): void {
-    logger.info(`[build] building ${name}`);
+  async createArchive(): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+
+      let archiveName = this.names.out.archive.endsWith('.tar.gz') ? this.names.out.archive : `${this.names.out.archive}.tar.gz`;
+
+      let output = createWriteStream(archiveName);
+      let archive = archiver('tar', { gzip: true });
+
+      output.on('close', function () {
+        logger.debug(archiveName, (archive as any).pointer() + ' total bytes');
+        resolve(archiveName);
+      });
+
+      archive.on('error', function (err) {
+        reject(err);
+      });
+
+      archive.pipe(output);
+
+      archive.glob('**', {
+        cwd: this.config.dir,
+        ignore: this.archiveIgnores,
+      });
+
+      this.addExtrasToArchive(archive);
+
+      archive.finalize();
+    });
   }
 
-  protected get zipRoot(): string {
-    return resolve(this.config.dir);
+  protected get archiveIgnores(): string[] {
+    return _(this.gitIgnores).concat([
+      'node_modules/**',
+      'controllers/**',
+      '\.*',
+      'package.json',
+      '*.tar.gz'
+    ]).uniq().value();
   }
 
-  async createArchive(files: string[]): Promise<string> {
-    let allArchiveFiles = _.concat(files, this.archiveFiles);
-    let resolvedFiles = _.map(allArchiveFiles, (rp) => resolve(join(this.config.dir, rp)));
-    let entries = await this.archiveEntries;
-    let all: (string | ArchiveEntry)[] = _.concat<string | ArchiveEntry>(resolvedFiles, entries);
-    return archive(this.zipRoot, this.names.out.archive, all);
-  }
+  protected addExtrasToArchive(archive: archiver.Archiver): void { }
 
-  protected get archiveFiles(): string[] {
-    return ['public']
-  }
-
-  protected get archiveEntries(): Promise<ArchiveEntry[]> {
-    return Promise.resolve([]);
-  }
   /**
    * A set of build steps to be executed serially...
    */
@@ -307,6 +326,7 @@ export abstract class BaseApp implements App {
       this.names.build.bundledItem.path,
       this.names.build.controllersMap,
       this.names.build.entryFile,
+      this.names.out.archive,
       'controllers',
       'node_modules',
       'package.json'
