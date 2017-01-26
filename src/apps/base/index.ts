@@ -15,9 +15,7 @@ import * as webpack from 'webpack';
 import * as http from 'http';
 import { ReloadOrError, HasServer } from '../server/types';
 import * as bundled from './elements/bundled';
-import Ignore from './ignore';
 import * as archiver from 'archiver';
-
 
 export type Compiler = webpack.compiler.Compiler;
 
