@@ -19,7 +19,8 @@ describe('BaseApp', function () {
     app,
     compiler,
     expressApp,
-    result;
+    result,
+    archiveInstance;
 
   let handle = (p) => p;
 
@@ -29,10 +30,7 @@ describe('BaseApp', function () {
     allInOne.js = stub().returns('//js...');
     allInOne.returns(allInOne);
 
-    compiler = {
-
-    }
-
+    compiler = {}
 
     expressApp = {
       set: stub(),
@@ -46,12 +44,24 @@ describe('BaseApp', function () {
       get: stub()
     });
 
+    archiveInstance = {
+      glob: stub(),
+      directory: stub(),
+      file: stub(),
+      pipe: stub(),
+      finalize: stub(),
+      on: stub(),
+      pointer: stub()
+    }
+
     deps = {
       '../../question/build/all-in-one': {
         default: allInOne
       },
+      'archiver': stub().returns(archiveInstance),
       'fs-extra': {
-        writeFileSync: stub()
+        writeFileSync: stub(),
+        createReadStream: stub()
       },
       'express': express,
       'webpack': stub().returns(compiler),
@@ -419,6 +429,41 @@ describe('BaseApp', function () {
         assert.calledWith(handlers.error, 'name', []);
         done();
       })
+    });
+  });
+
+  describe('createArchive', () => {
+
+    let writeStream, handlers = {};
+
+    beforeEach((done) => {
+
+      app.addExtrasToArchive = stub();
+
+      writeStream = {
+        on: (key, handler) => handlers[key] = handler
+      }
+
+      deps['fs-extra'].createWriteStream = stub().returns(writeStream);
+      app.createArchive();
+      handlers.close();
+      done();
+    });
+
+    it('inits the archive', () => {
+      assert.calledWith(deps['archiver'], 'tar', { gzip: true });
+    });
+
+    it('calls archive glob', () => {
+      assert.calledWith(archiveInstance.glob, '**', match.object);
+    });
+
+    it('calls addExtrasToArchive', () => {
+      assert.called(app.addExtrasToArchive);
+    });
+
+    it('calls archive finalize', () => {
+      assert.called(archiveInstance.finalize);
     });
   });
 });

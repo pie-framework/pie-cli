@@ -18,7 +18,8 @@ class PackCommand extends CliCommand {
     this.cliLogger.info('build complete, run manifest...');
 
     if (buildOpts.createArchive) {
-      let zip = await a.createArchive(files);
+      this.cliLogger.info('creating archive...');
+      let zip = await a.createArchive();
       this.cliLogger.info('archive: ', zip);
     }
 

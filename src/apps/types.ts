@@ -54,6 +54,6 @@ export interface App {
   manifest(opts: ManifestOpts): Promise<Manifest>
   server(opts: ServeOpts): Promise<{ server: http.Server, reload: (string) => void }>
   clean(): Promise<any>
-  createArchive(files: string[]): Promise<string>
+  createArchive(): Promise<string>
   config: JsonConfig;
 }
