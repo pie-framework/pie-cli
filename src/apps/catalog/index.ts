@@ -1,23 +1,48 @@
 import { App, BuildOpts, ManifestOpts, ServeOpts } from '../types';
 import { JsonConfig } from '../../question/config';
 import { buildLogger } from '../../log-factory';
-import { SupportConfig } from '../../framework-support';
-import * as _ from 'lodash';
 import { join, resolve } from 'path';
 import * as pug from 'pug';
-import { writeFileSync, writeJsonSync, readJsonSync, readFileSync } from 'fs-extra';
-import * as webpack from 'webpack';
-import * as express from 'express';
-import * as archiver from 'archiver';
-import { BuildStep, BaseApp, Tag, Out, Names, Compiler, build as buildApp, getNames } from '../base';
-import { ReloadOrError, HasServer } from '../server/types';
-import { existsSync } from 'fs-extra';
-import { isGitRepo, tag, sha } from '../../git';
+import { existsSync, writeFile } from 'fs-extra';
+import { getNames, Names } from '../base';
+import { Manifest } from '../../question/config/manifest';
+import * as http from 'http';
+import AllInOneBuild, { ClientBuild, ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
+import * as _ from 'lodash';
+import { mkConfig, build as buildWebpack, BuildResult } from '../../code-gen/webpack-builder';
+import { createArchive, archiveIgnores } from '../create-archive';
+import { promisify } from 'bluebird';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
-export default class CatalogApp extends BaseApp {
+let clientDependencies = (args: any) => args.configuration.app.dependencies;
+
+export default class CatalogApp implements App {
+
+  static NAMES = {
+    entry: '.catalog.entry.js',
+    webpackConfig: '.catalog.webpack.config.js',
+    bundle: 'pie-catalog.bundle.js'
+  }
+
+  static EXTERNALS = {
+    'lodash': '_',
+    'lodash/map': '_.map',
+    'lodash/isEqual': '_.isEqual',
+    'lodash/includes': '_.includes',
+    'lodash/isEmpty': '_.isEmpty',
+    'lodash/assign': '_.assign',
+    'lodash/cloneDeep': '_.cloneDeep',
+    'lodash/isArray': '_.isArray',
+    'lodash/merge': '_.merge',
+    'lodash.merge': '_.merge',
+    'react': 'React',
+    'react-dom': 'ReactDOM',
+    'react-addons-transition-group': 'React.addons.TransitionGroup',
+    'react/lib/ReactTransitionGroup': 'React.addons.TransitionGroup',
+    'react/lib/ReactCSSTransitionGroup': 'React.addons.CSSTransitionGroup'
+  };
 
   static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
     let dir = resolve(args.dir || process.cwd());
@@ -32,64 +57,115 @@ export default class CatalogApp extends BaseApp {
   }
 
   private template: pug.compileTemplate;
+  private controllersBuild: ControllersBuild;
+  private allInOneBuild: AllInOneBuild;
 
-  constructor(args: any, private pieRoot: string, config: JsonConfig, support: SupportConfig, names: Names) {
-    super(args, config, support, names);
+  constructor(readonly args: any,
+    private pieRoot: string,
+    readonly config: JsonConfig,
+    readonly support: SupportConfig,
+    readonly names: Names) {
     logger.debug('new CatalogApp..');
     this.template = pug.compileFile(templatePath, { pretty: true });
+
+    this.allInOneBuild = new AllInOneBuild(
+      config,
+      support,
+      this.names.build.entryFile,
+      this.names.out.completeItemTag.path,
+      this.args.writeWebpackConfig !== false);
+    this.controllersBuild = new ControllersBuild(this.config, false);
   }
 
-
-  protected addExtrasToArchive(archive: archiver.Archiver): void {
-    archive.file(resolve(join(this.pieRoot, 'package.json')), { name: 'pie-pkg/package.json' });
-    archive.file(resolve(join(this.pieRoot, 'README.md')), { name: 'pie-pkg/README.md' });
-    archive.directory(resolve(join(this.pieRoot, 'docs/schemas')), 'schemas');
+  protected async install(forceInstall: boolean): Promise<void> {
+    await this.allInOneBuild.install({
+      dependencies: clientDependencies(this.args),
+      devDependencies: this.support.npmDependencies || {}
+    }, forceInstall);
   }
 
-  protected mkServer(app: express.Application): ReloadOrError & HasServer {
+  async build(opts: BuildOpts): Promise<string[]> {
+
+    await this.install(opts.forceInstall);
+
+    let deps = this.controllersBuild.controllerDependencies;
+
+    let js = `
+      //controllers
+      let c = window.controllers = {};
+    ${_.map(deps, (value, key) => `c['${key}'] = require('${key}-controller');`).join('\n')}
+      
+      //custom elements
+      ${this.config.declarations.map(d => d.js).join('\n')}
+    
+    `;
+    console.log('promisify: ', promisify, typeof promisify);
+    await promisify(writeFile.bind(null,
+      join(this.config.dir, '.catalog.entry.js'),
+      js,
+      'utf8'))();
+
+    let config = mkConfig(this.config.dir, CatalogApp.NAMES.entry, CatalogApp.NAMES.bundle, this.support.rules, {
+      externals: CatalogApp.EXTERNALS,
+      resolve: {
+        modules: [
+          'node_modules',
+          resolve(join(this.config.dir, 'controllers/node_modules'))
+        ],
+        extensions: ['.js', '.jsx']
+      }
+    });
+
+    logger.info('config: ', config);
+
+    let buildResult = await buildWebpack(config, CatalogApp.NAMES.webpackConfig);
+    return [CatalogApp.NAMES.bundle];
+  }
+
+  manifest(opts: ManifestOpts): Promise<Manifest> {
+    return new Promise((resolve, reject) => {
+      if (opts.outfile) {
+        writeFile(opts.outfile, this.config.manifest, 'utf8', (e) => {
+          if (e) {
+            reject(e);
+          } else {
+            resolve(this.config.manifest);
+          }
+        });
+      } else {
+        resolve(this.config.manifest);
+      }
+    });
+  }
+
+  server(opts: ServeOpts): Promise<{ server: http.Server, reload: (string) => void }> {
     throw new Error('not supported');
   }
 
-  protected serverMarkup(): string {
-    return this.fileMarkup();
+  clean(): Promise<any> {
+    return null;
   }
 
-  protected updateConfig(c: any): any {
+  createArchive(): Promise<string> {
+    let root = (name) => resolve(join(this.pieRoot, name));
+    let archivePath = resolve(join(this.config.dir, this.names.out.archive));
+    let addExtras = (archive) => {
+      archive.file(root('package.json'), { name: 'pie-pkg/package.json' });
+      archive.file(root('README.md'), { name: 'pie-pkg/README.md' });
 
-    let externals = _.merge(c.externals, {
-      'lodash': '_',
-      'lodash/map': '_.map',
-      'react': 'React',
-      'react-dom': 'ReactDOM',
-      'react-addons-transition-group': 'React.addons.TransitionGroup',
-      'react/lib/ReactTransitionGroup': 'React.addons.TransitionGroup',
-      'react/lib/ReactCSSTransitionGroup': 'React.addons.CSSTransitionGroup'
-    });
+      if (existsSync(root('docs/schemas'))) {
+        archive.directory(root('docs/schemas'), 'schemas');
+      }
+    }
 
-    c.externals = externals;
-    logger.debug('[updateConfig] c: ', c);
-    return c;
-  }
+    let ignores = archiveIgnores(this.config.dir);
 
-  protected get archiveIgnores() {
-    return _.concat(super.archiveIgnores, [
-      'config.json',
-      'index.html'
-    ]);
-  }
-
-  private get defaultJs(): string[] {
-    return [
-      '//cdnjs.cloudflare.com/ajax/libs/react/15.4.1/react-with-addons.js',
-      '//cdnjs.cloudflare.com/ajax/libs/react/15.4.1/react-dom.js',
-      '//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js'];
-  }
-
-  protected fileMarkup(): string {
-    return this.template({
-      js: _.concat(this.defaultJs, this.support.externals.js || [], [this.names.out.completeItemTag.path]),
-      markup: this.names.out.completeItemTag.tag,
-    });
+    return createArchive(archivePath, this.config.dir, ignores, addExtras)
+      .catch(e => {
+        let msg = `Error creating the archive: ${e.message}`;
+        logger.error(msg);
+        throw new Error(msg);
+      });
   }
 
 }

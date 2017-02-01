@@ -25,7 +25,10 @@ class Cmd extends CliCommand {
     let {server, reload} = await a.server(opts);
     await startServer(opts.port, server);
     await initWatch(a.config, reload);
-    return `server listening on ${opts.port}`;
+    return {
+      msg: `server listening on ${opts.port}`,
+      server: server
+    }
   }
 }
 
