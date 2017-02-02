@@ -18,7 +18,10 @@ describe('ClientBuild', () => {
       module: {
         rules: []
       },
-      output: { filename: 'out.js', path: 'dir' }
+      output: { filename: 'out.js', path: 'dir' },
+      resolve: {
+        extensions: ['.js', '.jsx'],
+      }
     };
   });
 
