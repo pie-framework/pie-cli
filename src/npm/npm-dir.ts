@@ -12,18 +12,16 @@ export default class NpmDir {
     logger.debug(`rootDir: ${rootDir}`);
   }
 
-  install(name: string, dependencies: KeyMap, devDeps: KeyMap) {
+  install(name: string, dependencies: KeyMap, devDeps: KeyMap, force: boolean) {
     logger.info('[install] ...');
     return this._writePackageJson(name, dependencies, devDeps)
-      .then(() => this._install());
-    //TODO - useful to dedupe?
-    //.then(() => this._dedupe());
+      .then(() => this._install(force));
   };
 
   ls() {
     logger.info('[ls]');
     if (!this._installed) {
-      return this._install()
+      return this._install(false)
         .then(() => this.ls())
     } else {
       return this._spawnPromise(['ls', '--json'], true)
@@ -67,11 +65,17 @@ export default class NpmDir {
     return spawnPromise('npm', this.rootDir, ['dedupe'], false);
   }
 
-  private _install(args?: any[]) {
-    args = args || [];
-    let cmd = ['install'].concat(args);
-    logger.silly('[install] > final cmd: ', cmd.join(' '));
-    return this._spawnPromise(cmd);
+  private _install(force: boolean, args?: any[]) {
+    logger.silly(`[_install], force: ${force}, args: ${args}`);
+    if (this._installed && !force) {
+      logger.debug(`[_install] node_modules exists - skipping install.`);
+      return Promise.resolve({ stdout: 'skipped' });
+    } else {
+      args = args || [];
+      let cmd = ['install'].concat(args);
+      logger.silly('[_install] > final cmd: ', cmd.join(' '));
+      return this._spawnPromise(cmd);
+    }
   };
 
 
