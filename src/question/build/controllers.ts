@@ -38,10 +38,10 @@ export default class ControllersBuild {
     return out;
   }
 
-  async install(): Promise<void> {
+  async install(force: boolean): Promise<void> {
     //Note: We need to install using the *-controller name.
     let installDependencies = _.mapKeys(this.controllerDependencies, (value, key) => `${key}-controller`);
-    await this.npmDir.install('tmp-controllers-package', installDependencies, {});
+    await this.npmDir.install('tmp-controllers-package', installDependencies, {}, force);
   }
 
   get entryJs() {

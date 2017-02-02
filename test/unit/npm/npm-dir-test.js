@@ -63,7 +63,24 @@ describe('npm-dir', () => {
     });
 
     it('calls \'npm install\' in a child_process', () => {
+      fs.existsSync.returns(false);
       return dir.install({})
+        .then(() => {
+          assert.calledWith(io.spawnPromise, 'npm', __dirname, ['install'], false);
+        });
+    });
+
+    it('skips calling \'npm install\' in a child_process if node_modules exists', () => {
+      fs.existsSync.returns(true);
+      return dir.install({})
+        .then(() => {
+          assert.notCalled(io.spawnPromise);
+        });
+    });
+
+    it('calls \'npm install\' in a child_process if node_modules exists and force = true', () => {
+      fs.existsSync.returns(true);
+      return dir.install('name', {}, {}, true)
         .then(() => {
           assert.calledWith(io.spawnPromise, 'npm', __dirname, ['install'], false);
         });

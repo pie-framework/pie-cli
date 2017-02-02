@@ -13,26 +13,31 @@ import * as http from 'http';
 export class BuildOpts {
   constructor(readonly clean: boolean = false,
     readonly keepBuildAssets: boolean = false,
-    readonly createArchive: boolean = false
+    readonly createArchive: boolean = false,
+    readonly forceInstall: boolean = false
   ) { }
 
   static build(args: any) {
     return new BuildOpts(
       args.clean,
       args.keepBuildAssets === true,
-      args.createArchive === true);
+      args.createArchive === true,
+      args.forceInstall === true);
   }
 }
 
 export class ServeOpts {
-  constructor(readonly dir, readonly clean, readonly port) { }
+  constructor(
+    readonly dir: string,
+    readonly port: number,
+    readonly forceInstall: boolean) { }
 
   static build(args) {
     args = args || {};
     return new ServeOpts(
       args.dir || process.cwd(),
-      args.clean === 'true' || args.clean === true || false,
-      args.port || 4000)
+      args.port || 4000,
+      args.forceInstall === true)
   }
 }
 

@@ -29,10 +29,10 @@ export default class ClientBuild {
     });
   }
 
-  async install(deps: KeyMap, devDeps: KeyMap): Promise<void> {
+  async install(deps: KeyMap, devDeps: KeyMap, force: boolean): Promise<void> {
     deps = _.merge(this.config.dependencies, deps);
     devDeps = _.merge(devDeps, this.clientDevDeps);
-    await this.npmDir.install('tmp-client-package', deps, devDeps);
+    await this.npmDir.install('tmp-client-package', deps, devDeps, force);
   }
 
   get entryJsPath(): string {
@@ -53,11 +53,17 @@ export default class ClientBuild {
   }
 
   private _config(fileout: string): webpack.Configuration {
-    let config = _.extend({
+
+    let override = {
       context: this.config.dir,
       entry: this.entryJsPath,
-      output: { filename: fileout, path: this.config.dir }
-    }, baseConfig(this.config.dir));
+      output: { filename: fileout, path: this.config.dir },
+      resolve: {
+        extensions: ['.js', '.jsx']
+      }
+    }
+
+    let config = _.merge(baseConfig(this.config.dir), override);
 
     config.module.rules = (config.module.rules || []).concat(this.rules);
 
