@@ -53,11 +53,17 @@ export default class ClientBuild {
   }
 
   private _config(fileout: string): webpack.Configuration {
-    let config = _.extend({
+
+    let override = {
       context: this.config.dir,
       entry: this.entryJsPath,
-      output: { filename: fileout, path: this.config.dir }
-    }, baseConfig(this.config.dir));
+      output: { filename: fileout, path: this.config.dir },
+      resolve: {
+        extensions: ['.js', '.jsx']
+      }
+    }
+
+    let config = _.merge(baseConfig(this.config.dir), override);
 
     config.module.rules = (config.module.rules || []).concat(this.rules);
 
