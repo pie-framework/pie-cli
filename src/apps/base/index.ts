@@ -1,4 +1,4 @@
-import { App, BuildOpts, BuildResult, ManifestOpts } from '../types';
+import { App, ServeOpts, BuildOpts, BuildResult, ManifestOpts } from '../types';
 import { JsonConfig, Manifest, Declaration, ElementDeclaration } from '../../question/config';
 import AllInOneBuild, { ClientBuild, ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
 import { KeyMap } from '../../npm/types';
@@ -188,7 +188,7 @@ export abstract class BaseApp implements App {
 
   async build(opts: BuildOpts): Promise<string[]> {
 
-    await logBuild('install', this.install());
+    await logBuild('install', this.install(opts.forceInstall));
 
     let files = await _.reduce(this.buildSteps, (acc, bs) => {
       return acc.then(f => {
@@ -205,8 +205,8 @@ export abstract class BaseApp implements App {
 
   protected abstract mkServer(app: express.Application): ReloadOrError & HasServer;
 
-  async server(): Promise<{ server: http.Server, reload: (string) => void }> {
-    await logBuild('install', this.install());
+  async server(opts: ServeOpts): Promise<{ server: http.Server, reload: (string) => void }> {
+    await logBuild('install', this.install(opts.forceInstall));
     let src = this.prepareWebpackJs();
     let config = this.allInOneBuild.webpackConfig(src);
     let compiler = webpack(config);
@@ -286,11 +286,11 @@ export abstract class BaseApp implements App {
     return router;
   }
 
-  protected async install(): Promise<void> {
+  protected async install(force: boolean): Promise<void> {
     await this.allInOneBuild.install({
       dependencies: clientDependencies(this.args),
       devDependencies: this.support.npmDependencies || {}
-    });
+    }, force);
   }
 
   async manifest(opts: ManifestOpts): Promise<Manifest> {

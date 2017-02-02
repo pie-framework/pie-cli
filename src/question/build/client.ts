@@ -29,10 +29,10 @@ export default class ClientBuild {
     });
   }
 
-  async install(deps: KeyMap, devDeps: KeyMap): Promise<void> {
+  async install(deps: KeyMap, devDeps: KeyMap, force: boolean): Promise<void> {
     deps = _.merge(this.config.dependencies, deps);
     devDeps = _.merge(devDeps, this.clientDevDeps);
-    await this.npmDir.install('tmp-client-package', deps, devDeps);
+    await this.npmDir.install('tmp-client-package', deps, devDeps, force);
   }
 
   get entryJsPath(): string {

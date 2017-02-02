@@ -33,9 +33,9 @@ export default class AllInOne {
     this.writtenWebpackConfig = '.all-in-one.webpack.config.js';
   }
 
-  async install(client: { dependencies: KeyMap, devDependencies: KeyMap }): Promise<any> {
-    await this.client.install(client.dependencies, client.devDependencies);
-    await this.controllers.install();
+  async install(client: { dependencies: KeyMap, devDependencies: KeyMap }, force: boolean): Promise<any> {
+    await this.client.install(client.dependencies, client.devDependencies, force);
+    await this.controllers.install(force);
   }
 
 

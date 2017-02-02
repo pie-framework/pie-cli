@@ -113,11 +113,12 @@ describe('BaseApp', function () {
 
   describe('build', () => {
 
-    let run = (keepBuildAssets) => {
+    let run = (keepBuildAssets, forceInstall) => {
+      forceInstall = forceInstall === undefined ? false : forceInstall;
       app.install = stub().returns(Promise.resolve());
       app.buildAllInOne = stub().returns(Promise.resolve([]));
       app.removeBuildAssets = stub().returns(Promise.resolve([]))
-      return app.build({ keepBuildAssets: keepBuildAssets })
+      return app.build({ keepBuildAssets, forceInstall })
         .then(r => result = r);
     }
 
@@ -125,7 +126,7 @@ describe('BaseApp', function () {
       beforeEach(() => run(false));
 
       it('calls install', () => {
-        assert.called(app.install);
+        assert.calledWith(app.install, false);
       });
 
       it('calls buildAllInOne', () => {
@@ -134,6 +135,13 @@ describe('BaseApp', function () {
 
       it('calls removeBuildAssets', () => {
         assert.calledOnce(app.removeBuildAssets);
+      });
+    });
+
+    describe('with forceInstall', () => {
+      beforeEach(() => run(false, true));
+      it('calls install with forceInstal = true', () => {
+        assert.calledWith(app.install, true);
       });
     });
 
@@ -148,6 +156,11 @@ describe('BaseApp', function () {
 
   describe('server', () => {
 
+    let run = (forceInstall) => {
+      forceInstall = forceInstall === undefined ? false : forceInstall;
+      return app.server({ forceInstall }).then(r => result = r);
+    }
+
     beforeEach(() => {
       app.install = stub().returns(Promise.resolve());
       app.prepareWebpackJs = stub().returns('');
@@ -157,12 +170,15 @@ describe('BaseApp', function () {
       app.router = stub().returns({ router: true });
       app._linkCompilerToServer = stub();
       app.mkServer = stub().returns({ server: true, httpServer: {} });
-      return app.server().then(r => result = r);
     });
+
+    beforeEach(() => run());
 
     it('calls install', () => {
       assert.calledOnce(app.install);
+      assert.calledWith(app.install, false);
     });
+
 
     it('calls prepareWebpackJs', () => {
       assert.calledOnce(app.prepareWebpackJs);
@@ -202,6 +218,14 @@ describe('BaseApp', function () {
 
     it('returns reload', () => {
       expect(_.isFunction(result.reload)).to.be.true;
+    });
+
+    describe('with forceInstall = true', () => {
+      beforeEach(() => run(true));
+
+      it('calls install with forceInstall = true', () => {
+        assert.calledWith(app.install, true);
+      });
     });
 
     describe('reload handler', () => {

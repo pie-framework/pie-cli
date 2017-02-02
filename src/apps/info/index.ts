@@ -8,7 +8,7 @@ import { SupportConfig } from '../../framework-support';
 import * as _ from 'lodash';
 import { join, resolve } from 'path';
 import * as pug from 'pug';
-import { writeFileSync, writeJsonSync, readJsonSync, readFileSync } from 'fs-extra';
+import { existsSync, writeFileSync, writeJsonSync, readJsonSync, readFileSync } from 'fs-extra';
 import * as jsesc from 'jsesc';
 import { install as bowerInstall } from './bower';
 import loadSchemas from './schema-loader';
@@ -18,7 +18,6 @@ import * as express from 'express';
 import { BaseApp, Tag, Out, Names, Compiler, build as buildApp, getNames } from '../base';
 import { ReloadOrError, HasServer } from '../server/types';
 import * as http from 'http';
-import { existsSync } from 'fs-extra';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
@@ -42,14 +41,13 @@ export default class InfoApp extends BaseApp {
 
   constructor(args: any, private pieRoot: string, config: JsonConfig, support: SupportConfig, names: Names) {
     super(args, config, support, names);
-    logger.debug('new InfoApp..');
     this.template = pug.compileFile(templatePath, { pretty: true });
   }
 
-  protected async install(): Promise<void> {
-    logger.silly('super install...');
-    await super.install();
-    logger.silly('bower install...');
+  protected async install(forceInstall: boolean): Promise<void> {
+    logger.silly(`[install] forceInstall: ${forceInstall}`);
+    await super.install(forceInstall);
+    logger.silly('[install] bower install...');
     await bowerInstall(this.config.dir, ['PieLabs/pie-component-page#update']);
   }
 

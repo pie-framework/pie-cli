@@ -40,6 +40,7 @@ declare namespace archiver {
 
     bulk(mappings: any): void;
     finalize(): void;
+    //glob(g: string): void;
   }
 
   export interface Options {
