@@ -36,30 +36,3 @@ export function build(config, dumpConfig?: string): Promise<BuildResult> {
     });
   });
 }
-
-export function mkConfig(
-  context: string,
-  entry: string,
-  bundle: string,
-  rules: any[],
-  extensions: any): any {
-
-  entry = entry.startsWith('./') ? entry : `./${entry}`;
-
-  let out = _.merge({
-    entry: entry,
-    context: resolve(context),
-
-    output: {
-      path: resolve(context),
-      filename: bundle
-    },
-    module: {
-      rules: [
-        { test: /\.css$/, use: ['style-loader', 'css-loader'] }
-      ]
-    }
-  }, extensions);
-  out.module.rules = _.concat(out.module.rules, rules);
-  return out;
-}

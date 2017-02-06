@@ -99,12 +99,8 @@ describe('catalog', () => {
       assert.calledWith(deps['fs-extra'].writeFile, 'dir/.catalog.entry.js');
     });
 
-    it('calls mkConfig', () => {
-      assert.calledWith(deps['../../code-gen/webpack-builder'].mkConfig, 'dir', '.catalog.entry.js', 'pie-catalog.bundle.js', [], match.object);
-    });
-
     it('calls buildWebpack', () => {
-      assert.calledWith(deps['../../code-gen/webpack-builder'].build, {}, '.catalog.webpack.config.js')
+      assert.calledWith(deps['../../code-gen/webpack-builder'].build, match.object, '.catalog.webpack.config.js')
     });
 
     it('returns the bundle name', () => {

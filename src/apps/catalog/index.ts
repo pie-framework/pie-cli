@@ -9,7 +9,7 @@ import { Manifest } from '../../question/config/manifest';
 import * as http from 'http';
 import AllInOneBuild, { ClientBuild, ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
 import * as _ from 'lodash';
-import { mkConfig, build as buildWebpack, BuildResult } from '../../code-gen/webpack-builder';
+import { build as buildWebpack, BuildResult } from '../../code-gen/webpack-builder';
 import { createArchive, archiveIgnores } from '../create-archive';
 import { promisify } from 'bluebird';
 
@@ -17,6 +17,34 @@ const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
 let clientDependencies = (args: any) => args.configuration.app.dependencies;
+
+//TODO: seems like this could be re-used by others?
+function mkConfig(
+  context: string,
+  entry: string,
+  bundle: string,
+  rules: any[],
+  extensions: any): any {
+
+  entry = entry.startsWith('./') ? entry : `./${entry}`;
+
+  let out = _.merge({
+    entry: entry,
+    context: resolve(context),
+
+    output: {
+      path: resolve(context),
+      filename: bundle
+    },
+    module: {
+      rules: [
+        { test: /\.css$/, use: ['style-loader', 'css-loader'] }
+      ]
+    }
+  }, extensions);
+  out.module.rules = _.concat(out.module.rules, rules);
+  return out;
+}
 
 export default class CatalogApp implements App {
 
