@@ -1,0 +1,12 @@
+{
+  "elements": {
+    "hello-world": "../.."
+  },
+  "models": [
+    {
+      "id": "1",
+      "element": "hello-world",
+      "prompt": "hello world"
+    }
+  ]
+}

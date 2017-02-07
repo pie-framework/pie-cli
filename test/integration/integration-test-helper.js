@@ -6,10 +6,10 @@ import { buildLogger } from '../../lib/log-factory';
 
 const logger = buildLogger();
 
-export function setUpTmpQuestionAndComponents(name) {
+export function setUpTmpQuestionAndComponents(name, samplesPath) {
   let questionsSrc = resolve('./test/integration/example-questions');
   let componentsSrc = resolve('./test/integration/example-components');
-  let tmpPath = temp.mkdirSync(name);
+  let tmpPath = samplesPath || temp.mkdirSync(name);
   let questionsDestination = join(tmpPath, 'example-questions');
   let componentsDestination = join(tmpPath, 'example-components');
   copySync(questionsSrc, questionsDestination);

@@ -6,14 +6,14 @@ import { join, relative, resolve } from 'path';
 import { buildLogger, getLogger } from '../../log-factory';
 import * as _ from 'lodash';
 import * as pug from 'pug';
-import { readFileSync, existsSync, writeFileSync, remove, createWriteStream } from 'fs-extra';
+import { readFileSync, existsSync, writeFileSync, remove } from 'fs-extra';
 import * as express from 'express';
 import * as webpackMiddleware from 'webpack-dev-middleware';
 import * as webpack from 'webpack';
 import * as http from 'http';
 import { ReloadOrError, HasServer } from '../server/types';
 import * as bundled from './elements/bundled';
-import * as archiver from 'archiver';
+import { createArchive, archiver, archiveIgnores } from '../create-archive';
 
 export type Compiler = webpack.compiler.Compiler;
 
@@ -104,7 +104,6 @@ export abstract class BaseApp implements App {
 
   protected allInOneBuild: AllInOneBuild;
   protected branch: string;
-  protected gitIgnores: string[];
 
   constructor(
     private args: any,
@@ -113,8 +112,6 @@ export abstract class BaseApp implements App {
     readonly names: Names) {
     this.branch = args.pieBranch || process.env.PIE_BRANCH || 'develop';
 
-    let gitIgnorePath = join(this.config.dir, '.gitignore');
-    this.gitIgnores = existsSync(gitIgnorePath) ? readFileSync(gitIgnorePath, 'utf8').split('\n').map(s => s.trim()) : [];
     this.allInOneBuild = new AllInOneBuild(
       config,
       support,
@@ -123,44 +120,16 @@ export abstract class BaseApp implements App {
       this.args.writeWebpackConfig !== false);
   }
 
-  async createArchive(): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-
-      let archiveName = this.names.out.archive.endsWith('.tar.gz') ? this.names.out.archive : `${this.names.out.archive}.tar.gz`;
-
-      let output = createWriteStream(archiveName);
-      let archive = archiver('tar', { gzip: true });
-
-      output.on('close', function () {
-        logger.debug(archiveName, (archive as any).pointer() + ' total bytes');
-        resolve(archiveName);
-      });
-
-      archive.on('error', function (err) {
-        reject(err);
-      });
-
-      archive.pipe(output);
-
-      archive.glob('**', {
-        cwd: this.config.dir,
-        ignore: this.archiveIgnores,
-      });
-
-      this.addExtrasToArchive(archive);
-
-      archive.finalize();
-    });
+  createArchive(): Promise<string> {
+    return createArchive(
+      this.names.out.archive,
+      this.config.dir,
+      this.archiveIgnores,
+      this.addExtrasToArchive);
   }
 
   protected get archiveIgnores(): string[] {
-    return _(this.gitIgnores).concat([
-      'node_modules/**',
-      'controllers/**',
-      '\.*',
-      'package.json',
-      '*.tar.gz'
-    ]).uniq().value();
+    return archiveIgnores(this.config.dir);
   }
 
   protected addExtrasToArchive(archive: archiver.Archiver): void { }
@@ -228,7 +197,7 @@ export abstract class BaseApp implements App {
     return { server: server.httpServer, reload: reload };
   }
 
-  private writeBundledItem(): void {
+  protected writeBundledItem(): void {
     let bundledSrc = bundled.js(
       this.names.build.controllersMap,
       'pie-controller',

@@ -20,6 +20,7 @@ describe('BaseApp', function () {
     compiler,
     expressApp,
     result,
+    createArchive,
     archiveInstance;
 
   let handle = (p) => p;
@@ -54,14 +55,21 @@ describe('BaseApp', function () {
       pointer: stub()
     }
 
+    createArchive = {
+      createArchive: stub().returns(Promise.resolve(archiveInstance)),
+      archiveIgnores: stub().returns([])
+    }
+
+
     deps = {
       '../../question/build/all-in-one': {
         default: allInOne
       },
-      'archiver': stub().returns(archiveInstance),
+      '../create-archive': createArchive,
       'fs-extra': {
         writeFileSync: stub(),
-        createReadStream: stub()
+        createReadStream: stub(),
+        createWriteStream: stub()
       },
       'express': express,
       'webpack': stub().returns(compiler),
@@ -460,7 +468,7 @@ describe('BaseApp', function () {
 
     let writeStream, handlers = {};
 
-    beforeEach((done) => {
+    beforeEach(() => {
 
       app.addExtrasToArchive = stub();
 
@@ -469,25 +477,18 @@ describe('BaseApp', function () {
       }
 
       deps['fs-extra'].createWriteStream = stub().returns(writeStream);
-      app.createArchive();
-      handlers.close();
-      done();
+      return app.createArchive();
     });
 
-    it('inits the archive', () => {
-      assert.calledWith(deps['archiver'], 'tar', { gzip: true });
+    it('calls createArchive', () => {
+      assert.calledWith(deps['../create-archive'].createArchive, 'pie-item.tar.gz', 'dir', [], match.func);
     });
+  });
 
-    it('calls archive glob', () => {
-      assert.calledWith(archiveInstance.glob, '**', match.object);
-    });
-
-    it('calls addExtrasToArchive', () => {
-      assert.called(app.addExtrasToArchive);
-    });
-
-    it('calls archive finalize', () => {
-      assert.called(archiveInstance.finalize);
+  describe('get archiveIgnores', () => {
+    it('calls createArchive.archiveIgnores', () => {
+      app.archiveIgnores;
+      assert.called(deps['../create-archive'].archiveIgnores);
     });
   });
 });
