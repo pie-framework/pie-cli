@@ -4,7 +4,7 @@ import proxyquire from 'proxyquire';
 
 describe('catalog', () => {
 
-  let mod, deps, catalog, NAMES;
+  let mod, deps, catalog, NAMES, support;
 
   beforeEach(() => {
 
@@ -33,6 +33,13 @@ describe('catalog', () => {
 
     mod = proxyquire('../../../../lib/apps/catalog', deps);
 
+    support = {
+      externals: {
+        js: ['external.js'],
+        css: ['external.css']
+      }
+    }
+
     catalog = new mod.default({
       configuration: {
         app: {
@@ -42,7 +49,9 @@ describe('catalog', () => {
     }, 'pieRoot', {
         dir: 'dir',
         declarations: []
-      }, {}, {
+      },
+      support,
+      {
         build: {
           entryFile: '.all-in-one.entry.js'
         },
@@ -114,7 +123,8 @@ describe('catalog', () => {
     let init = (exists, done) => {
       archive = {
         file: stub(),
-        directory: stub()
+        directory: stub(),
+        append: stub()
       }
       deps['fs-extra'].existsSync.returns(exists);
       deps['../create-archive'].createArchive = spy(
@@ -146,6 +156,10 @@ describe('catalog', () => {
 
     it('calls archive.directory for package.json', () => {
       assert.calledWith(archive.directory, match(/.*docs\/schemas$/), 'schemas');
+    });
+
+    it('calls archive.append for externals.json', () => {
+      assert.calledWith(archive.append, JSON.stringify(support.externals), { name: 'pie-pkg/externals.json' });
     });
 
     describe('when schemas does not exist', () => {

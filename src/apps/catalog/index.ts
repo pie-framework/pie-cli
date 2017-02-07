@@ -127,7 +127,7 @@ export default class CatalogApp implements App {
       ${this.config.declarations.map(d => d.js).join('\n')}
     
     `;
-    
+
     await promisify(writeFile.bind(null,
       join(this.config.dir, '.catalog.entry.js'),
       js,
@@ -184,6 +184,9 @@ export default class CatalogApp implements App {
       if (existsSync(root('docs/schemas'))) {
         archive.directory(root('docs/schemas'), 'schemas');
       }
+
+      let externals = JSON.stringify(this.support.externals);
+      archive.append(externals, { name: 'pie-pkg/externals.json' });
     }
 
     let ignores = archiveIgnores(this.config.dir);
