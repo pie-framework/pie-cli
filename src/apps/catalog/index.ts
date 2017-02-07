@@ -127,7 +127,7 @@ export default class CatalogApp implements App {
       ${this.config.declarations.map(d => d.js).join('\n')}
     
     `;
-    console.log('promisify: ', promisify, typeof promisify);
+    
     await promisify(writeFile.bind(null,
       join(this.config.dir, '.catalog.entry.js'),
       js,
