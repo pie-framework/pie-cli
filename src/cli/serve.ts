@@ -1,4 +1,4 @@
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import CliCommand from './cli-command';
 import { resolve } from 'path';
 import * as webpack from 'webpack';

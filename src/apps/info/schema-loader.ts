@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as glob from 'glob';
 import * as  _ from 'lodash';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 

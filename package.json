@@ -96,6 +96,7 @@
     "glob": "^7.1.1",
     "jsesc": "^2.4.0",
     "lodash": "^4.17.4",
+    "log-factory": "github:pielabs/log-factory#master",
     "marked": "^0.3.6",
     "marked-terminal": "^2.0.0",
     "node-github": "0.0.3",

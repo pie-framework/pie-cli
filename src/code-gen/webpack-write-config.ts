@@ -1,4 +1,4 @@
-import { fileLogger } from '../log-factory';
+import { fileLogger } from 'log-factory';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 

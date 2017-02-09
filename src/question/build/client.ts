@@ -9,7 +9,7 @@ import baseConfig from './base-config';
 import { writeFileSync } from 'fs-extra';
 import { build as buildWebpack, BuildResult } from '../../code-gen/webpack-builder';
 import * as webpack from 'webpack';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import { writeConfig } from '../../code-gen/webpack-write-config';
 import { Rule } from 'webpack';
 const logger = buildLogger();

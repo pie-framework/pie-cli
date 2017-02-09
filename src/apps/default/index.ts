@@ -6,7 +6,7 @@ import { JsonConfig, ElementDeclaration, Declaration } from '../../question/conf
 import { ReloadOrError, HasServer } from '../server/types';
 import DefaultAppServer from './server';
 import { stripMargin } from '../../string-utils';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import * as pug from 'pug';
 import * as express from 'express';
 import * as webpackMiddleware from 'webpack-dev-middleware';

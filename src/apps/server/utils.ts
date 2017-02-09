@@ -1,5 +1,5 @@
 import * as express from 'express';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import * as http from 'http';
 
 const logger = buildLogger();

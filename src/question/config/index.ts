@@ -1,6 +1,6 @@
 import { fromPath, RawConfig, Model, Weight } from './raw';
 import { join, relative } from 'path';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import * as _ from 'lodash';
 import { readFileSync, existsSync, readJsonSync } from 'fs-extra';
 import { hash as mkHash } from '../../npm/dependency-helper';

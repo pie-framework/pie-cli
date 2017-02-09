@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { buildLogger } from '../../../../../lib/log-factory';
+import { buildLogger } from 'log-factory';
 import _ from 'lodash';
-import {stub} from 'sinon';
+import { stub } from 'sinon';
 import proxyquire from 'proxyquire';
 
 const logger = buildLogger();
@@ -18,7 +18,7 @@ describe('config-validator', () => {
     }
 
     validate = proxyquire('../../../../../lib/question/config/validator', {
-      'fs-extra' : fsExtra
+      'fs-extra': fsExtra
     }).validate;
 
   });
@@ -41,10 +41,10 @@ describe('config-validator', () => {
     assertValid({ elements: {}, models: [{ id: '1', element: 'a' }] }, true);
     assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [] }, true);
     assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [{}] }, false);
-    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [{id: '1'}] }, false);
-    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [{id: '1', weight: '1'}] }, true); 
-    assertValid({ elements: {}, langs: [1], models: [{ id: '1', element: 'a' }] }, false); 
-    assertValid({ elements: {}, langs: ['en-US'], models: [{ id: '1', element: 'a' }] }, true); 
+    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [{ id: '1' }] }, false);
+    assertValid({ elements: {}, models: [{ id: '1', element: 'a' }], weights: [{ id: '1', weight: '1' }] }, true);
+    assertValid({ elements: {}, langs: [1], models: [{ id: '1', element: 'a' }] }, false);
+    assertValid({ elements: {}, langs: ['en-US'], models: [{ id: '1', element: 'a' }] }, true);
   });
 
   describe('validate w/ pie schemas for individual pies', () => {
@@ -73,13 +73,13 @@ describe('config-validator', () => {
       models: [
         {
           id: '1',
-          element: 'my-pie', 
+          element: 'my-pie',
           prompt: 'What is 1 + 1',
           answer: '2'
         },
         {
           id: '2',
-          element: 'my-pie', 
+          element: 'my-pie',
           answer: '3'
         }
       ]
@@ -97,7 +97,7 @@ describe('config-validator', () => {
           fsExtra.existsSync.returns(true);
           fsExtra.readJsonSync.returns(pieSchema);
 
-          result = validate(obj, [{key: 'my-pie', schemasDir: 'docs/schemas'}  ]);
+          result = validate(obj, [{ key: 'my-pie', schemasDir: 'docs/schemas' }]);
           logger.debug(result);
         });
 

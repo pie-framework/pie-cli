@@ -1,7 +1,7 @@
 import NpmDir from '../../npm/npm-dir';
 import { JsonConfig } from '../../question/config';
 import { join, relative } from 'path';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import { PiePackage } from '../../question/config/elements';
 import * as _ from 'lodash';
 import { ensureDirSync } from 'fs-extra';

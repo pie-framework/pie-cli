@@ -1,5 +1,5 @@
 import * as bower from 'bower';
-import { buildLogger } from '../../../log-factory';
+import { buildLogger } from 'log-factory';
 import * as _ from 'lodash';
 
 const logger = buildLogger();
