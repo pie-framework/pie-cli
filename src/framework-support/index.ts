@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import * as resolve from 'resolve';
 import { mkFromPath } from './support-module';
 import { Rule, SupportInfo } from './support-info';

@@ -1,7 +1,7 @@
 import { App, DefaultApp, InfoApp, CatalogApp } from './types';
 import { BuildConfig, react, less, legacySupport } from '../framework-support';
 import * as _ from 'lodash';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import { JsonConfig } from '../question/config'
 
 const logger = buildLogger();

@@ -1,5 +1,5 @@
 import { PackageWatch, PieWatch, FileWatch, Watch } from './watchers';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import * as _ from 'lodash';
 import { pathIsDir } from '../npm/dependency-helper';
 import { join } from 'path';

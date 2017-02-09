@@ -1,4 +1,4 @@
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import * as chokidar from 'chokidar';
 import { relative, resolve, join } from 'path';
 import * as _ from 'lodash';

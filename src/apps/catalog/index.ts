@@ -1,6 +1,6 @@
 import { App, BuildOpts, ManifestOpts, ServeOpts } from '../types';
 import { JsonConfig } from '../../question/config';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import { join, resolve } from 'path';
 import * as pug from 'pug';
 import { existsSync, writeFile } from 'fs-extra';

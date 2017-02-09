@@ -1,7 +1,7 @@
 import * as http from 'http';
 import * as sockjs from 'sockjs';
 import { ReloadOrError, HasServer } from '../server/types';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import * as express from 'express';
 
 const logger = buildLogger();

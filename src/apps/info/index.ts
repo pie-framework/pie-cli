@@ -3,7 +3,7 @@ import { JsonConfig } from '../../question/config';
 import ClientBuild from '../../question/build/client';
 import ControllersBuild from '../../question/build/controllers';
 import { ElementDeclaration, Declaration } from '../../code-gen/declaration';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import { SupportConfig } from '../../framework-support';
 import * as _ from 'lodash';
 import { join, resolve } from 'path';

@@ -1,6 +1,6 @@
 import * as archiver from 'archiver';
 import { existsSync, readFileSync, createWriteStream } from 'fs-extra';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import { join } from 'path';
 import * as _ from 'lodash';
 

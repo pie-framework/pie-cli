@@ -1,4 +1,4 @@
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import CliCommand from './cli-command';
 import loadApp from '../apps/load-app';
 import { App, ServeOpts } from '../apps/types';

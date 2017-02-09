@@ -1,7 +1,7 @@
 import { resolve, dirname, extname, join } from 'path';
 import { existsSync, readFileSync } from 'fs-extra';
 import * as _ from 'lodash';
-import { buildLogger, getLogger } from '../log-factory';
+import { buildLogger, getLogger } from 'log-factory';
 import * as ejs from 'ejs';
 import * as winston from 'winston';
 

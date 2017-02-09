@@ -3,7 +3,7 @@ import { JsonConfig, Manifest, Declaration, ElementDeclaration } from '../../que
 import AllInOneBuild, { ClientBuild, ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
 import { KeyMap } from '../../npm/types';
 import { join, relative, resolve } from 'path';
-import { buildLogger, getLogger } from '../../log-factory';
+import { buildLogger, getLogger } from 'log-factory';
 import * as _ from 'lodash';
 import * as pug from 'pug';
 import { readFileSync, existsSync, writeFileSync, remove } from 'fs-extra';

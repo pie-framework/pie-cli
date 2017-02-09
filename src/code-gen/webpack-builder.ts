@@ -1,5 +1,5 @@
 import * as webpack from 'webpack';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import * as _ from 'lodash';
 import { configToJsString } from './webpack-write-config';
 import { writeConfig } from './webpack-write-config';
