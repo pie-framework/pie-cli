@@ -3,7 +3,7 @@
 process.title = 'pie';
 let minimist = require('minimist');
 let args = minimist(process.argv.slice(2));
-let logFactory = require('../lib/log-factory');
+let logFactory = require('log-factory');
 let defaultLogConfig = require('../lib/log-config').default;
 logFactory.init(args.logLevel || args['log-level'] || defaultLogConfig);
 require('../lib/cli').default(args)
