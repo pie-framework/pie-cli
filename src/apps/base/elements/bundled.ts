@@ -16,8 +16,27 @@ export let js = (
     constructor(){
       super();
     }
+
+    _envUpdated(env) {
+      let classFromEnv = (env) => {
+        const colorMap = {
+          black_on_rose: 'black-on-rose',
+          white_on_black: 'white-on-black',
+          black_on_white: 'default'
+        };
+        if (env.accessibility && env.accessibility.colorContrast && colorMap[env.accessibility.colorContrast]) {
+          return colorMap[env.accessibility.colorContrast];
+        } else {
+          console.log('could not find class');
+          return undefined;
+        }
+      };
+      this.querySelector('pie-player').setAttribute('class', classFromEnv(env));
+    }
     
     connectedCallback(){
+
+      let pieItem = this;
 
       let model = {
         weights: ${JSON.stringify(config.weights || [])},
@@ -52,8 +71,8 @@ export let js = (
         });
 
         panel.addEventListener('envChanged', function (event) {
-
           player.env = event.target.env;
+          pieItem._envUpdated(event.target.env);
 
           if (event.target.env.mode === 'evaluate') {
             player.getOutcome().then(function (outcome) {
@@ -72,6 +91,19 @@ export let js = (
             font-family: 'Roboto', sans-serif;
           }
 
+          pie-player {
+            display: block;
+          }
+
+          pie-player.black-on-rose {
+            background-color: mistyrose;
+          }
+
+          pie-player.white-on-black {
+            background-color: black;
+            color: white;
+          }
+
           .control-panel-holder {
             display: flex;
             align-items: center;
@@ -88,7 +120,9 @@ export let js = (
             text-transform: uppercase;
             font-size: 14px;
             color: rgba(0,0,0,0.5);
-          } 
+          }
+
+
 
         </style>
         <div class="control-panel-holder">
