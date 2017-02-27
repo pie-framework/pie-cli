@@ -1,10 +1,12 @@
-import proxyquire from 'proxyquire';
-import { expect } from 'chai';
 import { assert, spy, stub } from 'sinon';
 
-const LIB = `${__dirname}/../../../../lib`;
+import { expect } from 'chai';
+import proxyquire from 'proxyquire';
+import { resolve } from 'path';
 
-describe('DefaultAppServer', () => {
+const LIB = `${__dirname}/../../../lib`;
+
+describe('AppServer', () => {
 
   let DefaultAppServer, instance, app, http, sockjs, httpInstance, sockInstance, sockHandlers;
 
@@ -33,7 +35,7 @@ describe('DefaultAppServer', () => {
     sockjs = {
       createServer: stub().returns(sockInstance)
     }
-    DefaultAppServer = proxyquire(`${LIB}/apps/default/server`, {
+    DefaultAppServer = proxyquire(resolve(`${LIB}/server`), {
       http: http,
       sockjs: sockjs
     }).default;

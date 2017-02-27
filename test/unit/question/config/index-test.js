@@ -1,7 +1,8 @@
-import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
-import proxyquire from 'proxyquire';
+import { assert, match, spy, stub } from 'sinon';
+
 import _ from 'lodash';
+import { expect } from 'chai';
+import proxyquire from 'proxyquire';
 
 describe('JsonConfig', () => {
 
@@ -49,7 +50,7 @@ describe('JsonConfig', () => {
     }
 
     elements.LocalFile.build.withArgs('local-file', match.string).returns(new realElements.LocalFile('local-file', 'local-file.js'));
-    elements.PiePackage.build.withArgs('pie-package', match.string).returns(new realElements.PiePackage('pie-package', 'pie-package'));
+    elements.PiePackage.build.withArgs(match.string, 'pie-package', match.string).returns(new realElements.PiePackage('pie-package', 'pie-package'));
     elements.LocalPackage.build.withArgs('local-package', match.string).returns(new realElements.LocalPackage('local-package', '../local-package'));
 
     let declaration = {
@@ -93,7 +94,7 @@ describe('JsonConfig', () => {
       });
 
       it('calls validate', () => {
-        assert.calledWith(validator.validate, rawConfig, []);
+        assert.calledWith(validator.validate, rawConfig, match.array);
       });
     });
 
@@ -108,7 +109,7 @@ describe('JsonConfig', () => {
       });
 
       it('calls raw._readRaw()', () => {
-        assert.calledWith(validator.validate, rawConfig, []);
+        assert.calledWith(validator.validate, rawConfig, match.array);
       });
     });
 

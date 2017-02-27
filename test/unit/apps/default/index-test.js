@@ -1,8 +1,9 @@
-import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
-import proxyquire from 'proxyquire';
-import path from 'path';
+import { assert, match, spy, stub } from 'sinon';
+
 import { Base } from '../helper';
+import { expect } from 'chai';
+import path from 'path';
+import proxyquire from 'proxyquire';
 
 const ROOT = '../../../../lib';
 
@@ -12,7 +13,7 @@ describe('index', () => {
 
   beforeEach(() => {
     deps = {
-      '../base': {
+      './base': {
         BaseApp: Base
       }
     }
@@ -84,29 +85,14 @@ describe('index', () => {
     });
   });
 
-  describe('serverMarkup', () => {
-    beforeEach(() => {
-      instance.templates.withSock = stub();
-      instance.serverMarkup();
-    });
-
-    it('calls templates.withSock', () => {
-      assert.calledWith(instance.templates.withSock, {
-        sockPath: match.string,
-        js: [names.out.completeItemTag.path],
-        markup: names.out.completeItemTag.tag
-      })
-    });
-  });
-
   describe('fileMarkup', () => {
     beforeEach(() => {
-      instance.templates.basic = stub();
+      instance.template = stub();
       instance.fileMarkup();
     });
 
-    it('calls templates.basic', () => {
-      assert.calledWith(instance.templates.basic, {
+    it('calls template', () => {
+      assert.calledWith(instance.template, {
         js: [names.out.completeItemTag.path],
         markup: names.out.completeItemTag.tag
       });

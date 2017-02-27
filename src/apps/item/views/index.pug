@@ -16,16 +16,9 @@ html
       window.demo = window.demo || {};
       window.demo.config = !{demo.config ? JSON.stringify(demo.config) : '{}'};
       window.demo.markup = '!{demo.markup ? demo.markup : ''}'; 
-      window.element = !{element ? JSON.stringify(element) : '{}'};
-      window.orgRepo = !{orgRepo ? JSON.stringify(orgRepo) : '{}'};
     
     each j in js 
       script(src=j, type='text/javascript')
     
     body
-      catalog-container
-        span(slot="header") 
-          | pie info
-        catalog-entry
-          catalog-demo
-            | hi there 
+      catalog-demo

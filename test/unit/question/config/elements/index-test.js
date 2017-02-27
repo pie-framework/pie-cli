@@ -1,5 +1,6 @@
+import { assert, match, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
 import proxyquire from 'proxyquire';
 
 describe('elements', () => {
@@ -73,7 +74,7 @@ describe('elements', () => {
     describe('build', () => {
       it('builds if path is to dir w/ controller dir', () => {
         fsExtra.statSync.returns(mkStat(true, true));
-        let pp = elements.PiePackage.build('key', 'local-pie');
+        let pp = elements.PiePackage.build('', 'key', 'local-pie');
         expect(pp).not.to.be.undefined;
       });
 
@@ -82,7 +83,7 @@ describe('elements', () => {
           .withArgs('local-pie/package.json').returns(mkStat(false, false))
           .returns(mkStat(true, true))
 
-        let pp = elements.PiePackage.build('key', 'local-pie');
+        let pp = elements.PiePackage.build('', 'key', 'local-pie');
         expect(pp).to.be.undefined;
       });
 
@@ -91,7 +92,7 @@ describe('elements', () => {
           .withArgs('local-pie/controller/package.json').returns(mkStat(false, false))
           .returns(mkStat(true, true))
 
-        let pp = elements.PiePackage.build('key', 'local-pie');
+        let pp = elements.PiePackage.build('', 'key', 'local-pie');
         expect(pp).to.be.undefined;
       });
     });

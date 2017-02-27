@@ -1,7 +1,8 @@
-import { buildLogger } from 'log-factory';
+import { App, Archivable, BuildOpts, ManifestOpts, isArchivable, isBuildable } from '../apps/types';
+
 import CliCommand from './cli-command';
+import { buildLogger } from 'log-factory';
 import loadApp from '../apps/load-app';
-import { App, BuildOpts, ManifestOpts } from '../apps/types';
 
 const logger = buildLogger();
 
@@ -12,19 +13,28 @@ class PackCommand extends CliCommand {
 
   async run(args) {
     let a: App = await loadApp(args);
-    let buildOpts = BuildOpts.build(args);
-    let files = await a.build(buildOpts);
-    this.cliLogger.info(`build files: ${files}`);
-    this.cliLogger.info('build complete, run manifest...');
 
-    if (buildOpts.createArchive) {
-      this.cliLogger.info('creating archive...');
-      let zip = await a.createArchive();
-      this.cliLogger.info('archive: ', zip);
+    if (isBuildable(a)) {
+      let buildOpts = BuildOpts.build(args);
+      let files = await a.build(buildOpts);
+      this.cliLogger.info(`build files: ${files}`);
+      this.cliLogger.info('build complete, run manifest...');
+
+      if (buildOpts.createArchive) {
+        if (isArchivable(a)) {
+          this.cliLogger.info('creating archive...');
+          let zip = await a.createArchive();
+          this.cliLogger.info('archive: ', zip);
+        } else {
+          logger.warn('tried to create an archive but this app type isnt archivable');
+        }
+      }
+
+      let manifestOpts = ManifestOpts.build(args);
+      return a.manifest(manifestOpts);
+    } else {
+      logger.warn('this app isnt buildable');
     }
-
-    let manifestOpts = ManifestOpts.build(args);
-    return a.manifest(manifestOpts);
   }
 }
 
