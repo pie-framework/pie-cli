@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
 import * as chokidar from 'chokidar';
-import * as fs from 'fs-extra';
 import * as touch from 'touch';
 
+import { copy, existsSync, remove } from 'fs-extra';
 import { join, relative, resolve } from 'path';
 
 import { buildLogger } from 'log-factory';
@@ -61,7 +61,7 @@ export class BaseWatch implements Roots, Watch {
      */
     const copyThenTouch = (path, dest) => {
       logger.silly(`copy ${path} -> ${dest}`);
-      fs.copy(path, dest, (e) => {
+      copy(path, dest, (e) => {
         if (!e) {
           logger.silly(`touch ${dest}`);
           setTimeout(() => {
@@ -91,7 +91,7 @@ export class BaseWatch implements Roots, Watch {
 
     const onUnlink = (path) => {
       logger.debug(`File unlinked: ${path} - delete`);
-      fs.remove(this.getDestination(path));
+      remove(this.getDestination(path));
     };
 
     const onError = (e) => logger.error(e);
@@ -147,6 +147,7 @@ export class PieWatch {
 
   private client;
   private controller;
+  private configuration?: Watch;
 
   constructor(name, relativePath, rootDir) {
     logger.debug('[PieWatch] constructor: ', name, relativePath, rootDir);

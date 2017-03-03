@@ -5,7 +5,8 @@ import { ElementDeclaration } from '../../code-gen/declaration';
 export default function js(
   declarations: ElementDeclaration[],
   controllerDependencies: { [key: string]: string },
-  sockPath: string) {
+  sockPath: string,
+  configurationMap?: { [key: string]: string }) {
 
 
   let controllerDep = (value, key) => `controllers['${key}'] = require('${key}-controller');`
@@ -69,7 +70,7 @@ let init = () => {
         throw new Error('config is missing');
       }
       let demo = document.querySelector('catalog-demo');
-
+      demo.configureMap = ${configurationMap ? JSON.stringify(configurationMap) : 'null'};
       demo.config = window.demo.config;
       demo.controllers = controllers;
       demo.markup = window.demo.markup;

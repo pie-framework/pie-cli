@@ -12,6 +12,7 @@ import { Names, clientDependencies, getNames } from '../common';
 import { existsSync, readFileSync, readJsonSync } from 'fs-extra';
 import { join, resolve } from 'path';
 
+import { ElementDeclaration } from './../../code-gen/declaration';
 import { JsonConfig } from '../../question/config';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
@@ -81,10 +82,25 @@ export default class InfoApp implements App, Servable {
     logger.silly('[server] opts:', opts);
     await this.install(opts.forceInstall);
 
+
+    let configurationPackage = join(this.pieRoot, 'configuration');
+
+    let declarations = this.config.declarations;
+    let configurationMap = null;
+    if (existsSync(configurationPackage)) {
+      logger.debug('found configuration package .. adding it to bundle');
+      let configDeclaration = new ElementDeclaration('corespring-number-line-configuration', 'corespring-number-line/configuration');
+      declarations = declarations.concat([configDeclaration]);
+      configurationMap = {
+        'corespring-number-line': 'corespring-number-line-configuration'
+      }
+    }
+
     const js = entryJs(
-      this.config.declarations,
+      declarations,
       this.controllersBuild.controllerDependencies,
-      AppServer.SOCK_PREFIX);
+      AppServer.SOCK_PREFIX,
+      configurationMap);
 
     const config = this.allInOneBuild.webpackConfig(js);
 
