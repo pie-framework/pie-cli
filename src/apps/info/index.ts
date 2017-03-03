@@ -96,11 +96,11 @@ export default class InfoApp implements App, Servable {
     let configurationMap = null;
     if (existsSync(configurePkg)) {
       let pkg = readJsonSync(configurePkg, 'utf8');
+      let pieName = basename(this.pieRoot);
       logger.debug('found configuration package .. adding it to bundle');
-      let configDeclaration = new ElementDeclaration(pkg.name, configureDir);
+      let configDeclaration = new ElementDeclaration(pkg.name, `${pieName}/configure`);
       declarations = declarations.concat([configDeclaration]);
       configurationMap = {}
-      let pieName = basename(this.pieRoot);
       configurationMap[pieName] = pkg.name;
     }
 
