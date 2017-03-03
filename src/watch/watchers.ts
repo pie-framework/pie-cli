@@ -1,8 +1,11 @@
-import { buildLogger } from 'log-factory';
-import * as chokidar from 'chokidar';
-import { relative, resolve, join } from 'path';
 import * as _ from 'lodash';
+import * as chokidar from 'chokidar';
 import * as fs from 'fs-extra';
+import * as touch from 'touch';
+
+import { join, relative, resolve } from 'path';
+
+import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 
@@ -17,22 +20,24 @@ export interface Watch {
 
 export class BaseWatch implements Roots, Watch {
 
-  private _watcher;
-  constructor(private ignores) { }
   public srcRoot: string;
   public targetRoot: string;
-  getDestination(path) {
-    let relativePath = relative(this.srcRoot, path);
-    let destination = join(this.targetRoot, relativePath);
-    logger.silly(`[BaseWatch] [getDestination], path: ${path}, relativePath: ${relativePath}, destination: ${destination}`);
+  private watcher;
+  constructor(private ignores) { }
+  public getDestination(path) {
+    const relativePath = relative(this.srcRoot, path);
+    const destination = join(this.targetRoot, relativePath);
+    logger.silly(`[BaseWatch] [getDestination], path: ${path}, 
+      relativePath: ${relativePath}, destination: ${destination}`);
     return destination;
   }
 
-  start(): void {
+  public start(): void {
 
     logger.debug('[BaseWatch] [start] srcRoot: ', this.srcRoot);
 
-    this._watcher = chokidar.watch(this.srcRoot, {
+    this.watcher = chokidar.watch(this.srcRoot, {
+      ignoreInitial: true,
       ignored: _.concat(this.ignores, [
         /package\.json/,
         /[\/\\]\./,
@@ -43,33 +48,59 @@ export class BaseWatch implements Roots, Watch {
         /typings/,
         /jsconfig\.json/
       ]),
-      ignoreInitial: true,
       persistent: true
     });
 
-    let onAdd = (path) => {
+    /**
+     * Note: There appears to be a bug in the new webpack where simply copying a file that sits in a 
+     * dependency graph won't push the changes through. Adding a `touch` to force it through. 
+     * TODO: try and recreate the issue in a sample project: 
+     * @see https://github.com/PieLabs/pie-cli/issues/99
+     * @param path 
+     * @param dest 
+     */
+    const copyThenTouch = (path, dest) => {
+      logger.silly(`copy ${path} -> ${dest}`);
+      fs.copy(path, dest, (e) => {
+        if (!e) {
+          logger.silly(`touch ${dest}`);
+          setTimeout(() => {
+            touch(dest, (e) => {
+              if (e) {
+                logger.error(e);
+              }
+            });
+          }, 10);
+        } else {
+          logger.error(e.toString());
+        }
+      });
+    }
+
+    const onAdd = (path) => {
       logger.debug(`File added: ${path} - copy`);
-      fs.copy(path, this.getDestination(path));
+      const dest = this.getDestination(path);
+      copyThenTouch(path, dest);
     };
 
-    //TODO: Add file size change detection to prevent unnecessary updates
-    let onChange = (path) => {
+    // TODO: Add file size change detection to prevent unnecessary updates
+    const onChange = (path) => {
       logger.debug(`File changed: ${path} - copy`);
-      fs.copy(path, this.getDestination(path));
-    }
+      copyThenTouch(path, this.getDestination(path));
+    };
 
-    let onUnlink = (path) => {
+    const onUnlink = (path) => {
       logger.debug(`File unlinked: ${path} - delete`);
       fs.remove(this.getDestination(path));
-    }
+    };
 
-    let onError = (e) => logger.error(e);
-    let onReady = () => {
+    const onError = (e) => logger.error(e);
+    const onReady = () => {
       logger.info(`Watcher for ${this.srcRoot} - Ready`);
-      logger.silly('watched: \n', this._watcher.getWatched());
-    }
+      logger.silly('watched: \n', this.watcher.getWatched());
+    };
 
-    this._watcher
+    this.watcher
       .on('add', onAdd)
       .on('change', onChange)
       .on('unlink', onUnlink)
@@ -80,7 +111,10 @@ export class BaseWatch implements Roots, Watch {
 
 
 export class PackageWatch extends BaseWatch {
-  constructor(private name: string, private relativePath: string, readonly rootDir: string, ignore: (string | RegExp)[] = []) {
+  constructor(private name: string,
+    private relativePath: string,
+    readonly rootDir: string,
+    ignore: (string | RegExp)[] = []) {
     super(ignore);
   }
 
@@ -120,27 +154,27 @@ export class PieWatch {
     this.controller = new PieControllerWatch(name, relativePath, rootDir);
   }
 
-  start() {
+  public start() {
     this.client.start();
     this.controller.start();
   }
 }
 
 export class FileWatch implements Watch {
-  private _watch;
-  constructor(readonly filepath, readonly onChange: (string) => void) {
+  private watch;
+  constructor(readonly filepath, readonly onChange: (n: string) => void) {
   }
 
-  start() {
+  public start() {
     logger.silly('[FileWatch] filepath: ', this.filepath);
 
-    this._watch = chokidar.watch(this.filepath, { ignoreInitial: true });
-    this._watch.on('change', () => {
+    this.watch = chokidar.watch(this.filepath, { ignoreInitial: true });
+    this.watch.on('change', () => {
       logger.silly('[FileWatch] on change: ', this.filepath);
       this.onChange(this.filepath);
     });
 
-    this._watch.on('ready', () => {
+    this.watch.on('ready', () => {
       logger.silly('[FileWatch] ready for path: ', this.filepath);
     });
   }

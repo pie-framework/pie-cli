@@ -1,5 +1,6 @@
-import { JsonConfig } from '../../../question/config';
 import * as jsesc from 'jsesc';
+
+import { JsonConfig } from '../../../question/config';
 
 export let js = (
   controllerMapPath: string,

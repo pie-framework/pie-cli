@@ -8,7 +8,7 @@ import * as webpackMiddleware from 'webpack-dev-middleware';
 import AllInOneBuild, { ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
 import { App, Servable, ServeOpts } from '../types';
 import AppServer, { utils as su } from '../../server';
-import { Names, clientDependencies, getNames } from '../common';
+import { Names, getNames } from "../common";
 import { existsSync, readFileSync, readJsonSync } from 'fs-extra';
 import { join, resolve } from 'path';
 
@@ -20,21 +20,18 @@ import { writeConfig } from '../../code-gen/webpack-write-config';
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
-export default class InfoApp implements App, Servable {
+const clientDependencies = (args: any) => args.configuration.app.dependencies;
+
+export default class ItemApp implements App, Servable {
 
   public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
 
     const dir = resolve(args.dir || process.cwd());
-
-    if (!existsSync(join(dir, 'docs/demo'))) {
-      throw new Error(`Can't find a 'docs/demo' directory in path: ${dir}. Is this a pie directory?`);
-    }
-
-    const config = new JsonConfig(join(dir, 'docs/demo'));
+    const config = new JsonConfig(dir);
 
     return loadSupport(config)
       .then((s) => {
-        return new InfoApp(args, dir, config, s, getNames(args));
+        return new ItemApp(args, config, s, getNames(args));
       });
   }
 
@@ -43,7 +40,6 @@ export default class InfoApp implements App, Servable {
   private template: any;
 
   constructor(private args: any,
-    private pieRoot: string,
     readonly config: JsonConfig,
     private support: SupportConfig,
     private names: Names) {
@@ -55,23 +51,17 @@ export default class InfoApp implements App, Servable {
       this.names.out.completeItemTag.path,
       this.args.writeWebpackConfig !== false);
 
-    this.controllersBuild = new ControllersBuild(config, false);
+    this.controllersBuild = this.allInOneBuild.controllers;
 
     this.template = pug.compileFile(templatePath);
   }
 
-  /**
-   * Also watch the README and the package.json
-   */
-  public watchableFiles(): string[] {
-    return [
-      resolve(join(this.pieRoot, 'README.md')),
-      resolve(join(this.pieRoot, 'package.json')),
-    ]
+  public clean() {
+    return null;
   }
 
-  public clean(): Promise<any> {
-    return null;
+  public watchableFiles(): string[] {
+    return [];
   }
 
   public async server(opts: ServeOpts): Promise<{
@@ -91,25 +81,7 @@ export default class InfoApp implements App, Servable {
     config.resolve.modules.push(resolve(join(__dirname, '../../../node_modules')));
     config.resolveLoader.modules.push(resolve(join(__dirname, '../../../node_modules')));
 
-
-    const cssRule = config.module.rules.find((r) => {
-      const match = r.test.source === '\\.css$';
-      return match;
-    });
-
-    cssRule.exclude = [
-      /.*highlight\.js.*/,
-    ];
-
-    // load in raw css for markdown element
-    config.module.rules = [{
-      test: /.*\/highlight\.js\/styles\/default\.css$/,
-      use: [
-        'raw-loader',
-      ],
-    }].concat(config.module.rules);
-
-    writeConfig(join(this.config.dir, 'info.config.js'), config);
+    //writeConfig(join(this.config.dir, 'info.config.js'), config);
 
     const compiler = webpack(config);
     const r = this.router(compiler);
@@ -118,10 +90,7 @@ export default class InfoApp implements App, Servable {
 
     const server = new AppServer(app);
 
-    /** Note: delay linking the compiler to give it time to flush out the initial compilations */
-    setTimeout(() => {
-      su.linkCompilerToServer('main', compiler, server);
-    }, 5000);
+    su.linkCompilerToServer('main', compiler, server);
 
     const reload = (name) => {
       logger.info('File Changed: ', name);
@@ -137,7 +106,7 @@ export default class InfoApp implements App, Servable {
     const router = express.Router();
 
     const middleware = webpackMiddleware(compiler, {
-      noInfo: true,
+      noInfo: false,
       publicPath: '/'
     });
 
@@ -149,9 +118,6 @@ export default class InfoApp implements App, Servable {
 
     router.get('/', (req, res) => {
 
-      const pkg = readJsonSync(join(this.pieRoot, 'package.json'));
-      const readme = readFileSync(join(this.pieRoot, 'README.md'), 'utf8');
-
       const page = this.template({
 
         demo: {
@@ -160,21 +126,10 @@ export default class InfoApp implements App, Servable {
           },
           markup: jsesc(this.config.markup),
         },
-        element: {
-          github: {},
-          org: '',
-          package: pkg,
-          readme,
-          repo: pkg.name,
-          tag: pkg.version
-        },
         js: [
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
-          this.allInOneBuild.fileout,
-        ],
-        orgRepo: {
-          repo: pkg.name,
-        }
+          this.allInOneBuild.fileout
+        ]
       });
 
       res
@@ -187,12 +142,10 @@ export default class InfoApp implements App, Servable {
     return router;
   }
 
-
   private async install(forceInstall: boolean): Promise<void> {
     await this.allInOneBuild.install({
       dependencies: clientDependencies(this.args),
       devDependencies: this.support.npmDependencies || {},
     }, forceInstall);
   }
-
 }

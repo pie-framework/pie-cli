@@ -1,8 +1,9 @@
-import { buildLogger } from 'log-factory';
+import { App, ManifestOpts, isBuildable } from '../apps/types';
+
 import CliCommand from './cli-command';
-import { writeJsonSync } from 'fs-extra';
+import { buildLogger } from 'log-factory';
 import loadApp from '../apps/load-app';
-import { App, ManifestOpts } from '../apps/types';
+import { writeJsonSync } from 'fs-extra';
 const logger = buildLogger();
 
 class ManifestCommand extends CliCommand {
@@ -15,8 +16,13 @@ class ManifestCommand extends CliCommand {
     logger.info('[run] opts: ', opts);
     let a: App = await loadApp(args);
     logger.silly('[run] app: ', a);
-    let manifest = await a.manifest(opts);
-    return JSON.stringify(manifest);
+
+    if (isBuildable(a)) {
+      let manifest = await a.manifest(opts);
+      return JSON.stringify(manifest);
+    } else {
+      throw new Error('this app isnt buildable');
+    }
   }
 }
 

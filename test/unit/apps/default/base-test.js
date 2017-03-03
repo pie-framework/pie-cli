@@ -1,8 +1,10 @@
-import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
-import proxyquire from 'proxyquire';
 import * as _ from 'lodash';
 import * as path from 'path';
+
+import { assert, match, spy, stub } from 'sinon';
+
+import { expect } from 'chai';
+import proxyquire from 'proxyquire';
 
 const ROOT = '../../../../lib';
 
@@ -60,6 +62,7 @@ describe('BaseApp', function () {
       archiveIgnores: stub().returns([])
     }
 
+    const { getNames } = require(`${ROOT}/apps/common`);
 
     deps = {
       '../../question/build/all-in-one': {
@@ -76,7 +79,7 @@ describe('BaseApp', function () {
       'webpack-dev-middleware': stub().returns({})
     };
 
-    mod = proxyquire(`${ROOT}/apps/base/index`, deps);
+    mod = proxyquire(`${ROOT}/apps/default/base`, deps);
 
     jsonConfig = {
       dir: 'dir', filenames: {
@@ -89,7 +92,7 @@ describe('BaseApp', function () {
     }
 
     BaseApp = mod.BaseApp;
-    names = mod.getNames({});
+    names = getNames({});
     app = new BaseApp({
       configuration: {
         app: {
@@ -162,97 +165,6 @@ describe('BaseApp', function () {
     });
   });
 
-  describe('server', () => {
-
-    let run = (forceInstall) => {
-      forceInstall = forceInstall === undefined ? false : forceInstall;
-      return app.server({ forceInstall }).then(r => result = r);
-    }
-
-    beforeEach(() => {
-      app.install = stub().returns(Promise.resolve());
-      app.prepareWebpackJs = stub().returns('');
-      app.allInOneBuild = {
-        webpackConfig: stub().returns({})
-      }
-      app.router = stub().returns({ router: true });
-      app._linkCompilerToServer = stub();
-      app.mkServer = stub().returns({ server: true, httpServer: {} });
-    });
-
-    beforeEach(() => run());
-
-    it('calls install', () => {
-      assert.calledOnce(app.install);
-      assert.calledWith(app.install, false);
-    });
-
-
-    it('calls prepareWebpackJs', () => {
-      assert.calledOnce(app.prepareWebpackJs);
-    });
-
-    it('calls allInOneBuild.webpackConfig', () => {
-      assert.calledOnce(app.allInOneBuild.webpackConfig);
-    });
-
-    it('calls webpack', () => {
-      assert.calledOnce(deps.webpack);
-    });
-
-    it('calls router', () => {
-      assert.calledWith(app.router, {});
-    });
-
-    it('calls express()', () => {
-      assert.calledOnce(deps.express);
-    });
-
-    it('calls express.use, router', () => {
-      assert.calledWith(expressApp.use, { router: true });
-    });
-
-    it('calls app.mkServer', () => {
-      assert.calledOnce(app.mkServer);
-    });
-
-    it('calls _linkCompilerToServer', () => {
-      assert.calledWith(app._linkCompilerToServer, 'main', {}, { server: true, httpServer: {} });
-    });
-
-    it('returns server', () => {
-      expect(result.server).to.eql({});
-    });
-
-    it('returns reload', () => {
-      expect(_.isFunction(result.reload)).to.be.true;
-    });
-
-    describe('with forceInstall = true', () => {
-      beforeEach(() => run(true));
-
-      it('calls install with forceInstall = true', () => {
-        assert.calledWith(app.install, true);
-      });
-    });
-
-    describe('reload handler', () => {
-
-      beforeEach(() => {
-        app.config.reload = stub();
-        app.writeBundledItem = stub();
-        result.reload(path.join(app.config.dir, app.config.filenames.json));
-      });
-
-      it('calls config.reload', () => {
-        assert.called(app.config.reload);
-      });
-
-      it('calls writeBundledItem', () => {
-        assert.called(app.writeBundledItem);
-      });
-    });
-  });
 
   describe('buildAllInOne', () => {
 
@@ -344,58 +256,6 @@ describe('BaseApp', function () {
     });
   });
 
-  describe('router', () => {
-    let router, handlers;
-    beforeEach(() => {
-      handlers = {};
-      router = {
-        use: stub(),
-        get: spy(function (path, handler) {
-          handlers[path] = handler;
-        })
-      };
-
-      deps.express.Router = stub().returns(router);
-      app.router({});
-    });
-
-    it('calls express.Router', () => {
-      assert.calledOnce(deps.express.Router);
-    });
-
-    it('calls webpackDevMiddleware', () => {
-      assert.calledWith(deps['webpack-dev-middleware'], {}, { publicPath: '/', noInfo: true });
-    });
-
-    it('calls router.use', () => {
-      assert.calledWith(router.use, match.object);
-    })
-
-    it('calls router.get', () => {
-      assert.calledWith(router.get, '/', match.func);
-    });
-
-    describe('get handler', () => {
-      let res;
-      beforeEach(() => {
-        app.serverMarkup = stub().returns('<html></html>');
-        res = {};
-        res.set = stub().returns(res);
-        res.status = stub().returns(res);
-        res.send = stub().returns(res);
-        handlers['/']({}, res);
-      });
-
-      it('calls serverMarkup', () => {
-        assert.calledOnce(app.serverMarkup);
-      });
-
-      it('calls send', () => {
-        assert.calledWith(res.send, '<html></html>');
-      });
-    });
-  });
-
   describe('install', () => {
     beforeEach(() => {
       app.allInOneBuild.install = stub();
@@ -419,76 +279,4 @@ describe('BaseApp', function () {
     })
   });
 
-  describe('_linkCompilerToServer', () => {
-    let compiler, handlers, registeredHandlers;
-    beforeEach(() => {
-      registeredHandlers = {};
-      compiler = {
-        plugin: spy((key, handler) => {
-          registeredHandlers[key] = handler;
-        })
-      }
-
-      handlers = {
-        error: stub(),
-        reload: stub()
-      }
-      app._linkCompilerToServer('name', compiler, handlers);
-    });
-
-    it('calls compiler.plugin', () => {
-      assert.calledWith(compiler.plugin, 'done', match.func);
-    });
-
-    it('done handler calls reload', (done) => {
-      registeredHandlers['done']({
-        hasErrors: () => false
-      });
-
-      process.nextTick(() => {
-        assert.calledWith(handlers.reload, 'name');
-        done();
-      })
-    });
-
-    it('done handler calls error', (done) => {
-      registeredHandlers['done']({
-        hasErrors: () => true,
-        toJson: stub().returns({ errors: [] })
-      });
-
-      process.nextTick(() => {
-        assert.calledWith(handlers.error, 'name', []);
-        done();
-      })
-    });
-  });
-
-  describe('createArchive', () => {
-
-    let writeStream, handlers = {};
-
-    beforeEach(() => {
-
-      app.addExtrasToArchive = stub();
-
-      writeStream = {
-        on: (key, handler) => handlers[key] = handler
-      }
-
-      deps['fs-extra'].createWriteStream = stub().returns(writeStream);
-      return app.createArchive();
-    });
-
-    it('calls createArchive', () => {
-      assert.calledWith(deps['../create-archive'].createArchive, 'pie-item.tar.gz', 'dir', [], match.func);
-    });
-  });
-
-  describe('get archiveIgnores', () => {
-    it('calls createArchive.archiveIgnores', () => {
-      app.archiveIgnores;
-      assert.called(deps['../create-archive'].archiveIgnores);
-    });
-  });
 });

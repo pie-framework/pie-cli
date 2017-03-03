@@ -1,14 +1,16 @@
-import proxyquire from 'proxyquire';
 import { assert, stub } from 'sinon';
-import { expect } from 'chai';
 import { loadStubApp, runCmd } from './helper';
+
+import { expect } from 'chai';
+import proxyquire from 'proxyquire';
 
 describe('manifest', () => {
   let cmd, app, stubbed, cmdResult;
 
   beforeEach(() => {
     app = {
-      manifest: stub().returns('done')
+      manifest: stub().returns('done'),
+      build: stub()
     }
 
     stubbed = loadStubApp('../../../lib/cli/manifest', app);

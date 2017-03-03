@@ -1,7 +1,8 @@
+import { assert, match, spy, stub } from 'sinon';
+import { loadStubApp, runCmd, types } from './helper.js';
+
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
-import { spy, stub, assert, match } from 'sinon';
-import { loadStubApp, runCmd, types } from './helper.js';
 
 describe('serve', () => {
   let cmd, stubbed, app, startServer, init;
@@ -17,7 +18,7 @@ describe('serve', () => {
     }
 
     stubbed = loadStubApp('../../../lib/cli/serve', app, {
-      '../apps/server/utils': {
+      '../server/utils': {
         startServer: startServer
       },
       '../watch/watchmaker': {
@@ -34,7 +35,7 @@ describe('serve', () => {
     beforeEach((done) => runCmd(cmd, {}, done));
 
     it('calls loadApp', () => {
-      assert.calledWith(stubbed.loadApp, {});
+      assert.calledWith(stubbed.loadApp, { app: 'item' });
     });
 
     it('calls app.server', () => {

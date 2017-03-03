@@ -1,17 +1,19 @@
-import { JsonConfig } from '../config';
+import * as _ from 'lodash';
+
+import { BuildResult, build as buildWebpack } from '../../code-gen/webpack-builder';
+import { join, resolve } from 'path';
+
 import ClientBuild from './client';
 import ControllersBuild from './controllers';
-import { KeyMap } from '../../npm/types';
 import { Declaration } from '../../code-gen/declaration';
-import * as _ from 'lodash';
-import { relative } from 'path';
-import { writeFileSync } from 'fs-extra';
-import { join, resolve } from 'path';
-import { build as buildWebpack, BuildResult } from '../../code-gen/webpack-builder';
-import baseConfig from './base-config';
+import { JsonConfig } from '../config';
+import { KeyMap } from '../../npm/types';
 import { SupportConfig } from '../../framework-support/index';
+import baseConfig from './base-config';
+import { relative } from 'path';
 import { stripMargin } from '../../string-utils';
 import { writeConfig } from '../../code-gen/webpack-write-config';
+import { writeFileSync } from 'fs-extra';
 
 export { ClientBuild, ControllersBuild };
 export { SupportConfig };
