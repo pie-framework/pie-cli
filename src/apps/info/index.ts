@@ -9,13 +9,14 @@ import AllInOneBuild, { ControllersBuild, SupportConfig } from '../../question/b
 import { App, Servable, ServeOpts } from '../types';
 import AppServer, { utils as su } from '../../server';
 import { Names, clientDependencies, getNames } from '../common';
+import { basename, join, resolve } from 'path';
 import { existsSync, readFileSync, readJsonSync } from 'fs-extra';
-import { join, resolve } from 'path';
 
 import { ElementDeclaration } from './../../code-gen/declaration';
 import { JsonConfig } from '../../question/config';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
+import { info } from './../../package-info/index';
 import { writeConfig } from '../../code-gen/webpack-write-config';
 
 const logger = buildLogger();
@@ -83,17 +84,24 @@ export default class InfoApp implements App, Servable {
     await this.install(opts.forceInstall);
 
 
-    let configurationPackage = join(this.pieRoot, 'configuration');
+    /**
+     * TODO: We're only picking up the configuration element for this pie.
+     * It could be that the demo item may link to other local pies, 
+     * in which case we should be pulling in those configuration elements also.
+     */
+    let configurationDir = join(this.pieRoot, 'configuration');
+    let configurationPackage = join(configurationDir, 'package.json');
 
     let declarations = this.config.declarations;
     let configurationMap = null;
     if (existsSync(configurationPackage)) {
+      let pkg = readJsonSync(configurationPackage, 'utf8');
       logger.debug('found configuration package .. adding it to bundle');
-      let configDeclaration = new ElementDeclaration('corespring-number-line-configuration', 'corespring-number-line/configuration');
+      let configDeclaration = new ElementDeclaration(pkg.name, configurationDir);
       declarations = declarations.concat([configDeclaration]);
-      configurationMap = {
-        'corespring-number-line': 'corespring-number-line-configuration'
-      }
+      configurationMap = {}
+      let pieName = basename(this.pieRoot);
+      configurationMap[pieName] = pkg.name;
     }
 
     const js = entryJs(
