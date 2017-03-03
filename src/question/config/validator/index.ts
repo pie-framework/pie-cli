@@ -1,6 +1,6 @@
 import * as Ajv from 'ajv';
 import * as _ from 'lodash';
-import { buildLogger } from '../../../log-factory';
+import { buildLogger } from 'log-factory';
 import { RawConfig, Model } from '../raw';
 import { Element, PiePackage } from '../elements';
 import { join } from 'path';
@@ -72,7 +72,7 @@ class ValidationResult {
     return this.mainErrors.length === 0 && !hasFailingConfigValidations;
   }
 
-  get failingConfigValidations() : ConfigValidation[] {
+  get failingConfigValidations(): ConfigValidation[] {
     return _.filter(this.configValidations, cv => {
       return cv.successful === 'no';
     });
@@ -106,6 +106,6 @@ export function validate(config: RawConfig, piePackages: PiePackage[]): Validati
 
     return out;
   }).compact().value() : [];
-  
+
   return new ValidationResult(validateFn.errors, configValidations);
 }

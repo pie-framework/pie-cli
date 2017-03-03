@@ -1,5 +1,5 @@
 import { Viewer, KeyValue } from './index';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import * as _ from 'lodash';
 
 const logger = buildLogger();

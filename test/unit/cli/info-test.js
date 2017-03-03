@@ -1,5 +1,6 @@
+import { assert, match, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
 import proxyquire from 'proxyquire';
 
 const ROOT = '../../../lib';
@@ -10,11 +11,15 @@ describe('info', () => {
     deps = {
       '../apps/load-app': {
         default: stub().returns({
-          server: stub().returns({})
+          server: stub().returns({}),
+          watchableFiles: stub().returns([])
         })
       },
-      '../apps/server/utils': {
+      '../server/utils': {
         startServer: stub().returns({})
+      },
+      '../watch/watchmaker': {
+        init: stub().returns(Promise.resolve())
       }
     };
     mod = proxyquire(`${ROOT}/cli/info`, deps);

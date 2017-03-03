@@ -4,7 +4,7 @@ const gulp = require('gulp'),
   ts = require('gulp-typescript'),
   tsProject = ts.createProject('tsconfig.json'),
   fsExtra = require('fs-extra'),
-  runSequence = require('run-sequence'), 
+  runSequence = require('run-sequence'),
   path = require('path');
 
 //Init custom release tasks
@@ -38,8 +38,9 @@ gulp.task('unit', ['build'], () => {
 });
 
 gulp.task('it', ['build'], () => {
-  return gulp.src('test/integration/**/*-test.js', { read: false })
-    .pipe(mocha({ require: ['babel-register'] }));
+  return gulp.src(['test/integration/init.js', 'test/integration/**/*-test.js'], { read: false })
+    .pipe(mocha({ require: ['babel-register'] }))
+    .once('end', () => process.exit());
 });
 
 gulp.task('clean', (done) => {

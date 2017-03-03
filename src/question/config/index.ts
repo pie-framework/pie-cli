@@ -1,15 +1,17 @@
-import { fromPath, RawConfig, Model, Weight } from './raw';
-import { join, relative } from 'path';
-import { buildLogger } from '../../log-factory';
 import * as _ from 'lodash';
-import { readFileSync, existsSync, readJsonSync } from 'fs-extra';
-import { hash as mkHash } from '../../npm/dependency-helper';
-import { Element, LocalFile, LocalPackage, PiePackage, NotInstalledPackage } from './elements';
-import { ElementDeclaration, Declaration } from '../../code-gen/declaration';
-import { Manifest } from './manifest';
-import { validate } from './validator';
+
+import { Declaration, ElementDeclaration } from '../../code-gen/declaration';
+import { Element, LocalFile, LocalPackage, NotInstalledPackage, PiePackage } from './elements';
+import { Model, RawConfig, Weight, fromPath } from './raw';
 import { ScoringType, WEIGHTED } from './scoring-type';
+import { existsSync, readFileSync } from 'fs-extra';
+
 import { KeyMap } from '../../npm/types';
+import { Manifest } from './manifest';
+import { buildLogger } from 'log-factory';
+import { join } from 'path';
+import { hash as mkHash } from '../../npm/dependency-helper';
+import { validate } from './validator';
 
 export { Manifest };
 export { ElementDeclaration, Declaration };
@@ -17,15 +19,18 @@ export { ElementDeclaration, Declaration };
 const logger = buildLogger();
 
 export class FileNames {
+
+  public static build(args: any = {}) {
+    return new FileNames(args.questionConfigFile, args.questionMarkupFile);
+  }
+
   constructor(
     readonly json = 'config.json',
     readonly markup = 'index.html'
   ) { }
 
-  static build(args: any = {}) {
-    return new FileNames(args.questionConfigFile, args.questionMarkupFile)
-  }
 }
+
 
 export interface Config {
   pieModels: Model[];
@@ -40,18 +45,18 @@ export interface Config {
 export class ReloadableConfig implements Config {
   constructor(readonly jsonConfig: JsonConfig) { }
 
-  _reload<A>(fn: () => A): A {
+  public reload<A>(fn: () => A): A {
     this.jsonConfig.reload();
     return fn();
   }
 
 
   get pieModels() {
-    return this._reload(() => this.jsonConfig.pieModels);
+    return this.reload(() => this.jsonConfig.pieModels);
   }
 
   get elementModels() {
-    return this._reload(() => this.jsonConfig.elementModels);
+    return this.reload(() => this.jsonConfig.elementModels);
   }
 
   get scoringType() {
@@ -59,15 +64,15 @@ export class ReloadableConfig implements Config {
   }
 
   get markup() {
-    return this._reload(() => this.jsonConfig.markup);
+    return this.reload(() => this.jsonConfig.markup);
   }
 
   get langs() {
-    return this._reload(() => this.jsonConfig.langs);
+    return this.reload(() => this.jsonConfig.langs);
   }
 
   get weights() {
-    return this._reload(() => this.jsonConfig.weights);
+    return this.reload(() => this.jsonConfig.weights);
   }
 
   get dir() {
@@ -77,66 +82,71 @@ export class ReloadableConfig implements Config {
 
 export class JsonConfig implements Config {
 
-  private _raw: RawConfig;
-
   readonly scoringType: ScoringType = WEIGHTED;
+  private raw: RawConfig;
 
   constructor(readonly dir, readonly filenames: FileNames = new FileNames()) {
     this.reload();
   }
 
 
+  public valid(): boolean {
+    return validate(this.raw, this.installedPies).valid;
+  }
+
   /**
    * Reload the raw config from file.
    */
-  reload() {
-    this._raw = this._readRaw();
+  public reload() {
+    this.raw = this._readRaw();
 
-    //validate the main config (not the pies).
-    let result = validate(this._raw, []);
+    // validate the main config (not the pies).
+    const pies = existsSync(join(this.dir, 'node_modules')) ? this.installedPies : [];
+
+    const result = validate(this.raw, pies);
 
     if (!result.valid) {
-      throw new Error(`Invalid base config: ${JSON.stringify(result.mainErrors)}`);
+      throw new Error(`Invalid json config: ${JSON.stringify(result)}`);
     }
   }
 
   private _readRaw(): RawConfig {
-    let p = join(this.dir, this.filenames.json);
-    let out = fromPath(p);
+    const p = join(this.dir, this.filenames.json);
+    const out = fromPath(p);
     logger.debug('this._raw: ', out);
     return out;
   }
 
   get langs(): string[] {
-    return this._raw.langs;
+    return this.raw.langs;
   }
 
   get weights(): Weight[] {
-    return this._raw.weights;
+    return this.raw.weights;
   }
 
   get elements(): Element[] {
-    return _.map(this._raw.elements, (value, key) => {
+    return _.map(this.raw.elements, (value, key) => {
       return LocalFile.build(key, value) ||
-        PiePackage.build(key, value) ||
+        PiePackage.build(this.dir, key, value) ||
         LocalPackage.build(key, value) ||
         new NotInstalledPackage(key, value);
     });
   }
 
   get markup(): string {
-    let p = join(this.dir, this.filenames.markup);
+    const p = join(this.dir, this.filenames.markup);
     return readFileSync(p, 'utf8');
   }
 
   get declarations(): ElementDeclaration[] {
 
-    let toDeclaration = (pkg: Element): ElementDeclaration => {
-      let isLocalFile = (pkg instanceof LocalFile);
+    const toDeclaration = (pkg: Element): ElementDeclaration => {
+      const isLocalFile = (pkg instanceof LocalFile);
       return isLocalFile ?
         new ElementDeclaration(pkg.key, pkg.value) :
         new ElementDeclaration(pkg.key);
-    }
+    };
     return _.map(this.elements, toDeclaration);
   }
 
@@ -159,42 +169,47 @@ export class JsonConfig implements Config {
 
   get manifest(): Manifest {
 
-    let locals = _.reduce(this.localFiles, (acc, value, key) => {
-      acc[key] = { path: value, hash: mkHash(readFileSync(value, 'utf8')) }
+    const locals = _.reduce(this.localFiles, (acc, value, key) => {
+      acc[key] = { path: value, hash: mkHash(readFileSync(value, 'utf8')) };
       return acc;
     }, {});
 
-    let src = {
+    const src = {
+      locals,
       dependencies: this.dependencies,
-      locals: locals
-    }
+    };
 
-    let hash = mkHash(JSON.stringify(src));
-    return { hash, src }
+    const hash = mkHash(JSON.stringify(src));
+    return { hash, src };
   }
 
   get installedPies(): PiePackage[] {
 
-    let nodeModulesDir = join(this.dir, 'node_modules');
+    const nodeModulesDir = join(this.dir, 'node_modules');
 
     if (!existsSync(nodeModulesDir)) {
       throw new Error(`Can't retrieve PiePackages until the node modules have been installed.`);
     }
 
-    return _(this._raw.models)
-      .map(m => m.element)
-      .map(e => {
-        return { key: e, value: join(this.dir, 'node_modules', e) }
+    return _(this.raw.models)
+      .map((m) => m.element)
+      .map((e) => {
+        return {
+          key: e,
+          root: '',
+          value: join(this.dir, 'node_modules', e)
+        };
       })
-      .map(({key, value}) => PiePackage.build(key, value))
+      .map(({ root, key, value }) => PiePackage.build(root, key, value))
       .compact()
       .value();
   }
 
-  _filterModels(predicate) {
-    let pieNames = _.map(this.installedPies, p => p.key);
-    return _.filter(this._raw.models, m => {
-      let isPie = _.includes(pieNames, m.element);
+
+  private _filterModels(predicate) {
+    const pieNames = _.map(this.installedPies, (p) => p.key);
+    return _.filter(this.raw.models, (m) => {
+      const isPie = _.includes(pieNames, m.element);
       return predicate(isPie);
     });
   }
@@ -204,10 +219,6 @@ export class JsonConfig implements Config {
   }
 
   get elementModels(): Model[] {
-    return this._filterModels(isPie => !isPie);
-  }
-
-  valid(): boolean {
-    return validate(this._raw, this.installedPies).valid;
+    return this._filterModels((isPie) => !isPie);
   }
 }

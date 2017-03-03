@@ -1,95 +1,186 @@
-import { App, BuildOpts, ManifestOpts, ServeOpts } from '../types';
-import { JsonConfig } from '../../question/config';
-import { buildLogger } from '../../log-factory';
-import { SupportConfig } from '../../framework-support';
 import * as _ from 'lodash';
-import { join, resolve } from 'path';
 import * as pug from 'pug';
-import { writeFileSync, writeJsonSync, readJsonSync, readFileSync } from 'fs-extra';
-import * as webpack from 'webpack';
-import * as express from 'express';
-import * as archiver from 'archiver';
-import { BuildStep, BaseApp, Tag, Out, Names, Compiler, build as buildApp, getNames } from '../base';
-import { ReloadOrError, HasServer } from '../server/types';
-import { existsSync } from 'fs-extra';
-import { isGitRepo, tag, sha } from '../../git';
+
+import AllInOneBuild, { ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
+import { App, Archivable, BuildOpts, Buildable } from '../types';
+import { Names, getNames } from "../common";
+import { archiveIgnores, createArchive } from '../create-archive';
+import { existsSync, writeFile } from 'fs-extra';
+import { join, resolve } from 'path';
+
+import { JsonConfig } from '../../question/config';
+import { ManifestOpts } from './../types';
+import { buildLogger } from 'log-factory';
+import { build as buildWebpack } from '../../code-gen/webpack-builder';
+import { promisify } from 'bluebird';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
-export default class CatalogApp extends BaseApp {
+const clientDependencies = (args: any) => args.configuration.app.dependencies;
 
-  static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
-    let dir = resolve(args.dir || process.cwd());
+// TODO: seems like this could be re-used by others?
+function mkConfig(
+  context: string,
+  entry: string,
+  bundle: string,
+  rules: any[],
+  extensions: any): any {
+
+  entry = entry.startsWith('./') ? entry : `./${entry}`;
+
+  const out = _.merge({
+    context: resolve(context),
+    entry,
+    module: {
+      rules: [
+        { test: /\.css$/, use: ['style-loader', 'css-loader'] }
+      ]
+    },
+    output: {
+      filename: bundle,
+      path: resolve(context)
+    }
+  }, extensions);
+  out.module.rules = _.concat(out.module.rules, rules);
+  return out;
+}
+
+export default class CatalogApp implements App, Archivable, Buildable {
+
+  public static NAMES = {
+    bundle: 'pie-catalog.bundle.js',
+    entry: '.catalog.entry.js',
+    webpackConfig: '.catalog.webpack.config.js'
+  };
+
+  public static EXTERNALS = {
+    'lodash': '_',
+    'lodash.merge': '_.merge',
+    'lodash/assign': '_.assign',
+    'lodash/cloneDeep': '_.cloneDeep',
+    'lodash/includes': '_.includes',
+    'lodash/isArray': '_.isArray',
+    'lodash/isEmpty': '_.isEmpty',
+    'lodash/isEqual': '_.isEqual',
+    'lodash/map': '_.map',
+    'lodash/merge': '_.merge',
+    'react': 'React',
+    'react-addons-transition-group': 'React.addons.TransitionGroup',
+    'react-dom': 'ReactDOM',
+    'react/lib/ReactCSSTransitionGroup': 'React.addons.CSSTransitionGroup',
+    'react/lib/ReactTransitionGroup': 'React.addons.TransitionGroup'
+  };
+
+  public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
+    const dir = resolve(args.dir || process.cwd());
     if (!existsSync(join(dir, 'docs/demo'))) {
       throw new Error(`Can't find a 'docs/demo' directory in path: ${dir}. Is this a pie directory?`);
     }
-    let config = new JsonConfig(join(dir, 'docs/demo'));
+    const config = new JsonConfig(join(dir, 'docs/demo'));
     return loadSupport(config)
-      .then(s => {
+      .then((s) => {
         return new CatalogApp(args, dir, config, s, getNames(args));
-      })
+      });
   }
 
   private template: pug.compileTemplate;
+  private controllersBuild: ControllersBuild;
+  private allInOneBuild: AllInOneBuild;
 
-  constructor(args: any, private pieRoot: string, config: JsonConfig, support: SupportConfig, names: Names) {
-    super(args, config, support, names);
+  constructor(readonly args: any,
+    private pieRoot: string,
+    readonly config: JsonConfig,
+    readonly support: SupportConfig,
+    readonly names: Names) {
     logger.debug('new CatalogApp..');
     this.template = pug.compileFile(templatePath, { pretty: true });
+
+    this.allInOneBuild = new AllInOneBuild(
+      config,
+      support,
+      this.names.build.entryFile,
+      this.names.out.completeItemTag.path,
+      this.args.writeWebpackConfig !== false);
+    this.controllersBuild = new ControllersBuild(this.config, false);
   }
 
 
-  protected addExtrasToArchive(archive: archiver.Archiver): void {
-    archive.file(resolve(join(this.pieRoot, 'package.json')), { name: 'pie-pkg/package.json' });
-    archive.file(resolve(join(this.pieRoot, 'README.md')), { name: 'pie-pkg/README.md' });
-    archive.directory(resolve(join(this.pieRoot, 'docs/schemas')), 'schemas');
-  }
+  public async build(opts: BuildOpts): Promise<string[]> {
 
-  protected mkServer(app: express.Application): ReloadOrError & HasServer {
-    throw new Error('not supported');
-  }
+    await this.install(opts.forceInstall);
 
-  protected serverMarkup(): string {
-    return this.fileMarkup();
-  }
+    let deps = this.controllersBuild.controllerDependencies;
 
-  protected updateConfig(c: any): any {
+    const js = `
+      //controllers
+      let c = window.controllers = {};
+    ${_.map(deps, (value, key) => `c['${key}'] = require('${key}-controller');`).join('\n')}
+      
+      //custom elements
+      ${this.config.declarations.map((d) => d.js).join('\n')}
+    
+    `;
 
-    let externals = _.merge(c.externals, {
-      'lodash': '_',
-      'lodash/map': '_.map',
-      'react': 'React',
-      'react-dom': 'ReactDOM',
-      'react-addons-transition-group': 'React.addons.TransitionGroup',
-      'react/lib/ReactTransitionGroup': 'React.addons.TransitionGroup',
-      'react/lib/ReactCSSTransitionGroup': 'React.addons.CSSTransitionGroup'
+    await promisify(writeFile.bind(null,
+      join(this.config.dir, '.catalog.entry.js'),
+      js,
+      'utf8'))();
+
+    const config = mkConfig(this.config.dir, CatalogApp.NAMES.entry, CatalogApp.NAMES.bundle, this.support.rules, {
+      externals: CatalogApp.EXTERNALS,
+      resolve: {
+        extensions: ['.js', '.jsx'],
+        modules: [
+          'node_modules',
+          resolve(join(this.config.dir, 'controllers/node_modules'))
+        ]
+      }
     });
 
-    c.externals = externals;
-    logger.debug('[updateConfig] c: ', c);
-    return c;
+    logger.info('config: ', config);
+
+    await buildWebpack(config, CatalogApp.NAMES.webpackConfig);
+    return [CatalogApp.NAMES.bundle];
   }
 
-  protected get archiveIgnores() {
-    return _.concat(super.archiveIgnores, [
-      'config.json',
-      'index.html'
-    ]);
+  public clean(): Promise<any> {
+    return null;
   }
 
-  private get defaultJs(): string[] {
-    return [
-      '//cdnjs.cloudflare.com/ajax/libs/react/15.4.1/react-with-addons.js',
-      '//cdnjs.cloudflare.com/ajax/libs/react/15.4.1/react-dom.js',
-      '//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js'];
+  public manifest(opts: ManifestOpts) {
+    return null;
   }
 
-  protected fileMarkup(): string {
-    return this.template({
-      js: _.concat(this.defaultJs, this.support.externals.js || [], [this.names.out.completeItemTag.path]),
-      markup: this.names.out.completeItemTag.tag,
-    });
+  public createArchive(): Promise<string> {
+    const root = (name) => resolve(join(this.pieRoot, name));
+    const archivePath = resolve(join(this.config.dir, this.names.out.archive));
+    const addExtras = (archive) => {
+      archive.file(root('package.json'), { name: 'pie-pkg/package.json' });
+      archive.file(root('README.md'), { name: 'pie-pkg/README.md' });
+
+      if (existsSync(root('docs/schemas'))) {
+        archive.directory(root('docs/schemas'), 'schemas');
+      }
+
+      const externals = JSON.stringify(this.support.externals);
+      archive.append(externals, { name: 'pie-pkg/externals.json' });
+    };
+
+    const ignores = archiveIgnores(this.config.dir);
+
+    return createArchive(archivePath, this.config.dir, ignores, addExtras)
+      .catch((e) => {
+        const msg = `Error creating the archive: ${e.message}`;
+        logger.error(msg);
+        throw new Error(msg);
+      });
   }
 
+  protected async install(forceInstall: boolean): Promise<void> {
+    await this.allInOneBuild.install({
+      dependencies: clientDependencies(this.args),
+      devDependencies: this.support.npmDependencies || {}
+    }, forceInstall);
+  }
 }

@@ -8,7 +8,7 @@ import info from './info';
 import version from './version';
 import { readJsonSync, existsSync } from 'fs-extra';
 import configuration from './configuration';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 
 import { normalizeOpts } from './helper';
 import CliCommand from './cli-command';

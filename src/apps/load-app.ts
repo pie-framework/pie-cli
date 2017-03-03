@@ -1,15 +1,18 @@
-import { App, DefaultApp, InfoApp, CatalogApp } from './types';
-import { BuildConfig, react, less, legacySupport } from '../framework-support';
 import * as _ from 'lodash';
-import { buildLogger } from '../log-factory';
+
+import { App, CatalogApp, DefaultApp, InfoApp, ItemApp } from './types';
+import { BuildConfig, legacySupport, less, react } from '../framework-support';
+
 import { JsonConfig } from '../question/config'
+import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 
 const appMap = {
   'default': DefaultApp,
   'info': InfoApp,
-  'catalog': CatalogApp
+  'catalog': CatalogApp,
+  'item': ItemApp
 }
 
 

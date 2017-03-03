@@ -1,13 +1,19 @@
+import * as express from 'express';
 import * as http from 'http';
 import * as sockjs from 'sockjs';
-import { ReloadOrError, HasServer } from '../server/types';
-import { buildLogger } from '../../log-factory';
-import * as express from 'express';
+import * as types from './types';
+import * as utils from './utils';
+
+import { HasServer, ReloadOrError } from '../server/types';
+
+import { buildLogger } from 'log-factory';
+
+export { types }
+export { utils }
 
 const logger = buildLogger();
 
-
-export default class DefaultAppServer implements ReloadOrError, HasServer {
+export default class AppServer implements ReloadOrError, HasServer {
 
   static SOCK_PREFIX: string = '/sock'
   static SOCK_JS_URL: string = '//cdn.jsdelivr.net/sockjs/1.0.1/sockjs.min.js';
@@ -16,7 +22,7 @@ export default class DefaultAppServer implements ReloadOrError, HasServer {
   private _sockServer;
   private _connection;
 
-  constructor(app: express.Application, sockJsUrl = DefaultAppServer.SOCK_JS_URL) {
+  constructor(app: express.Application, sockJsUrl = AppServer.SOCK_JS_URL) {
     this.httpServer = http.createServer(app);
     this._sockServer = sockjs.createServer({
       sockjs_url: sockJsUrl
@@ -33,7 +39,7 @@ export default class DefaultAppServer implements ReloadOrError, HasServer {
 
     this._sockServer.installHandlers(
       this.httpServer,
-      { prefix: DefaultAppServer.SOCK_PREFIX }
+      { prefix: AppServer.SOCK_PREFIX }
     );
   }
 

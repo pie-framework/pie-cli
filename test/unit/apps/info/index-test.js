@@ -1,8 +1,9 @@
-import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
-import proxyquire from 'proxyquire';
+import { assert, match, spy, stub } from 'sinon';
+
 import { Base } from '../helper';
+import { expect } from 'chai';
 import path from 'path';
+import proxyquire from 'proxyquire';
 
 const ROOT = '../../../../lib';
 
@@ -11,12 +12,6 @@ describe('info app', () => {
 
   beforeEach(() => {
     deps = {
-      '../base': {
-        BaseApp: Base
-      },
-      './bower': {
-        install: stub()
-      },
       'http': {
         createServer: stub().returns({})
       },
@@ -32,6 +27,11 @@ describe('info app', () => {
       },
       './schema-loader': {
         default: stub().returns([])
+      },
+      '../../question/build/all-in-one': {
+        default: stub().returns({}),
+        ControllersBuild: stub(),
+        SupportConfig: stub()
       }
     }
 
@@ -45,6 +45,9 @@ describe('info app', () => {
     };
 
     names = {
+      build: {
+        entryFile: 'entry.js'
+      },
       out: {
         completeItemTag: {
           path: './pie-item.js',
@@ -66,64 +69,11 @@ describe('info app', () => {
 
     beforeEach(() => instance.install());
 
-    it('calls Base.install', () => {
+    xit('calls allInOneInstall', () => {
       assert.called(instance._super.install);
     });
 
-    //TODO - not being picked up.
-    xit('calls bowerInstall', () => {
-      assert.calledWith(deps['./bower'].install, 'dir', ['PieLabs/pie-component-page#update']);
-    });
   });
 
-  describe('mkServer', () => {
-
-    beforeEach(() => {
-      result = instance.mkServer({});
-    });
-
-    it('returns httpServer', () => {
-      expect(result.httpServer).not.to.be.undefined;
-    });
-  });
-
-
-  describe('generatedAssets', () => {
-    it('returns controller and viewElement', () => {
-      expect(instance.generatedAssets).to.eql(['bower_components']);
-    })
-  });
-
-  describe('fileMarkup', () => {
-
-    beforeEach(() => {
-      instance.template = stub();
-      instance.fileMarkup();
-    });
-
-    it('calls readJsonSync', () => {
-      assert.calledWith(deps['fs-extra'].readJsonSync, 'pieRoot/package.json');
-    });
-
-    it('calls readFileSync', () => {
-      assert.calledWith(deps['fs-extra'].readFileSync, 'pieRoot/README.md', 'utf8');
-    });
-
-    it('calls loadSchemas', () => {
-      assert.calledWith(deps['./schema-loader'].default, 'pieRoot/docs/schemas');
-    });
-
-    it('calls template', () => {
-      assert.calledWith(instance.template, {
-        js: ['./pie-item.js'],
-        markup: '<pie-item></pie-item>',
-        name: 'name',
-        version: 'version',
-        repositoryUrl: 'url',
-        readme: match.string,
-        schemas: [],
-        pie: match.object
-      });
-    });
-  });
+  // TODO - update tests..
 });

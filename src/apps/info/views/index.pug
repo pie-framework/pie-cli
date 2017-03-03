@@ -2,28 +2,30 @@ doctype html
 html
   head
     meta(charset='utf-8')
-    link(href='//fonts.googleapis.com/css?family=Roboto', rel='stylesheet')
-    link(rel="import" href="bower_components/polymer/polymer.html")
-    link(rel="import" href="bower_components/pie-component-page/pie-component-page.html")
+    
+    style.
+      body{
+        margin: 0;
+        padding: 0;
+      }
+    
+    link(href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono|Patua+One" rel="stylesheet") 
+    
+    //- init first 
+    script. 
+      window.demo = window.demo || {};
+      window.demo.config = !{demo.config ? JSON.stringify(demo.config) : '{}'};
+      window.demo.markup = '!{demo.markup ? demo.markup : ''}'; 
+      window.element = !{element ? JSON.stringify(element) : '{}'};
+      window.orgRepo = !{orgRepo ? JSON.stringify(orgRepo) : '{}'};
+    
     each j in js 
       script(src=j, type='text/javascript')
-
+    
     body
-      pie-component-page
-        //Note: the pie-component-page doesnt like direct nesting of another custom element?
-        div
-          | !{markup}
-      
-    script.
-
-      document.addEventListener('DOMContentLoaded', () => {
-        let el = document.querySelector('pie-component-page');
-        if(el){
-          el.name = '#{name}';
-          el.version = '#{version}';
-          el.repositoryUrl = '#{repositoryUrl}';
-          el.readme = '!{readme}';
-          el.schemas = !{JSON.stringify(schemas)};
-          el.pie = !{JSON.stringify(pie)};
-        }
-     });
+      catalog-container
+        span(slot="header") 
+          | pie info
+        catalog-entry
+          catalog-demo
+            | hi there 

@@ -1,46 +1,61 @@
-import { PackageWatch, PieWatch, FileWatch, Watch } from './watchers';
-import { buildLogger } from '../log-factory';
 import * as _ from 'lodash';
-import { pathIsDir } from '../npm/dependency-helper';
-import { join } from 'path';
+
+import { FileWatch, PackageWatch, PieWatch, Watch } from './watchers';
+import { LocalFile, LocalPackage, PiePackage } from '../question/config/elements';
+
 import { JsonConfig } from '../question/config';
-import { NotInstalledPackage, Element, LocalPackage, PiePackage, LocalFile } from '../question/config/elements';
+import { buildLogger } from 'log-factory';
+import { join } from 'path';
 
 const logger = buildLogger();
 
-export function init(config: JsonConfig, reloadFn: (string) => void) {
+
+type ReloadFn = (n: string) => void;
+
+export function init(config: JsonConfig, reloadFn: ReloadFn, extraFilesToWatch: string[]): {
+  dependencies: Watch[],
+  files: FileWatch[]
+} {
 
   logger.debug('[init] questionConfig: ', config.elements);
 
-  let watchers: Watch[] = _(config.elements).map((e: LocalFile | PiePackage | LocalPackage) => {
+  const watchers: Watch[] = _(config.elements).map((e: LocalFile | PiePackage | LocalPackage) => {
+
+    logger.silly('e: ', e);
     if (e instanceof PiePackage) {
+      logger.silly('create PieWatch', e.key, e.value);
       return new PieWatch(e.key, e.value, config.dir);
     }
 
     if (e instanceof LocalFile) {
+      logger.silly('create FileWatch', e.value);
       return new FileWatch(join(config.dir, e.value), reloadFn);
     }
 
     if (e instanceof LocalPackage) {
+      logger.silly('create PackageWatch', e.key, e.value);
       return new PackageWatch(e.key, e.value, config.dir);
     }
   }).compact().value();
 
-  _.forEach(watchers, w => w.start());
+  logger.silly('watchers: ', watchers);
 
-  let configWatch = new FileWatch(
-    join(config.dir, config.filenames.json), reloadFn);
+  _.forEach(watchers, (w) => w.start());
 
-  configWatch.start();
+  const allFiles = [
+    join(config.dir, config.filenames.json),
+    join(config.dir, config.filenames.markup)
+  ].concat(extraFilesToWatch || []);
 
-  let markupWatch = new FileWatch(
-    join(config.dir, config.filenames.markup), reloadFn);
-
-  markupWatch.start();
+  const fileWatches = allFiles.map((p) => {
+    logger.silly(`FileWatch for ${p}`);
+    const fw = new FileWatch(p, reloadFn);
+    fw.start();
+    return fw;
+  });
 
   return {
     dependencies: watchers,
-    config: configWatch,
-    markup: markupWatch
-  }
+    files: fileWatches
+  };
 }

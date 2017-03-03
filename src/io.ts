@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 import * as readline from 'readline';
-import { buildLogger } from './log-factory';
+import { buildLogger } from 'log-factory';
 
 let logger = buildLogger();
 

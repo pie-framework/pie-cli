@@ -3,7 +3,7 @@ import Local from './local';
 import LocalFile from './local-file';
 import npm from './npm';
 import github from './github';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 

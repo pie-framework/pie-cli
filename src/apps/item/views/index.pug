@@ -1,0 +1,24 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    
+    style.
+      body{
+        margin: 0;
+        padding: 0;
+      }
+    
+    link(href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono|Patua+One" rel="stylesheet") 
+    
+    //- init first 
+    script. 
+      window.demo = window.demo || {};
+      window.demo.config = !{demo.config ? JSON.stringify(demo.config) : '{}'};
+      window.demo.markup = '!{demo.markup ? demo.markup : ''}'; 
+    
+    each j in js 
+      script(src=j, type='text/javascript')
+    
+    body
+      catalog-demo

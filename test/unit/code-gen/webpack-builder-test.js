@@ -37,16 +37,6 @@ describe('webpack-builder', () => {
 
   describe('build', () => {
 
-    it('returns a rejected promise if duplicate.present = true', (done) => {
-      duplicateLoadersInstance.present = true;
-      mod.build({})
-        .then(() => done(new Error('should have failed')))
-        .catch((e) => {
-          expect(e.message).to.eql(duplicateLoadersInstance.error.message)
-          done()
-        });
-    });
-
     it('calls webpack', (done) => {
       mod.build({})
         .then(() => {

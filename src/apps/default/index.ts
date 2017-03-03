@@ -1,21 +1,21 @@
-import { App, BuildOpts, BuildResult, ManifestOpts } from '../types';
-import { BaseApp, logBuild, Tag, Out, Names, Compiler, build as buildApp } from '../base';
-import { join, resolve, basename } from 'path';
-import { SupportConfig } from '../../framework-support';
-import { JsonConfig, ElementDeclaration, Declaration } from '../../question/config';
-import { ReloadOrError, HasServer } from '../server/types';
-import DefaultAppServer from './server';
-import { stripMargin } from '../../string-utils';
-import { buildLogger } from '../../log-factory';
-import * as pug from 'pug';
-import * as express from 'express';
-import * as webpackMiddleware from 'webpack-dev-middleware';
 import * as _ from 'lodash';
+import * as express from 'express';
+import * as pug from 'pug';
+import * as webpackMiddleware from 'webpack-dev-middleware';
+
+import { App, BuildOpts, BuildResult, ManifestOpts } from '../types';
+import { BaseApp, build as buildApp, logBuild } from './base';
+import { Declaration, ElementDeclaration, JsonConfig } from '../../question/config';
+import { basename, join, resolve } from 'path';
+
+import { Names } from "../common";
+import { SupportConfig } from '../../framework-support';
+import { buildLogger } from 'log-factory';
+import { stripMargin } from '../../string-utils';
 
 const logger = buildLogger();
 
 const basicExample = join(__dirname, 'views/example.pug');
-const exampleWithSock = join(__dirname, 'views/example-with-sock.pug');
 
 export default class DefaultApp extends BaseApp {
 
@@ -26,16 +26,13 @@ export default class DefaultApp extends BaseApp {
       (c: JsonConfig, s: SupportConfig, n: Names) => new DefaultApp(args, c, s, n))
   }
 
-  private templates: { basic: pug.compileTemplate, withSock: pug.compileTemplate }
-
   private defaultOpts: { includeComplete: boolean };
+  private template: pug.compileTemplate;
 
   constructor(args: any, config: JsonConfig, support: SupportConfig, names: Names) {
     super(args, config, support, names);
-    this.templates = {
-      basic: pug.compileFile(basicExample, { pretty: true }),
-      withSock: pug.compileFile(exampleWithSock, { pretty: true })
-    }
+    this.template = pug.compileFile(basicExample, { pretty: true })
+
     this.defaultOpts = {
       includeComplete: args.c || args.includeComplete || false
     }
@@ -83,20 +80,8 @@ export default class DefaultApp extends BaseApp {
     return [out];
   }
 
-  protected mkServer(app: express.Application): ReloadOrError & HasServer {
-    return new DefaultAppServer(app);
-  }
-
-  protected serverMarkup(): string {
-    return this.templates.withSock({
-      sockPath: DefaultAppServer.SOCK_PREFIX,
-      js: _.concat(this.support.externals.js || [], [this.names.out.completeItemTag.path]),
-      markup: this.names.out.completeItemTag.tag
-    });
-  }
-
   protected fileMarkup(): string {
-    return this.templates.basic({
+    return this.template({
       js: _.concat(this.support.externals.js || [], [this.names.out.completeItemTag.path]),
       markup: this.names.out.completeItemTag.tag
     });

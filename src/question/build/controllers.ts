@@ -1,7 +1,7 @@
 import NpmDir from '../../npm/npm-dir';
 import { JsonConfig } from '../../question/config';
 import { join, relative } from 'path';
-import { buildLogger } from '../../log-factory';
+import { buildLogger } from 'log-factory';
 import { PiePackage } from '../../question/config/elements';
 import * as _ from 'lodash';
 import { ensureDirSync } from 'fs-extra';
@@ -28,7 +28,7 @@ export default class ControllersBuild {
     return join(this.config.dir, CONTROLLERS_DIR);
   }
 
-  private get controllerDependencies(): { [key: string]: string } {
+  get controllerDependencies(): { [key: string]: string } {
     let out = _.reduce(this.config.installedPies, (acc, p: PiePackage) => {
       let modulePath = relative(this.controllersDir, p.controllerDir);
       acc[p.key] = modulePath;

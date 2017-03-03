@@ -1,91 +1,198 @@
-import { App, BuildOpts, ManifestOpts, ServeOpts } from '../types';
-import { JsonConfig } from '../../question/config';
-import ClientBuild from '../../question/build/client';
-import ControllersBuild from '../../question/build/controllers';
-import { ElementDeclaration, Declaration } from '../../code-gen/declaration';
-import { buildLogger } from '../../log-factory';
-import { SupportConfig } from '../../framework-support';
-import * as _ from 'lodash';
-import { join, resolve } from 'path';
-import * as pug from 'pug';
-import { existsSync, writeFileSync, writeJsonSync, readJsonSync, readFileSync } from 'fs-extra';
+import * as express from 'express';
+import * as http from 'http';
 import * as jsesc from 'jsesc';
-import { install as bowerInstall } from './bower';
-import loadSchemas from './schema-loader';
+import * as pug from 'pug';
 import * as webpack from 'webpack';
 import * as webpackMiddleware from 'webpack-dev-middleware';
-import * as express from 'express';
-import { BaseApp, Tag, Out, Names, Compiler, build as buildApp, getNames } from '../base';
-import { ReloadOrError, HasServer } from '../server/types';
-import * as http from 'http';
+
+import AllInOneBuild, { ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
+import { App, Servable, ServeOpts } from '../types';
+import AppServer, { utils as su } from '../../server';
+import { Names, clientDependencies, getNames } from '../common';
+import { existsSync, readFileSync, readJsonSync } from 'fs-extra';
+import { join, resolve } from 'path';
+
+import { JsonConfig } from '../../question/config';
+import { buildLogger } from 'log-factory';
+import entryJs from './entry';
+import { writeConfig } from '../../code-gen/webpack-write-config';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
-export default class InfoApp extends BaseApp {
+export default class InfoApp implements App, Servable {
 
-  static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
+  public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
 
-    let dir = resolve(args.dir || process.cwd());
+    const dir = resolve(args.dir || process.cwd());
+
     if (!existsSync(join(dir, 'docs/demo'))) {
       throw new Error(`Can't find a 'docs/demo' directory in path: ${dir}. Is this a pie directory?`);
     }
-    let config = new JsonConfig(join(dir, 'docs/demo'));
+
+    const config = new JsonConfig(join(dir, 'docs/demo'));
+
     return loadSupport(config)
-      .then(s => {
+      .then((s) => {
         return new InfoApp(args, dir, config, s, getNames(args));
-      })
+      });
   }
 
-  private template: pug.compileTemplate;
+  private allInOneBuild: AllInOneBuild;
+  private controllersBuild: ControllersBuild;
+  private template: any;
 
-  constructor(args: any, private pieRoot: string, config: JsonConfig, support: SupportConfig, names: Names) {
-    super(args, config, support, names);
-    this.template = pug.compileFile(templatePath, { pretty: true });
+  constructor(private args: any,
+    private pieRoot: string,
+    readonly config: JsonConfig,
+    private support: SupportConfig,
+    private names: Names) {
+
+    this.allInOneBuild = new AllInOneBuild(
+      config,
+      support,
+      this.names.build.entryFile,
+      this.names.out.completeItemTag.path,
+      this.args.writeWebpackConfig !== false);
+
+    this.controllersBuild = new ControllersBuild(config, false);
+
+    this.template = pug.compileFile(templatePath);
   }
 
-  protected async install(forceInstall: boolean): Promise<void> {
-    logger.silly(`[install] forceInstall: ${forceInstall}`);
-    await super.install(forceInstall);
-    logger.silly('[install] bower install...');
-    await bowerInstall(this.config.dir, ['PieLabs/pie-component-page#update']);
+  /**
+   * Also watch the README and the package.json
+   */
+  public watchableFiles(): string[] {
+    return [
+      resolve(join(this.pieRoot, 'README.md')),
+      resolve(join(this.pieRoot, 'package.json')),
+    ]
   }
 
-  protected mkServer(app: express.Application): ReloadOrError & HasServer {
-    return {
-      httpServer: http.createServer(app),
-      reload: () => { },
-      error: () => { }
-    }
+  public clean(): Promise<any> {
+    return null;
   }
 
-  protected get generatedAssets() {
-    return _.concat(super.generatedAssets, ['bower_components']);
-  }
+  public async server(opts: ServeOpts): Promise<{
+    server: http.Server,
+    reload: (n: string) => void
+  }> {
+    logger.silly('[server] opts:', opts);
+    await this.install(opts.forceInstall);
 
-  protected serverMarkup(): string {
-    return this.fileMarkup();
-  }
+    const js = entryJs(
+      this.config.declarations,
+      this.controllersBuild.controllerDependencies,
+      AppServer.SOCK_PREFIX);
 
-  protected fileMarkup(): string {
+    const config = this.allInOneBuild.webpackConfig(js);
 
-    let pkg = readJsonSync(join(this.pieRoot, 'package.json'));
-    let readme = readFileSync(join(this.pieRoot, 'README.md'), 'utf8');
-    let schemas = loadSchemas(join(this.pieRoot, 'docs/schemas'));
+    config.resolve.modules.push(resolve(join(__dirname, '../../../node_modules')));
+    config.resolveLoader.modules.push(resolve(join(__dirname, '../../../node_modules')));
 
-    return this.template({
-      js: _.concat(this.support.externals.js || [], [this.names.out.completeItemTag.path]),
-      markup: this.names.out.completeItemTag.tag,
-      name: pkg.name,
-      version: pkg.version,
-      repositoryUrl: (pkg.repository || {}).url,
-      readme: jsesc(readme),
-      schemas: schemas,
-      pie: {
-        url: '//github.com/PieLabs/pie-docs',
-        logo: 'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcTQsnQyrpApsRrY9KfGY--G9Og4_FQ1gLg3Iimx5_NedfCUevKQtQ'
-      }
+
+    const cssRule = config.module.rules.find((r) => {
+      const match = r.test.source === '\\.css$';
+      return match;
     });
+
+    cssRule.exclude = [
+      /.*highlight\.js.*/,
+    ];
+
+    // load in raw css for markdown element
+    config.module.rules = [{
+      test: /.*\/highlight\.js\/styles\/default\.css$/,
+      use: [
+        'raw-loader',
+      ],
+    }].concat(config.module.rules);
+
+    writeConfig(join(this.config.dir, 'info.config.js'), config);
+
+    const compiler = webpack(config);
+    const r = this.router(compiler);
+    const app = express();
+    app.use(r);
+
+    const server = new AppServer(app);
+
+    /** Note: delay linking the compiler to give it time to flush out the initial compilations */
+    setTimeout(() => {
+      su.linkCompilerToServer('main', compiler, server);
+    }, 5000);
+
+    const reload = (name) => {
+      logger.info('File Changed: ', name);
+      this.config.reload();
+      server.reload(name);
+    };
+
+    return { server: server.httpServer, reload };
+  }
+
+  private router(compiler: webpack.Compiler): express.Router {
+
+    const router = express.Router();
+
+    const middleware = webpackMiddleware(compiler, {
+      noInfo: true,
+      publicPath: '/'
+    });
+
+    middleware.waitUntilValid(function () {
+      logger.info('[middleware] ---> Package is in a valid state');
+    });
+
+    router.use(middleware);
+
+    router.get('/', (req, res) => {
+
+      const pkg = readJsonSync(join(this.pieRoot, 'package.json'));
+      const readme = readFileSync(join(this.pieRoot, 'README.md'), 'utf8');
+
+      const page = this.template({
+
+        demo: {
+          config: {
+            models: this.config.pieModels
+          },
+          markup: jsesc(this.config.markup),
+        },
+        element: {
+          github: {},
+          org: '',
+          package: pkg,
+          readme,
+          repo: pkg.name,
+          tag: pkg.version
+        },
+        js: [
+          '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
+          this.allInOneBuild.fileout,
+        ],
+        orgRepo: {
+          repo: pkg.name,
+        }
+      });
+
+      res
+        .set('Content-Type', 'text/html')
+        .status(200)
+        .send(page);
+    });
+
+    router.use(express.static(this.config.dir));
+    return router;
+  }
+
+
+  private async install(forceInstall: boolean): Promise<void> {
+    await this.allInOneBuild.install({
+      dependencies: clientDependencies(this.args),
+      devDependencies: this.support.npmDependencies || {},
+    }, forceInstall);
   }
 
 }

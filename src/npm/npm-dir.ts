@@ -1,6 +1,6 @@
 import { existsSync, writeJsonSync } from 'fs-extra';
 import { join } from 'path';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import { KeyMap } from './types';
 import { spawnPromise } from '../io';
 

@@ -1,14 +1,13 @@
-import { ReloadOrError } from './server/types';
+import * as http from 'http';
+
+import CatalogApp from './catalog';
+import DefaultApp from './default';
+import InfoApp from './info';
+import ItemApp from './item';
 import { JsonConfig } from '../question/config';
 import { Manifest } from '../question/config/manifest';
 
-import InfoApp from './info';
-import DefaultApp from './default';
-import CatalogApp from './catalog';
-
-export { InfoApp, DefaultApp, CatalogApp }
-
-import * as http from 'http';
+export { InfoApp, DefaultApp, CatalogApp, ItemApp }
 
 export class BuildOpts {
   constructor(readonly clean: boolean = false,
@@ -53,12 +52,34 @@ export type BuildResult = {
   success: boolean
 }
 
+export interface Archivable {
+  createArchive(): Promise<string>
+}
 
-export interface App {
+export interface Servable {
+  server(opts: ServeOpts): Promise<{ server: http.Server, reload: (string) => void }>
+  watchableFiles(): string[];
+}
+
+export interface Buildable {
   build(opts: BuildOpts): Promise<string[]>
   manifest(opts: ManifestOpts): Promise<Manifest>
-  server(opts: ServeOpts): Promise<{ server: http.Server, reload: (string) => void }>
+}
+
+export interface App {
   clean(): Promise<any>
-  createArchive(): Promise<string>
   config: JsonConfig;
+}
+
+export function isBuildable(a: any): a is Buildable {
+  let b = (a as Buildable);
+  return b.build !== undefined && b.manifest !== undefined;
+}
+
+export function isArchivable(a: any): a is Archivable {
+  return (a as Archivable).createArchive !== undefined;
+}
+
+export function isServable(a: any): a is Servable {
+  return (a as Servable).server !== undefined;
 }

@@ -1,7 +1,7 @@
 import { transform } from 'babel-core';
 import * as resolve from 'resolve';
 import { join } from 'path';
-import { buildLogger } from '../log-factory';
+import { buildLogger } from 'log-factory';
 import * as vm from 'vm';
 import { readFileSync } from 'fs-extra';
 import * as m from 'module';
