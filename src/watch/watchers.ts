@@ -147,7 +147,6 @@ export class PieWatch {
 
   private client;
   private controller;
-  private configuration?: Watch;
 
   constructor(name, relativePath, rootDir) {
     logger.debug('[PieWatch] constructor: ', name, relativePath, rootDir);
