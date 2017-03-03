@@ -70,7 +70,7 @@ let init = () => {
         throw new Error('config is missing');
       }
       let demo = document.querySelector('catalog-demo');
-      demo.configureMap = ${configurationMap ? JSON.stringify(configurationMap) : 'null'};
+      demo.configureMap = ${configurationMap ? JSON.stringify(configurationMap) : 'undefined'};
       demo.config = window.demo.config;
       demo.controllers = controllers;
       demo.markup = window.demo.markup;

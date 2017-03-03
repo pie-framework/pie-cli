@@ -89,15 +89,15 @@ export default class InfoApp implements App, Servable {
      * It could be that the demo item may link to other local pies, 
      * in which case we should be pulling in those configuration elements also.
      */
-    let configurationDir = join(this.pieRoot, 'configuration');
-    let configurationPackage = join(configurationDir, 'package.json');
+    let configureDir = join(this.pieRoot, 'configure');
+    let configurePkg = join(configureDir, 'package.json');
 
     let declarations = this.config.declarations;
     let configurationMap = null;
-    if (existsSync(configurationPackage)) {
-      let pkg = readJsonSync(configurationPackage, 'utf8');
+    if (existsSync(configurePkg)) {
+      let pkg = readJsonSync(configurePkg, 'utf8');
       logger.debug('found configuration package .. adding it to bundle');
-      let configDeclaration = new ElementDeclaration(pkg.name, configurationDir);
+      let configDeclaration = new ElementDeclaration(pkg.name, configureDir);
       declarations = declarations.concat([configDeclaration]);
       configurationMap = {}
       let pieName = basename(this.pieRoot);

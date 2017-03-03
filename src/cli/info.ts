@@ -23,7 +23,6 @@ class Cmd extends CliCommand {
     const a: App = await loadApp(_.merge(args, { app: 'info' }));
     const opts = ServeOpts.build(args);
 
-    logger.debug('app: ', a);
     if (isServable(a)) {
       const { server, reload } = await a.server(opts);
       this.cliLogger.info('starting server...');
