@@ -156,6 +156,7 @@ export default class InfoApp implements App, Servable {
 
         demo: {
           config: {
+            elementModels: this.config.elementModels,
             models: this.config.pieModels
           },
           markup: jsesc(this.config.markup),
