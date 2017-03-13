@@ -9,13 +9,12 @@ import AllInOneBuild, { ControllersBuild, SupportConfig } from '../../question/b
 import { App, Servable, ServeOpts } from '../types';
 import AppServer, { utils as su } from '../../server';
 import { Names, getNames } from "../common";
-import { existsSync, readFileSync, readJsonSync } from 'fs-extra';
 import { join, resolve } from 'path';
 
+import { ElementDeclaration } from './../../code-gen/declaration';
 import { JsonConfig } from '../../question/config';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
-import { writeConfig } from '../../code-gen/webpack-write-config';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
@@ -122,6 +121,7 @@ export default class ItemApp implements App, Servable {
 
         demo: {
           config: {
+            elementModels: this.config.elementModels,
             models: this.config.pieModels
           },
           markup: jsesc(this.config.markup),
