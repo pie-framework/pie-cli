@@ -4,3 +4,7 @@ tslint.json
 .nyc_output
 .vscode
 git-hooks
+test
+src
+local-typings
+
