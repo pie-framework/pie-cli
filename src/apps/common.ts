@@ -52,8 +52,11 @@ export function webpackConfig(
   const base = baseConfig(dirs.root);
 
   logger.debug('support modules: ', support.modules);
-  const coreModules = ['node_modules']
-    .concat(support.modules);
+
+  const coreModules = [
+    'node_modules',
+    resolve(join(__dirname, '../../node_modules'))
+  ].concat(_.compact(support.modules));
 
   const resolveModules = [
     modules(dirs.configure),
