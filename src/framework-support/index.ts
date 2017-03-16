@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import { JsonConfig } from './../question/config';
 import { Rule } from 'webpack';
 import { buildLogger } from 'log-factory';
+import { existsSync } from 'fs-extra';
 import { join } from 'path';
 
 export { Rule }
@@ -15,6 +16,32 @@ export interface SupportConfig {
   rules: Rule[];
 }
 
+function findModuleRoot(moduleName: string) {
+
+  const fullPath = require.resolve(moduleName);
+  const parts = fullPath.split('/');
+
+  const find = (p: string[]) => {
+    if (p.length === 0) {
+      return [];
+    }
+
+    if (p[p.length - 1].endsWith(moduleName)) {
+      return p;
+    } else {
+      parts.pop();
+      return find(parts);
+    }
+  };
+
+  const found = find(parts);
+
+  if (found.length > 0) {
+    return found.join('/');
+  } else {
+    return null;
+  }
+}
 
 /**
  * Read in a support module.
@@ -28,7 +55,14 @@ export function load(config: JsonConfig, path: string): Promise<SupportConfig> {
   if (_.isFunction(mod.support) && !mod.support(config.dependencies)) {
     return Promise.resolve(null);
   } else {
-    const modules = [join(path, 'node_modules')];
+    const moduleRoot = findModuleRoot(path);
+
+    const modulesIfExists = () => {
+      const p = join(moduleRoot, 'node_modules');
+      return existsSync(p) ? [p] : [];
+    };
+
+    const modules = moduleRoot ? modulesIfExists() : [];
     const out = {
       externals: {
         css: mod.externals ? mod.externals.css : [],

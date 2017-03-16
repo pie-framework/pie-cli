@@ -8,7 +8,6 @@ import DefaultApp from './default';
 import InfoApp from './info';
 import ItemApp from './item';
 import { JsonConfig } from '../question/config';
-import { join } from 'path';
 
 const appMap = {
   catalog: CatalogApp,
@@ -21,11 +20,10 @@ const appMap = {
  * prepare support config using the Apps config object.
  */
 export async function loadSupportConfig(config: JsonConfig): Promise<SupportConfig> {
-  const dir = (p) => join(__dirname, `../../support/${p}`);
-  const base: SupportConfig = await loadSupportModule(config, dir('base'));
-  const less: SupportConfig = await loadSupportModule(config, dir('less'));
-  const react: SupportConfig = await loadSupportModule(config, dir('react'));
-  const corespringLegacy: SupportConfig = await loadSupportModule(config, dir('corespring-legacy'));
+  const base: SupportConfig = await loadSupportModule(config, 'pie-support-base');
+  const less: SupportConfig = await loadSupportModule(config, 'pie-support-less');
+  const react: SupportConfig = await loadSupportModule(config, 'pie-support-react');
+  const corespringLegacy: SupportConfig = await loadSupportModule(config, 'pie-support-corespring-legacy');
 
   const support = _.compact([base, less, react, corespringLegacy]);
   return new MultiConfig(...support);

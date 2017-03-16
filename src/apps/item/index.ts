@@ -111,6 +111,7 @@ export default class ItemApp implements App, Servable {
         css: this.support.externals.css,
         demo: {
           config: {
+            elementModels: this.config.elementModels(this.installer.installedPies),
             models: this.config.pieModels(this.installer.installedPies)
           },
           markup: jsesc(this.config.markup),

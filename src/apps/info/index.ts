@@ -144,6 +144,7 @@ export default class InfoApp implements App, Servable {
 
         demo: {
           config: {
+            elementModels: this.config.elementModels(this.installer.installedPies),
             models: this.config.pieModels(this.installer.installedPies)
           },
           markup: jsesc(this.config.markup),
