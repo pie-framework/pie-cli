@@ -1,7 +1,8 @@
+import { assert, match, stub } from 'sinon';
+
+import _ from 'lodash';
 import { expect } from 'chai';
 import proxyquire from 'proxyquire'
-import { stub, match, assert } from 'sinon';
-import _ from 'lodash';
 
 describe('watchmaker', () => {
 
@@ -12,13 +13,15 @@ describe('watchmaker', () => {
     watcherStub,
     fileWatchConstructor,
     questionConfig,
-    elements;
+    elements,
+    dirs,
+    mappings;
 
   beforeEach(() => {
     elements = require('../../../lib/question/config/elements');
     elements.StubPiePackage = class StubPiePackage extends elements.PiePackage {
       constructor() {
-        super('key', 'value');
+        super('stub', '../..');
       }
     }
 
@@ -42,15 +45,17 @@ describe('watchmaker', () => {
 
     class StubPieWatch extends watchers.PieWatch {
       constructor() {
-        super('stub', 'stub', 'stub');
-        this.start = stub();
+        return {
+          start: stub()
+        }
       }
     }
 
     class StubFileWatch extends watchers.FileWatch {
       constructor() {
-        super('', '', '');
-        this.start = stub();
+        return {
+          start: stub()
+        }
       }
     }
 
@@ -61,25 +66,33 @@ describe('watchmaker', () => {
     fileWatchConstructor = stub().returns(fileWatch);
 
 
+    mappings = {
+      controllers: [{ pie: 'stub', target: 'stub-controller' }],
+      configure: [{ pie: 'stub', target: 'stub-configure' }]
+    }
+
+    dirs = {
+      root: 'dir/.pie',
+      controllers: 'dir/.pie/controllers',
+      configure: 'dir/.pie/configure'
+    }
+
     watchmaker = proxyquire('../../../lib/watch/watchmaker', {
       './watchers': {
         PieWatch: pieWatchConstructor,
         FileWatch: fileWatchConstructor
-      },
-      '../npm/dependency-helper': {
-        pathIsDir: stub().returns(true)
       }
     });
   });
 
   describe('init', () => {
     it('returns an empty array for an empty array of localDependencies', () => {
-      let watchers = watchmaker.init(questionConfig([]));
+      let watchers = watchmaker.init(questionConfig([]), stub(), [], mappings, dirs);
       expect(watchers.dependencies.length).to.eql(0);
     });
 
     it('returns an empty array for a null localDependencies', () => {
-      let watchers = watchmaker.init(questionConfig(null));
+      let watchers = watchmaker.init(questionConfig(null), stub(), [], mappings, dirs);
       expect(watchers.dependencies.length).to.eql(0);
     });
 
@@ -88,7 +101,12 @@ describe('watchmaker', () => {
 
       beforeEach(() => {
         dep = stub();
-        watchers = watchmaker.init(questionConfig([new elements.StubPiePackage()]), () => { });
+        watchers = watchmaker.init(
+          questionConfig([new elements.StubPiePackage()]),
+          stub(),
+          [],
+          mappings,
+          dirs);
       });
 
       it('returns 1 watcher', () => {
@@ -96,7 +114,7 @@ describe('watchmaker', () => {
       });
 
       it('calls constructor', () => {
-        assert.calledWith(pieWatchConstructor, 'key', 'value', 'dir');
+        assert.calledWith(pieWatchConstructor, 'stub', 'dir', '../..', dirs, { controller: 'stub-controller', configure: 'stub-configure' });
       });
 
       it('calls start', () => {

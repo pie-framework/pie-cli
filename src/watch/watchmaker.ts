@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 
+import { Dirs, Mappings } from '../install';
 import { FileWatch, PackageWatch, PieWatch, Watch } from './watchers';
 import { LocalFile, LocalPackage, PiePackage } from '../question/config/elements';
 
@@ -12,10 +13,15 @@ const logger = buildLogger();
 
 type ReloadFn = (n: string) => void;
 
-export function init(config: JsonConfig, reloadFn: ReloadFn, extraFilesToWatch: string[]): {
-  dependencies: Watch[],
-  files: FileWatch[]
-} {
+export function init(
+  config: JsonConfig,
+  reloadFn: ReloadFn,
+  extraFilesToWatch: string[],
+  mappings: Mappings,
+  dirs: Dirs): {
+    dependencies: Watch[],
+    files: FileWatch[]
+  } {
 
   logger.debug('[init] questionConfig: ', config.elements);
 
@@ -24,7 +30,17 @@ export function init(config: JsonConfig, reloadFn: ReloadFn, extraFilesToWatch: 
     logger.silly('e: ', e);
     if (e instanceof PiePackage) {
       logger.silly('create PieWatch', e.key, e.value);
-      return new PieWatch(e.key, e.value, config.dir);
+      const targets = {
+        configure: (mappings.configure.find(m => m.pie === e.key) || { target: null }).target,
+        controller: (mappings.controllers.find(m => m.pie === e.key) || { target: null }).target
+      };
+
+      return new PieWatch(
+        e.key,
+        config.dir,
+        e.value,
+        dirs,
+        targets);
     }
 
     if (e instanceof LocalFile) {

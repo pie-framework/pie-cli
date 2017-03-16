@@ -1,11 +1,10 @@
 import { assert, match, spy, stub } from 'sinon';
-import { loadStubApp, runCmd, types } from './helper.js';
 
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 
 describe('serve', () => {
-  let cmd, stubbed, app, startServer, init;
+  let cmd, app, startServer, init, deps, mod;
 
   beforeEach(() => {
 
@@ -17,30 +16,35 @@ describe('serve', () => {
       config: {}
     }
 
-    stubbed = loadStubApp('../../../lib/cli/serve', app, {
-      '../server/utils': {
+    deps = {
+      '../apps': {
+        loadApp: stub().returns(app)
+      },
+      '../server': {
         startServer: startServer
       },
       '../watch/watchmaker': {
         init: init
       }
-    });
-    cmd = stubbed.module.default;
+    }
+
+    mod = proxyquire('../../../lib/cli/serve', deps)
+    cmd = mod.default;
   });
 
   describe('run', () => {
 
     let result;
 
-    beforeEach((done) => runCmd(cmd, {}, done));
+    beforeEach(() => cmd.run({}));
 
     it('calls loadApp', () => {
-      assert.calledWith(stubbed.loadApp, { app: 'item' });
+      assert.calledWith(deps['../apps'].loadApp, { app: 'item' });
     });
 
     it('calls app.server', () => {
-      assert.calledWith(app.server, types.ServeOpts.build({}));
-    })
+      assert.calledWith(app.server, match.object);
+    });
 
     it('calls startServer', () => {
       assert.calledWith(startServer, 4000, match.any);

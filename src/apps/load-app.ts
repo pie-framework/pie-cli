@@ -1,39 +1,42 @@
 import * as _ from 'lodash';
 
-import { App, CatalogApp, DefaultApp, InfoApp, ItemApp } from './types';
-import { BuildConfig, legacySupport, less, react } from '../framework-support';
+import { MultiConfig, SupportConfig, load as loadSupportModule } from '../framework-support';
 
-import { JsonConfig } from '../question/config'
-import { buildLogger } from 'log-factory';
-
-const logger = buildLogger();
+import { App } from './types';
+import CatalogApp from './catalog';
+import DefaultApp from './default';
+import InfoApp from './info';
+import ItemApp from './item';
+import { JsonConfig } from '../question/config';
+import { join } from 'path';
 
 const appMap = {
-  'default': DefaultApp,
-  'info': InfoApp,
-  'catalog': CatalogApp,
-  'item': ItemApp
-}
+  catalog: CatalogApp,
+  default: DefaultApp,
+  info: InfoApp,
+  item: ItemApp
+};
 
+/**
+ * prepare support config using the Apps config object.
+ */
+export async function loadSupportConfig(config: JsonConfig): Promise<SupportConfig> {
+  const dir = (p) => join(__dirname, `../../support/${p}`);
+  const base: SupportConfig = await loadSupportModule(config, dir('base'));
+  const less: SupportConfig = await loadSupportModule(config, dir('less'));
+  const react: SupportConfig = await loadSupportModule(config, dir('react'));
+  const corespringLegacy: SupportConfig = await loadSupportModule(config, dir('corespring-legacy'));
 
-export default async function loadApp(args: any): Promise<App> {
+  const support = _.compact([base, less, react, corespringLegacy]);
+  return new MultiConfig(...support);
+};
 
-  /**
-   * prepare support config using the Apps config object.
-   */
-  let loadSupportConfig = (config: JsonConfig) => {
-    let legacy = legacySupport(config.dependencies, config.dir)
-    let supportInfo = [react, less];
+export function allApps(): any[] {
+  return _.values(appMap);
+};
 
-    if (legacy) {
-      supportInfo.push(legacy);
-    }
-    let cfg = new BuildConfig(supportInfo);
-    return Promise.resolve(cfg);
-  };
-
-  let appKey = args.app || args.a || 'default';
-
-  let clazz = appMap[appKey];
+export function loadApp(args: any): Promise<App> {
+  const appKey = args.app || args.a || 'default';
+  const clazz = appMap[appKey];
   return clazz.build(args, loadSupportConfig);
-}
+};

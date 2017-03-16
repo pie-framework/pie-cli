@@ -1,17 +1,16 @@
-import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
-import proxyquire from 'proxyquire';
-import { join } from 'path';
-import { spawnSync } from 'child_process';
+import { assert, match, spy, stub } from 'sinon';
 import { existsSync, readdirSync } from 'fs-extra';
 
+import { expect } from 'chai';
+import { join } from 'path';
+import proxyquire from 'proxyquire';
 import { setUpTmpQuestionAndComponents } from '../integration-test-helper';
+import { spawnSync } from 'child_process';
 
 describe('pack', () => {
 
-  let mod, pack, configuration, paths;
+  let mod, pack, paths;
 
-  configuration = require('../../../lib/cli/configuration').default;
 
   before(() => {
     mod = require('../../../lib/cli/pack');
@@ -28,7 +27,6 @@ describe('pack', () => {
         app: 'catalog',
         createArchive: true,
         dir: paths.component,
-        configuration: configuration,
         keepBuildAssets: true
       });
     });
@@ -52,6 +50,8 @@ describe('pack', () => {
         'index.html',
         'pie-catalog.bundle.js',
         'pie-pkg/README.md',
+        'pie-pkg/configure-map.json',
+        'pie-pkg/externals.json',
         'pie-pkg/package.json',
         'schemas/config.json']);
     });
@@ -62,12 +62,9 @@ describe('pack', () => {
     before(function () {
       this.timeout(60000);
 
-      console.log('configuration: ', configuration);
-
       return pack.run({
         app: 'default',
         dir: paths.demo,
-        configuration: configuration,
         includeComplete: true,
         keepBuildAssets: true
       });

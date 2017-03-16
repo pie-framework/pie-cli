@@ -2,7 +2,7 @@ import temp from 'temp';
 import { resolve, join } from 'path';
 import { copySync } from 'fs-extra';
 import path from 'path';
-import { buildLogger } from '../../lib/log-factory';
+import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 
@@ -24,8 +24,7 @@ export function packExample(testName, exampleQuestion, support) {
   let cmd = require('../../lib/cli/pack').default;
   return cmd.run({
     dir: questionPath,
-    includeComplete: true,
-    configuration: require('../../lib/cli/configuration').default
+    includeComplete: true
   })
     .then(() => {
       return {

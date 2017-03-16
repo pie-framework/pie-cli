@@ -1,10 +1,11 @@
-import { existsSync, writeJsonSync } from 'fs-extra';
-import { join } from 'path';
-import { buildLogger } from 'log-factory';
-import { KeyMap } from './types';
-import { spawnPromise } from '../io';
+import { ensureDirSync, existsSync, writeJsonSync } from 'fs-extra';
 
-let logger = buildLogger();
+import { KeyMap } from './index';
+import { buildLogger } from 'log-factory';
+import { join } from 'path';
+import { spawnPromise as sp } from '../io';
+
+const logger = buildLogger();
 
 export default class NpmDir {
 
@@ -12,23 +13,23 @@ export default class NpmDir {
     logger.debug(`rootDir: ${rootDir}`);
   }
 
-  install(name: string, dependencies: KeyMap, devDeps: KeyMap, force: boolean) {
+  public install(name: string, dependencies: KeyMap, devDeps: KeyMap, force: boolean) {
     logger.info('[install] ...');
-    return this._writePackageJson(name, dependencies, devDeps)
-      .then(() => this._install(force));
+    return this.writePackageJson(name, dependencies, devDeps)
+      .then(() => this.runInstallCmd(force));
   };
 
-  ls() {
+  public ls() {
     logger.info('[ls]');
     if (!this._installed) {
-      return this._install(false)
-        .then(() => this.ls())
+      return this.runInstallCmd(false)
+        .then(() => this.ls());
     } else {
-      return this._spawnPromise(['ls', '--json'], true)
+      return this.spawnPromise(['ls', '--json'], true)
         .then((result) => {
           logger.debug('[ls] got ls result..');
           try {
-            return JSON.parse(result.stdout)
+            return JSON.parse(result.stdout);
           } catch (e) {
             logger.error('[ls] failed to parse stdout as json: ', result.stdout);
             throw e;
@@ -41,45 +42,36 @@ export default class NpmDir {
     return existsSync(join(this.rootDir, 'node_modules'));
   }
 
-  private _exists(name) {
-    return existsSync(join(this.rootDir, name));
-  }
-
-  private _writePackageJson(name: string, dependencies: KeyMap, devDeps: KeyMap) {
+  private writePackageJson(name: string, dependencies: KeyMap, devDeps: KeyMap) {
 
     logger.silly('dependencies: ', dependencies);
 
-    let pkg = {
-      name: name,
-      version: '0.0.1',
+    const pkg = {
+      dependencies,
+      devDependencies: devDeps,
+      name,
       private: true,
-      dependencies: dependencies,
-      devDependencies: devDeps
+      version: '0.0.1'
     };
-
+    ensureDirSync(this.rootDir);
     writeJsonSync(join(this.rootDir, 'package.json'), pkg);
     return Promise.resolve(pkg);
   };
 
-  private _dedupe() {
-    return spawnPromise('npm', this.rootDir, ['dedupe'], false);
-  }
-
-  private _install(force: boolean, args?: any[]) {
+  private runInstallCmd(force: boolean, args?: any[]) {
     logger.silly(`[_install], force: ${force}, args: ${args}`);
     if (this._installed && !force) {
       logger.debug(`[_install] node_modules exists - skipping install.`);
       return Promise.resolve({ stdout: 'skipped' });
     } else {
       args = args || [];
-      let cmd = ['install'].concat(args);
+      const cmd = ['install'].concat(args);
       logger.silly('[_install] > final cmd: ', cmd.join(' '));
-      return this._spawnPromise(cmd);
+      return this.spawnPromise(cmd);
     }
   };
 
-
-  private _spawnPromise(args: string[], ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
-    return spawnPromise('npm', this.rootDir, args, ignoreExitCode);
+  private spawnPromise(args: string[], ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
+    return sp('npm', this.rootDir, args, ignoreExitCode);
   };
 }

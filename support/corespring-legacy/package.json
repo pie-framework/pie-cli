@@ -1,0 +1,11 @@
+{
+  "name": "corespring-legacy-support",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "css-loader": "0.9.0",
+    "file-loader": "^0.9.0",
+    "less-loader": "^2.2.3"
+  },
+  "main": "./index.js"
+}

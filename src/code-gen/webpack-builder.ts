@@ -1,9 +1,9 @@
-import * as webpack from 'webpack';
-import { buildLogger } from 'log-factory';
 import * as _ from 'lodash';
-import { configToJsString } from './webpack-write-config';
+import * as webpack from 'webpack';
+
+import { buildLogger } from 'log-factory';
+import { join } from 'path';
 import { writeConfig } from './webpack-write-config';
-import { join, resolve } from 'path';
 
 const logger = buildLogger();
 
@@ -23,15 +23,15 @@ export function build(config, dumpConfig?: string): Promise<BuildResult> {
         reject(err);
       } else if (stats.hasErrors()) {
 
-        let out = stats.toJson({ errorDetails: true });
+        const out = stats.toJson({ errorDetails: true });
         _.forEach(out.errors, (e) => logger.error(e));
         reject(new Error('Webpack build errors - see the logs'));
       } else {
-        let endTime = (stats as any).endTime;
-        let startTime = (stats as any).startTime;
-        let duration = endTime - startTime;
+        const endTime = (stats as any).endTime;
+        const startTime = (stats as any).startTime;
+        const duration = endTime - startTime;
         logger.info(`webpack compile done. duration (ms): ${duration}`);
-        resolve({ stats: stats, duration: duration });
+        resolve({ stats, duration });
       }
     });
   });

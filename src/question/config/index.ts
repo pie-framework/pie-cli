@@ -1,20 +1,19 @@
 import * as _ from 'lodash';
 
-import { Declaration, ElementDeclaration } from '../../code-gen/declaration';
+import { Declaration, ElementDeclaration } from '../../code-gen';
 import { Element, LocalFile, LocalPackage, NotInstalledPackage, PiePackage } from './elements';
-import { Model, RawConfig, Weight, fromPath } from './raw';
-import { ScoringType, WEIGHTED } from './scoring-type';
+import { KeyMap, hash as mkHash } from '../../npm';
+import { Manifest, Model, RawConfig, ScoringType, WEIGHTED, Weight, fromPath } from './types';
 import { existsSync, readFileSync } from 'fs-extra';
+import { join, resolve } from 'path';
 
-import { KeyMap } from '../../npm/types';
-import { Manifest } from './manifest';
 import { buildLogger } from 'log-factory';
-import { join } from 'path';
-import { hash as mkHash } from '../../npm/dependency-helper';
 import { validate } from './validator';
 
-export { Manifest };
-export { ElementDeclaration, Declaration };
+export {
+  RawConfig, Manifest, ScoringType, Weight, Model,
+  ElementDeclaration, Declaration, PiePackage
+};
 
 const logger = buildLogger();
 
@@ -31,15 +30,14 @@ export class FileNames {
 
 }
 
-
 export interface Config {
-  pieModels: Model[];
-  elementModels: Model[];
   scoringType: ScoringType;
   markup: string;
   langs: string[];
   weights: Weight[];
   dir: string;
+  pieModels(installed: PiePackage[]): Model[];
+  elementModels(installed: PiePackage[]): Model[];
 }
 
 export class ReloadableConfig implements Config {
@@ -50,13 +48,12 @@ export class ReloadableConfig implements Config {
     return fn();
   }
 
-
-  get pieModels() {
-    return this.reload(() => this.jsonConfig.pieModels);
+  public pieModels(installed: PiePackage[]) {
+    return this.jsonConfig.pieModels(installed);
   }
 
-  get elementModels() {
-    return this.reload(() => this.jsonConfig.elementModels);
+  public elementModels(installed: PiePackage[]) {
+    return this.jsonConfig.elementModels(installed);
   }
 
   get scoringType() {
@@ -80,8 +77,34 @@ export class ReloadableConfig implements Config {
   }
 }
 
+export function getInstalledPies(modulesDir: string, elements: string[]): PiePackage[] {
+
+  if (!existsSync(modulesDir)) {
+    throw new Error(`Can't retrieve PiePackages until the node modules have been installed.`);
+  }
+
+  logger.silly('[getInstalledPies] modulesDir', modulesDir, 'elements: ', elements);
+
+  return _(elements)
+    .map(e => {
+      return {
+        key: e,
+        root: '',
+        value: join(modulesDir, e)
+      };
+    })
+    .map(({ root, key, value }) => PiePackage.build(root, key, value))
+    .compact()
+    .value();
+}
+
 export class JsonConfig implements Config {
 
+  public static build(dir: string, args: any): JsonConfig {
+    return new JsonConfig(dir, FileNames.build(args));
+  }
+
+  // tslint:disable-next-line
   readonly scoringType: ScoringType = WEIGHTED;
   private raw: RawConfig;
 
@@ -89,9 +112,29 @@ export class JsonConfig implements Config {
     this.reload();
   }
 
+  public isPie(names, m) {
+    const out = _.includes(names, m.element);
+    return out;
+  }
 
-  public valid(): boolean {
-    return validate(this.raw, this.installedPies).valid;
+  public elementModels(installed: PiePackage[]) {
+    const names = installed.map(p => p.key);
+    const fn = (n) => !this.isPie(names, n);
+    return _.filter(this.raw.models, fn);
+  }
+
+  public pieModels(installed: PiePackage[]) {
+    const names = installed.map(p => p.key);
+    return _.filter(this.raw.models, this.isPie.bind(this, names));
+  }
+
+  public valid(modulesDir: string): boolean {
+    return validate(this.raw, this.installedPies(modulesDir)).valid;
+  }
+
+  public installedPies(modulesDir: string): PiePackage[] {
+    const elements = _.map(this.elements, e => e.key);
+    return getInstalledPies(modulesDir, elements);
   }
 
   /**
@@ -100,10 +143,7 @@ export class JsonConfig implements Config {
   public reload() {
     this.raw = this._readRaw();
 
-    // validate the main config (not the pies).
-    const pies = existsSync(join(this.dir, 'node_modules')) ? this.installedPies : [];
-
-    const result = validate(this.raw, pies);
+    const result = validate(this.raw, []);
 
     if (!result.valid) {
       throw new Error(`Invalid json config: ${JSON.stringify(result)}`);
@@ -140,31 +180,17 @@ export class JsonConfig implements Config {
   }
 
   get declarations(): ElementDeclaration[] {
-
     const toDeclaration = (pkg: Element): ElementDeclaration => {
       const isLocalFile = (pkg instanceof LocalFile);
       return isLocalFile ?
-        new ElementDeclaration(pkg.key, pkg.value) :
+        new ElementDeclaration(pkg.key, resolve(this.dir, pkg.value)) :
         new ElementDeclaration(pkg.key);
     };
     return _.map(this.elements, toDeclaration);
   }
 
-  private _filterElements(predicate: (Element) => boolean): KeyMap {
-    return _(this.elements).reduce((acc, e: Element) => {
-      if (predicate(e)) {
-        acc[e.key] = e.value;
-      }
-      return acc;
-    }, {});
-  }
-
   get dependencies(): KeyMap {
     return this._filterElements((e) => !(e instanceof LocalFile));
-  }
-
-  private get localFiles(): KeyMap {
-    return this._filterElements((e) => (e instanceof LocalFile));
   }
 
   get manifest(): Manifest {
@@ -183,42 +209,17 @@ export class JsonConfig implements Config {
     return { hash, src };
   }
 
-  get installedPies(): PiePackage[] {
-
-    const nodeModulesDir = join(this.dir, 'node_modules');
-
-    if (!existsSync(nodeModulesDir)) {
-      throw new Error(`Can't retrieve PiePackages until the node modules have been installed.`);
-    }
-
-    return _(this.raw.models)
-      .map((m) => m.element)
-      .map((e) => {
-        return {
-          key: e,
-          root: '',
-          value: join(this.dir, 'node_modules', e)
-        };
-      })
-      .map(({ root, key, value }) => PiePackage.build(root, key, value))
-      .compact()
-      .value();
+  private _filterElements(predicate: (Element) => boolean): KeyMap {
+    return _(this.elements).reduce((acc, e: Element) => {
+      if (predicate(e)) {
+        acc[e.key] = e.value;
+      }
+      return acc;
+    }, {});
   }
 
-
-  private _filterModels(predicate) {
-    const pieNames = _.map(this.installedPies, (p) => p.key);
-    return _.filter(this.raw.models, (m) => {
-      const isPie = _.includes(pieNames, m.element);
-      return predicate(isPie);
-    });
+  private get localFiles(): KeyMap {
+    return this._filterElements((e) => (e instanceof LocalFile));
   }
 
-  get pieModels(): Model[] {
-    return this._filterModels((isPie) => isPie);
-  }
-
-  get elementModels(): Model[] {
-    return this._filterModels((isPie) => !isPie);
-  }
 }

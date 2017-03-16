@@ -1,10 +1,9 @@
 import * as _ from 'lodash';
-import * as express from 'express';
 import * as http from 'http';
 
 import { Compiler, Stats } from 'webpack';
 
-import { ReloadOrError } from '../server/types';
+import { ReloadOrError } from './types';
 import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
@@ -37,7 +36,7 @@ export function linkCompilerToServer(name, compiler: Compiler, handlers: ReloadO
     process.nextTick(() => {
       if (stats.hasErrors()) {
         logger.error('recompile failed');
-        let info = stats.toJson('errors-only');
+        const info = stats.toJson('errors-only');
         logger.error(info.errors);
         handlers.error(name, info.errors);
       } else {

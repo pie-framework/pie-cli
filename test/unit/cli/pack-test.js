@@ -1,25 +1,29 @@
+import * as types from '../../../lib/apps/types';
+
+import { assert, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
-import { assert, stub, spy } from 'sinon';
-import { loadStubApp, runCmd, types } from './helper';
 
 describe('pack', () => {
 
-  let cmd,
-    cmdResult,
-    stubbed,
-    app;
+  let mod, cmd, app, deps;
 
   beforeEach(() => {
-
 
     app = {
       build: stub().returns('done'),
       manifest: stub().returns('done')
     }
 
-    stubbed = loadStubApp('../../../lib/cli/pack', app);
-    cmd = stubbed.module.default;
+    deps = {
+      '../apps': {
+        loadApp: stub().returns(app)
+      }
+    }
+
+    mod = proxyquire('../../../lib/cli/pack', deps);
+    cmd = mod.default;
   });
 
   describe('match', () => {
@@ -31,10 +35,10 @@ describe('pack', () => {
 
   describe('run', () => {
 
-    beforeEach((done) => runCmd(cmd, {}, done));
+    beforeEach(() => cmd.run({}));
 
     it('calls loadApp', () => {
-      assert.calledWith(stubbed.loadApp, {});
+      assert.calledWith(deps['../apps'].loadApp, {});
     });
 
     it('calls app.build', () => {

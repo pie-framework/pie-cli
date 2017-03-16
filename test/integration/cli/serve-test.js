@@ -6,7 +6,6 @@ import http from 'http';
 describe('serve', () => {
   let configuration, mod, paths, serve, server;
 
-  configuration = require('../../../lib/cli/configuration').default;
 
   before(() => {
     mod = require('../../../lib/cli/serve');
@@ -21,7 +20,6 @@ describe('serve', () => {
       return serve.run({
         app: 'default',
         dir: paths.demo,
-        configuration: configuration,
         keepBuildAssets: true
       }).then((result) => {
         server = result.server;

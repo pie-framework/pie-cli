@@ -1,95 +1,82 @@
+import { assert, match, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
 import proxyquire from 'proxyquire';
 
 const ROOT = '../../../lib';
 
-describe('loadApp', () => {
+describe('load-app', () => {
 
-  let loadApp, deps, loadSupportConfig;
+  let mod, deps, loadSupportConfig;
 
-  let infoBuild = spy(function (args, loadFn) {
-    loadSupportConfig = loadFn;
+  let stubApp = (name) => ({
+    default: {
+      build: stub().returns({})
+    }
   });
 
-  let defaultBuild = spy(function (args, loadFn) {
-    loadSupportConfig = loadFn;
-  });
-
-  beforeEach((done) => {
+  beforeEach(() => {
     deps = {
       '../framework-support': {
-        legacySupport: stub(),
-        react: 'react',
-        less: 'less',
-        BuildConfig: stub()
+        MultiConfig: stub(),
+        load: stub().returns(Promise.resolve({
+          modules: [],
+          rules: []
+        }))
       },
       './types': {
-        InfoApp: {
-          build: infoBuild
-        },
-        DefaultApp: {
-          build: defaultBuild
-        }
-      }
+      },
+      './default': stubApp('default'),
+      './info': stubApp('info'),
+      './catalog': stubApp('catalog'),
+      './item': stubApp('item')
     }
 
-    loadApp = proxyquire(`${ROOT}/apps/load-app`, deps).default;
-    loadApp({})
-      .then(() => {
-        done();
-      })
-      .catch(done);
+    mod = proxyquire(`${ROOT}/apps/load-app`, deps);
   });
 
-  describe('with default', () => {
+  describe('loadApp', () => {
 
-    it('calls default build', () => {
-      assert.calledWith(defaultBuild, {});
-    });
+    beforeEach(() => mod.loadApp({}));
 
-    let config;
+    describe('with default', () => {
 
-    let load = (done) => {
-      loadSupportConfig({
-        dir: 'dir',
-        dependencies: {
-          a: '1.0.0',
-          aa: '1.0.0'
-        }
-      }).then((c) => {
-        config = c;
-        done();
-      }).catch(done);
-    };
-
-    describe('loadSupportConfig', () => {
-
-      describe('with no legacy', () => {
-        beforeEach((done) => {
-          load(done);
-        });
-
-        it('calls legacySupport', () => {
-          assert.calledWith(deps['../framework-support'].legacySupport, { a: '1.0.0', aa: '1.0.0' });
-        });
-
-        it('calls new BuildConfig', () => {
-          assert.calledWith(deps['../framework-support'].BuildConfig, ['react', 'less']);
-        });
-
+      it('calls default build', () => {
+        assert.calledWith(deps['./default'].default.build, {});
       });
 
-      describe('with legacy', () => {
+      let config;
 
-        beforeEach((done) => {
-          deps['../framework-support'].legacySupport.returns('legacy');
-          load(done);
+      let load = (done) => {
+        mod.loadSupportConfig({
+          dir: 'dir',
+          dependencies: {
+            a: '1.0.0',
+            aa: '1.0.0'
+          }
+        }).then((c) => {
+          config = c;
+          done();
+        }).catch(done);
+      };
+
+      describe('loadSupportConfig', () => {
+
+        describe('with no legacy', () => {
+          beforeEach((done) => {
+            load(done);
+          });
+
+          xit('calls legacySupport', () => {
+            assert.calledWith(deps['../framework-support'].legacySupport, { a: '1.0.0', aa: '1.0.0' });
+          });
+
+          it('calls new MultiConfig', () => {
+            assert.calledWith(deps['../framework-support'].MultiConfig, match.object, match.object);
+          });
+
         });
 
-        it('calls new BuildConfig w/ legacy support', () => {
-          assert.calledWith(deps['../framework-support'].BuildConfig, ['react', 'less', 'legacy']);
-        });
       });
     });
   });
