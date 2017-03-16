@@ -55,39 +55,3 @@ gulp.task('dev', ['build', 'watch-md', 'watch-ejs', 'watch-pug', 'watch-ts']);
 
 gulp.task('test', ['unit']);
 
-
-const dir = (d) => join(__dirname, 'support', d);
-
-const install = (name) => {
-  return (done) => {
-    const p = spawn('npm', ['install'], { cwd: dir(name) });
-    p.on('error', done);
-    p.on('close', done.bind(null, null));
-  }
-}
-
-const rmDeps = (name) => (done) => fsExtra.remove(join(dir(name), 'node_modules'), done);
-
-gulp.task('install-support-base', install('base'));
-gulp.task('install-support-less', install('less'));
-gulp.task('install-support-react', install('react'));
-gulp.task('install-support-corespring-legacy', install('corespring-legacy'));
-
-gulp.task('rm-support-base', rmDeps('base'));
-gulp.task('rm-support-less', rmDeps('less'));
-gulp.task('rm-support-react', rmDeps('react'));
-gulp.task('rm-support-corespring-legacy', rmDeps('corespring-legacy'));
-
-gulp.task('install-support-dependencies', [
-  'install-support-base',
-  'install-support-less',
-  'install-support-react',
-  'install-support-corespring-legacy'
-]);
-
-gulp.task('rm-support-dependencies', done => runSequence(
-  'rm-support-base',
-  'rm-support-less',
-  'rm-support-react',
-  'rm-support-corespring-legacy',
-  done));

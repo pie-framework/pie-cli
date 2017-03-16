@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+## as this is a post install we can't rely on any dev dependencies - just some shell scripting.
+
+rm -fr support/base/node_modules
+rm -fr support/react/node_modules
+rm -fr support/less/node_modules
+rm -fr support/corespring-legacy/node_modules
+
+cd support/base
+npm install
+cd ../react
+npm install 
+cd ../less
+npm install
+cd ../corespring-legacy
+npm install
