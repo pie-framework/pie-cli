@@ -5,15 +5,32 @@ import proxyquire from 'proxyquire';
 
 describe('framework-support', () => {
 
+  let mod, deps;
+
+  beforeEach(() => {
+    deps = {
+      'fs-extra': {},
+      resolve: {},
+      './support-module': {}
+    };
+
+    mod = proxyquire('../../../lib/framework-support', deps);
+  });
+
+  describe('findModuleRoot', () => {
+
+    it('find the module root', () => {
+      deps['resolve'].sync = stub().returns('a/b/c/blah/src/index.js');
+      expect(mod.findModuleRoot('blah')).to.eql('a/b/c/blah');
+    });
+  });
+
   describe('MultiConfig', () => {
 
     let MultiConfig;
+
     beforeEach(() => {
-      MultiConfig = proxyquire('../../../lib/framework-support', {
-        'fs-extra': {},
-        resolve: {},
-        './support-module': {}
-      }).MultiConfig;
+      MultiConfig = mod.MultiConfig;
     });
 
     describe('rules', () => {
@@ -68,6 +85,6 @@ describe('framework-support', () => {
   });
 
   xdescribe('load', () => {
-    it('loads from package', ()=> {});
+    it('loads from package', () => { });
   });
 });

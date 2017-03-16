@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import * as resolve from 'resolve';
 
 import { JsonConfig } from './../question/config';
 import { Rule } from 'webpack';
@@ -16,9 +17,9 @@ export interface SupportConfig {
   rules: Rule[];
 }
 
-function findModuleRoot(moduleName: string) {
+export function findModuleRoot(moduleName: string) {
 
-  const fullPath = require.resolve(moduleName);
+  const fullPath = resolve.sync(moduleName);
   const parts = fullPath.split('/');
 
   const find = (p: string[]) => {
