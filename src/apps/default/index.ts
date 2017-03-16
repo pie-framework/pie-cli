@@ -1,99 +1,125 @@
 import * as _ from 'lodash';
-import * as express from 'express';
+import * as generators from './src-generators';
 import * as pug from 'pug';
-import * as webpackMiddleware from 'webpack-dev-middleware';
 
-import { App, BuildOpts, BuildResult, ManifestOpts } from '../types';
-import { BaseApp, build as buildApp, logBuild } from './base';
-import { Declaration, ElementDeclaration, JsonConfig } from '../../question/config';
-import { basename, join, resolve } from 'path';
+import { App, BuildOpts, Buildable, MakeManifest, ManifestOpts } from '../types';
+import Install, { PieTarget } from '../../install';
+import { JsonConfig, Manifest } from '../../question/config';
+import { buildWebpack, writeConfig } from '../../code-gen';
+import { join, resolve } from 'path';
 
-import { Names } from "../common";
 import { SupportConfig } from '../../framework-support';
-import { buildLogger } from 'log-factory';
-import { stripMargin } from '../../string-utils';
-
-const logger = buildLogger();
+import { webpackConfig } from '../common';
+import { writeFileSync } from 'fs-extra';
 
 const basicExample = join(__dirname, 'views/example.pug');
 
-export default class DefaultApp extends BaseApp {
+export default class DefaultApp implements Buildable<string[]>, App, MakeManifest {
 
-  static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<DefaultApp> {
-    return buildApp(
-      args,
-      loadSupport,
-      (c: JsonConfig, s: SupportConfig, n: Names) => new DefaultApp(args, c, s, n))
+  public static generatedFiles: string[] = [
+    'pie-item.js',
+    'pie-view.js',
+    'pie-controllers.js',
+    'example.html'
+  ];
+
+  public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<DefaultApp> {
+    const dir = resolve(args.dir || args.d || process.cwd());
+    const config = JsonConfig.build(dir, args);
+    return loadSupport(config).then(s => new DefaultApp(args, config, s));
   }
 
   private defaultOpts: { includeComplete: boolean };
   private template: pug.compileTemplate;
+  private installer: Install;
 
-  constructor(args: any, config: JsonConfig, support: SupportConfig, names: Names) {
-    super(args, config, support, names);
-    this.template = pug.compileFile(basicExample, { pretty: true })
+  constructor(args: any, readonly config: JsonConfig, private support: SupportConfig) {
+    this.template = pug.compileFile(basicExample, { pretty: true });
 
     this.defaultOpts = {
       includeComplete: args.c || args.includeComplete || false
-    }
+    };
+
+    this.installer = new Install(config);
   }
 
-  protected get buildSteps() {
-    let steps = [
-      { label: this.names.out.viewElements, fn: this.buildPie },
-      { label: this.names.out.controllers, fn: this.buildControllers }
-    ];
-
-    if (this.defaultOpts.includeComplete) {
-      steps = steps.concat(super.buildSteps)
-    }
-    return steps;
+  public async build(opts: BuildOpts): Promise<string[]> {
+    const forceInstall = opts ? opts.forceInstall : false;
+    const mappings = await this.installer.install(forceInstall);
+    const client = await this.buildClient();
+    const controllers = await this.buildControllers(mappings.controllers);
+    const { includeComplete } = this.defaultOpts;
+    const allInOne = includeComplete ? await this.buildAllInOne(mappings.controllers) : [];
+    const example = includeComplete ? await this.buildExample() : [];
+    return _.concat(client, controllers, allInOne, example);
   }
 
-  private async buildPie(): Promise<[string]> {
-
-    logger.silly('config: ', this.config);
-
-    let declarations = _.concat([
-      new ElementDeclaration('pie-player'),
-      new ElementDeclaration('pie-control-panel'),
-      new class D implements Declaration {
-        get key() {
-          return 'pie-controller-global-init';
-        }
-        get js() {
-          return stripMargin`|
-          |window.pie = window.pie || {};
-          |window.pie.Controller = require('pie-controller');
-          |`
-        }
-      }
-    ], this.config.declarations);
-
-    let src = this.allInOneBuild.js(declarations);
-    let out = await this.allInOneBuild.client.build(src, this.names.out.viewElements);
-    return [out];
+  public manifest(opts: ManifestOpts): Promise<Manifest> {
+    return Promise.resolve(this.config.manifest);
   }
 
-  private async buildControllers(): Promise<[string]> {
-    let out = await this.allInOneBuild.controllers.build(this.names.out.controllers, basename(this.names.out.controllers, '.js'));
-    return [out];
+  private async buildClient(): Promise<string[]> {
+    const js = generators.client(this.config.declarations);
+    writeFileSync(join(this.installer.dir, 'client.entry.js'), js, 'utf8');
+    const config = webpackConfig(this.installer, this.support, 'client.entry.js', 'pie-view.js', this.config.dir);
+
+    writeConfig(join(this.installer.dirs.root, 'client.webpack.config.js'), config);
+    await buildWebpack(config);
+    return ['pie-view.js'];
   }
 
-  protected fileMarkup(): string {
-    return this.template({
-      js: _.concat(this.support.externals.js || [], [this.names.out.completeItemTag.path]),
-      markup: this.names.out.completeItemTag.tag
+  private async buildControllers(controllers: PieTarget[]): Promise<string[]> {
+    const js = generators.controllers(controllers);
+    writeFileSync(join(this.installer.dir, 'controllers.entry.js'), js, 'utf8');
+    const config = webpackConfig(
+      this.installer,
+      this.support,
+      'controllers.entry.js',
+      'pie-controllers.js',
+      this.config.dir);
+
+    config.output.library = 'pie-controllers';
+    config.output.libraryTarget = 'umd';
+
+    writeConfig(join(this.installer.dirs.root, 'controllers.webpack.config.js'), config);
+    await buildWebpack(config);
+    return ['pie-controllers.js'];
+  }
+
+  private async buildAllInOne(controllerMap: PieTarget[]): Promise<string[]> {
+
+    const pieModels = this.config.pieModels(this.installer.installedPies);
+    const elementModels = this.config.elementModels(this.installer.installedPies);
+    const js = generators.allInOne(
+      this.config.declarations,
+      controllerMap,
+      this.config.markup,
+      pieModels,
+      elementModels,
+      this.config.weights,
+      this.config.langs
+    );
+
+    writeFileSync(join(this.installer.dir, 'all-in-one.entry.js'), js, 'utf8');
+    const config = webpackConfig(
+      this.installer,
+      this.support,
+      'all-in-one.entry.js',
+      'pie-item.js',
+      this.config.dir);
+
+    writeConfig(join(this.installer.dirs.root, 'all-in-one.webpack.config.js'), config);
+    await buildWebpack(config);
+    return ['pie-item.js'];
+  }
+
+  private buildExample(): Promise<string[]> {
+    const out: string = this.template({
+      js: ['./pie-item.js'],
+      markup: '<pie-item></pie-item>'
     });
-  };
 
-  protected get buildAssets() {
-    return _.concat(super.buildAssets, [this.allInOneBuild.client.entryJsPath])
+    writeFileSync(join(this.config.dir, 'example.html'), out, 'utf8');
+    return Promise.resolve(['example.html']);
   }
-
-  protected get generatedAssets() {
-    return _.concat(super.generatedAssets,
-      [this.names.out.viewElements,
-      this.names.out.controllers]);
-  }
-}
+};

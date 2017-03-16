@@ -1,7 +1,8 @@
+import { assert, match, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
-import { stub, assert, spy, match } from 'sinon';
-import proxyquire from 'proxyquire';
 import path from 'path';
+import proxyquire from 'proxyquire';
 
 describe('npm-dir', () => {
 
@@ -17,11 +18,12 @@ describe('npm-dir', () => {
 
     fs = {
       writeJsonSync: stub(),
-      existsSync: stub().returns(true)
+      existsSync: stub().returns(true),
+      ensureDirSync: stub()
     }
 
     io = {
-      spawnPromise: stub().returns(Promise.resolve({}))
+      spawnPromise: stub().returns(Promise.resolve({ stdout: '{}' }))
     }
 
     NpmDir = proxyquire('../../../lib/npm/npm-dir', {
@@ -32,9 +34,6 @@ describe('npm-dir', () => {
         createInterface: stub().returns({
           on: stub()
         })
-      },
-      '../file-helper': {
-        removeFiles: stub()
       }
     }).default;
   });
@@ -98,8 +97,9 @@ describe('npm-dir', () => {
         .onFirstCall().returns(firstExistsSyncResult)
         .onSecondCall().returns(true);
 
-      dir._spawnPromise = stub().returns(Promise.resolve({ stdout: '{}' }));
-      dir._install = stub().returns(Promise.resolve());
+      dir.spawnPromise = stub().returns(Promise.resolve({ stdout: '{}' }));
+      dir.install = stub().returns(Promise.resolve());
+      dir.runInstallCmd = stub().returns(Promise.resolve());
       dir.ls()
         .then(done.bind(null, null))
         .catch(done);
@@ -111,12 +111,12 @@ describe('npm-dir', () => {
         call(true, done);
       });
 
-      it('does not call _install', () => {
-        assert.notCalled(dir._install);
+      it('does not call install', () => {
+        assert.notCalled(dir.install);
       });
 
-      it('calls _spawnPromise', () => {
-        assert.calledWith(dir._spawnPromise, ['ls', '--json'], true);
+      it('calls spawnPromise', () => {
+        assert.calledWith(dir.spawnPromise, ['ls', '--json'], true);
       });
     });
 
@@ -126,12 +126,12 @@ describe('npm-dir', () => {
         call(false, done);
       });
 
-      it('calls _install', () => {
-        assert.called(dir._install);
+      it('calls install', () => {
+        assert.called(dir.runInstallCmd);
       });
 
-      it('calls _spawnPromise', () => {
-        assert.calledWith(dir._spawnPromise, ['ls', '--json'], true);
+      it('calls spawnPromise', () => {
+        assert.calledWith(dir.spawnPromise, ['ls', '--json'], true);
       });
     });
   });

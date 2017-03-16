@@ -1,61 +1,61 @@
 import * as express from 'express';
 import * as http from 'http';
 import * as sockjs from 'sockjs';
-import * as types from './types';
-import * as utils from './utils';
 
-import { HasServer, ReloadOrError } from '../server/types';
+import { HasServer, ReloadOrError } from './types';
+import { linkCompilerToServer, startServer } from './utils';
 
 import { buildLogger } from 'log-factory';
 
-export { types }
-export { utils }
+export { HasServer, ReloadOrError }
+
+export { startServer, linkCompilerToServer }
 
 const logger = buildLogger();
 
 export default class AppServer implements ReloadOrError, HasServer {
 
-  static SOCK_PREFIX: string = '/sock'
-  static SOCK_JS_URL: string = '//cdn.jsdelivr.net/sockjs/1.0.1/sockjs.min.js';
+  public static SOCK_PREFIX: string = '/sock';
+  public static SOCK_JS_URL: string = '//cdn.jsdelivr.net/sockjs/1.0.1/sockjs.min.js';
 
   readonly httpServer;
-  private _sockServer;
-  private _connection;
+  private sockServer: any;
+  private connection: any;
 
   constructor(app: express.Application, sockJsUrl = AppServer.SOCK_JS_URL) {
     this.httpServer = http.createServer(app);
-    this._sockServer = sockjs.createServer({
+    this.sockServer = sockjs.createServer({
       sockjs_url: sockJsUrl
     });
 
-    this._sockServer.on('connection', (conn) => {
+    this.sockServer.on('connection', (conn) => {
 
       logger.silly('[DefaultAppServer] on - connection: ', (typeof conn));
       if (!conn) {
         return;
       }
-      this._connection = conn;
+      this.connection = conn;
     });
 
-    this._sockServer.installHandlers(
+    this.sockServer.installHandlers(
       this.httpServer,
       { prefix: AppServer.SOCK_PREFIX }
     );
   }
 
-  reload(name) {
+  public reload(name) {
     logger.debug('[DefaultAppServer] reload: name:', name);
-    logger.silly('[DefaultAppServer] reload: connection', (typeof this._connection));
-    if (this._connection) {
-      this._connection.write(JSON.stringify({ type: 'reload' }));
+    logger.silly('[DefaultAppServer] reload: connection', (typeof this.connection));
+    if (this.connection) {
+      this.connection.write(JSON.stringify({ type: 'reload' }));
     }
   }
 
-  error(name, errors) {
+  public error(name, errors) {
     logger.debug('[DefaultAppServer] error: name:', name);
-    logger.silly('[DefaultAppServer] error: connection: ', (typeof this._connection));
-    if (this._connection) {
-      this._connection.write(JSON.stringify({ type: 'error', errors: errors }));
+    logger.silly('[DefaultAppServer] error: connection: ', (typeof this.connection));
+    if (this.connection) {
+      this.connection.write(JSON.stringify({ type: 'error', errors }));
     }
   }
-}
+};

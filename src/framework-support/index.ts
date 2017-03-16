@@ -1,75 +1,72 @@
 import * as _ from 'lodash';
+
+import { JsonConfig } from './../question/config';
+import { Rule } from 'webpack';
 import { buildLogger } from 'log-factory';
-import * as resolve from 'resolve';
-import { mkFromPath } from './support-module';
-import { Rule, SupportInfo } from './support-info';
+import { join } from 'path';
 
-import react from './frameworks/react';
-import less from './frameworks/less';
-import { support as legacySupport } from './frameworks/corespring-legacy';
-export { react, less, legacySupport };
+export { Rule }
 
-let logger = buildLogger();
+const logger = buildLogger();
 
 export interface SupportConfig {
-  npmDependencies: { [key: string]: string };
   externals: { js: string[], css: string[] };
+  modules: string[];
   rules: Rule[];
 }
 
-export class BuildConfig implements SupportConfig {
 
-  constructor(private modules: SupportInfo[]) {
-    logger.debug('[BuildConfig:constructor]', modules);
+/**
+ * Read in a support module.
+ * A support module will consist of a package.json, node_modules dir and a main script.
+ * The main script is expected to contain: `rules` and `externals`.
+ */
+export function load(config: JsonConfig, path: string): Promise<SupportConfig> {
+  logger.debug('[load] path: ', path);
+  const mod = require(path);
+
+  if (_.isFunction(mod.support) && !mod.support(config.dependencies)) {
+    return Promise.resolve(null);
+  } else {
+    const modules = [join(path, 'node_modules')];
+    const out = {
+      externals: {
+        css: mod.externals ? mod.externals.css : [],
+        js: mod.externals ? mod.externals.js : []
+      },
+      modules,
+      rules: mod.rules
+    };
+    logger.silly('[load] out: ', out);
+    return Promise.resolve(out);
+  }
+};
+
+export class MultiConfig implements SupportConfig {
+
+  private configs: SupportConfig[];
+
+  constructor(...c: SupportConfig[]) {
+    this.configs = c;
   }
 
-  get npmDependencies(): { [key: string]: string } {
-    return _.reduce(this.modules, (acc, c) => {
-      return _.extend(acc, c.npmDependencies);
-    }, {});
-  }
-
-  get externals(): { js: string[], css: string[] } {
-    return _.reduce(this.modules, (acc, m) => {
-      let externals = _.merge({ js: [], css: [] }, m.externals);
-      acc.js = _(externals.js).concat(acc.js).compact().sort().value();
-      acc.css = _(externals.css).concat(acc.css).compact().sort().value();
+  get externals(): { js: string[]; css: string[]; } {
+    return this.configs.reduce((acc, c) => {
+      acc.js = acc.js.concat(c.externals && Array.isArray(c.externals.js) ? _.compact(c.externals.js) : []);
+      acc.css = acc.css.concat(c.externals && Array.isArray(c.externals.css) ? _.compact(c.externals.css) : []);
       return acc;
     }, { js: [], css: [] });
   }
 
+  get modules(): string[] {
+    return this.configs.reduce((acc, c) => {
+      return acc.concat(c.modules || []);
+    }, []);
+  }
+
   get rules(): Rule[] {
-    let r: Rule[][] = _.map(this.modules, m => m.rules);
-    let flattened = _.flatten(r);
-    return _.compact(flattened);
+    return this.configs.reduce((acc, c) => {
+      return acc.concat(c.rules || []);
+    }, []);
   }
-}
-
-export default class FrameworkSupport {
-
-  /**
-   * @param frameworks - an array of objects that have a `support` function which returns {npmDependencies: , webpackLoaders: (resolve) => {}}
-   */
-  constructor(private frameworks) { }
-
-  buildConfigFromPieDependencies(dependencies, rootDir: string) {
-
-    let readSupport = (framework) => {
-      if (!framework) {
-        return;
-      }
-
-      if (_.isFunction(framework)) {
-        return framework(dependencies, rootDir);
-      } else if (_.isFunction(framework.support)) {
-        return framework.support(dependencies, rootDir);
-      } else if (_.isObject(framework)) {
-        return framework;
-      }
-    }
-
-    let rawModules = _(this.frameworks).map(readSupport).compact().value();
-    return new BuildConfig(rawModules);
-  }
-
 }

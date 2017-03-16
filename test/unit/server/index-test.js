@@ -8,7 +8,7 @@ const LIB = `${__dirname}/../../../lib`;
 
 describe('AppServer', () => {
 
-  let DefaultAppServer, instance, app, http, sockjs, httpInstance, sockInstance, sockHandlers;
+  let AppServer, instance, app, http, sockjs, httpInstance, sockInstance, sockHandlers;
 
 
   beforeEach(() => {
@@ -35,11 +35,11 @@ describe('AppServer', () => {
     sockjs = {
       createServer: stub().returns(sockInstance)
     }
-    DefaultAppServer = proxyquire(resolve(`${LIB}/server`), {
+    AppServer = proxyquire(resolve(`${LIB}/server`), {
       http: http,
       sockjs: sockjs
     }).default;
-    instance = new DefaultAppServer(app);
+    instance = new AppServer(app);
   });
 
   describe('constructor', () => {
@@ -53,7 +53,7 @@ describe('AppServer', () => {
     });
 
     it('has _sockServer', () => {
-      expect(instance._sockServer).to.eql(sockInstance);
+      expect(instance.sockServer).to.eql(sockInstance);
     });
   });
 

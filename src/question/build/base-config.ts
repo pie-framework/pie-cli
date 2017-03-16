@@ -1,5 +1,4 @@
-import { resolve, join } from 'path';
-import * as webpack from 'webpack';
+import { join, resolve } from 'path';
 
 export default (root): any => {
   return {

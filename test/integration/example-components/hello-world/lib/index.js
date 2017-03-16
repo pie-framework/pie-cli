@@ -1,3 +1,5 @@
+require('./index.less');
+
 export default class HelloWorld extends HTMLElement {
 
   connectedCallback() {
@@ -16,7 +18,7 @@ export default class HelloWorld extends HTMLElement {
 
   _render() {
     if (this._model && this._session) {
-      this.innerHTML = JSON.stringify({model: this._model, session: this._session});
+      this.innerHTML = JSON.stringify({ model: this._model, session: this._session });
     }
   }
 }

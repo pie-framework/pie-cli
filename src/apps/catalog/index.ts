@@ -1,60 +1,50 @@
 import * as _ from 'lodash';
 import * as pug from 'pug';
 
-import AllInOneBuild, { ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
 import { App, Archivable, BuildOpts, Buildable } from '../types';
-import { Names, getNames } from "../common";
+import Install, { Mappings } from '../../install';
+import { Names, getNames, webpackConfig } from '../common';
 import { archiveIgnores, createArchive } from '../create-archive';
-import { existsSync, writeFile } from 'fs-extra';
+import { controllerDependency, targetsToElements, targetsToKeyMap } from '../src-snippets';
+import { existsSync, writeFileSync } from 'fs-extra';
 import { join, resolve } from 'path';
 
 import { JsonConfig } from '../../question/config';
-import { ManifestOpts } from './../types';
+import { SupportConfig } from '../../framework-support';
 import { buildLogger } from 'log-factory';
-import { build as buildWebpack } from '../../code-gen/webpack-builder';
-import { promisify } from 'bluebird';
+import { buildWebpack } from '../../code-gen';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
-const clientDependencies = (args: any) => args.configuration.app.dependencies;
+/**
+ * Builds a bundle that is compatible with the pie-catalog web app.
+ * Used for publishing pie archives to the catalog.
+ */
+export default class CatalogApp
+  implements App, Archivable<Mappings>, Buildable<Mappings> {
 
-// TODO: seems like this could be re-used by others?
-function mkConfig(
-  context: string,
-  entry: string,
-  bundle: string,
-  rules: any[],
-  extensions: any): any {
+  public static generatedFiles: string[] = ['pie-item.tar.gz'];
 
-  entry = entry.startsWith('./') ? entry : `./${entry}`;
-
-  const out = _.merge({
-    context: resolve(context),
-    entry,
-    module: {
-      rules: [
-        { test: /\.css$/, use: ['style-loader', 'css-loader'] }
-      ]
-    },
-    output: {
-      filename: bundle,
-      path: resolve(context)
+  public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
+    const dir = resolve(args.dir || process.cwd());
+    if (!existsSync(join(dir, 'docs/demo'))) {
+      throw new Error(`Can't find a 'docs/demo' directory in path: ${dir}. Is this a pie directory?`);
     }
-  }, extensions);
-  out.module.rules = _.concat(out.module.rules, rules);
-  return out;
-}
 
-export default class CatalogApp implements App, Archivable, Buildable {
+    const config = JsonConfig.build(join(dir, 'docs/demo'), args);
 
-  public static NAMES = {
-    bundle: 'pie-catalog.bundle.js',
-    entry: '.catalog.entry.js',
-    webpackConfig: '.catalog.webpack.config.js'
-  };
+    return loadSupport(config)
+      .then((s) => {
+        return new CatalogApp(args, dir, config, s, getNames(args));
+      });
+  }
 
-  public static EXTERNALS = {
+  private static ENTRY = 'catalog.entry.js';
+  private static BUNDLE = 'pie-catalog.bundle.js';
+  private static WEBPACK_CONFIG = 'catalog.webpack.config.js';
+
+  private static EXTERNALS = {
     'lodash': '_',
     'lodash.merge': '_.merge',
     'lodash/assign': '_.assign',
@@ -72,21 +62,9 @@ export default class CatalogApp implements App, Archivable, Buildable {
     'react/lib/ReactTransitionGroup': 'React.addons.TransitionGroup'
   };
 
-  public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
-    const dir = resolve(args.dir || process.cwd());
-    if (!existsSync(join(dir, 'docs/demo'))) {
-      throw new Error(`Can't find a 'docs/demo' directory in path: ${dir}. Is this a pie directory?`);
-    }
-    const config = new JsonConfig(join(dir, 'docs/demo'));
-    return loadSupport(config)
-      .then((s) => {
-        return new CatalogApp(args, dir, config, s, getNames(args));
-      });
-  }
-
   private template: pug.compileTemplate;
-  private controllersBuild: ControllersBuild;
-  private allInOneBuild: AllInOneBuild;
+
+  private installer: Install;
 
   constructor(readonly args: any,
     private pieRoot: string,
@@ -95,64 +73,44 @@ export default class CatalogApp implements App, Archivable, Buildable {
     readonly names: Names) {
     logger.debug('new CatalogApp..');
     this.template = pug.compileFile(templatePath, { pretty: true });
-
-    this.allInOneBuild = new AllInOneBuild(
-      config,
-      support,
-      this.names.build.entryFile,
-      this.names.out.completeItemTag.path,
-      this.args.writeWebpackConfig !== false);
-    this.controllersBuild = new ControllersBuild(this.config, false);
+    this.installer = new Install(config);
   }
 
+  public async build(opts: BuildOpts): Promise<Mappings> {
 
-  public async build(opts: BuildOpts): Promise<string[]> {
-
-    await this.install(opts.forceInstall);
-
-    let deps = this.controllersBuild.controllerDependencies;
+    const mappings = await this.installer.install(opts.forceInstall);
 
     const js = `
       //controllers
-      let c = window.controllers = {};
-    ${_.map(deps, (value, key) => `c['${key}'] = require('${key}-controller');`).join('\n')}
+      let controllers = window.controllers = {};
+      ${ mappings.controllers.map(controllerDependency).join('\n')}
       
       //custom elements
       ${this.config.declarations.map((d) => d.js).join('\n')}
-    
+
+      //configure elements
+      ${targetsToElements(mappings.configure)}
     `;
 
-    await promisify(writeFile.bind(null,
-      join(this.config.dir, '.catalog.entry.js'),
-      js,
-      'utf8'))();
+    writeFileSync(join(this.installer.dir, CatalogApp.ENTRY), js, 'utf8');
 
-    const config = mkConfig(this.config.dir, CatalogApp.NAMES.entry, CatalogApp.NAMES.bundle, this.support.rules, {
-      externals: CatalogApp.EXTERNALS,
-      resolve: {
-        extensions: ['.js', '.jsx'],
-        modules: [
-          'node_modules',
-          resolve(join(this.config.dir, 'controllers/node_modules'))
-        ]
-      }
-    });
+    const config = _.merge(webpackConfig(
+      this.installer,
+      this.support,
+      CatalogApp.ENTRY,
+      CatalogApp.BUNDLE,
+      this.config.dir), {
+        externals: CatalogApp.EXTERNALS
+      });
 
     logger.info('config: ', config);
 
-    await buildWebpack(config, CatalogApp.NAMES.webpackConfig);
-    return [CatalogApp.NAMES.bundle];
+    await buildWebpack(config, CatalogApp.WEBPACK_CONFIG);
+
+    return mappings;
   }
 
-  public clean(): Promise<any> {
-    return null;
-  }
-
-  public manifest(opts: ManifestOpts) {
-    return null;
-  }
-
-  public createArchive(): Promise<string> {
+  public createArchive(mappings: Mappings): Promise<string> {
     const root = (name) => resolve(join(this.pieRoot, name));
     const archivePath = resolve(join(this.config.dir, this.names.out.archive));
     const addExtras = (archive) => {
@@ -165,6 +123,9 @@ export default class CatalogApp implements App, Archivable, Buildable {
 
       const externals = JSON.stringify(this.support.externals);
       archive.append(externals, { name: 'pie-pkg/externals.json' });
+
+      const configureMap = JSON.stringify(targetsToKeyMap(mappings.configure));
+      archive.append(configureMap, { name: 'pie-pkg/configure-map.json' });
     };
 
     const ignores = archiveIgnores(this.config.dir);
@@ -175,12 +136,5 @@ export default class CatalogApp implements App, Archivable, Buildable {
         logger.error(msg);
         throw new Error(msg);
       });
-  }
-
-  protected async install(forceInstall: boolean): Promise<void> {
-    await this.allInOneBuild.install({
-      dependencies: clientDependencies(this.args),
-      devDependencies: this.support.npmDependencies || {}
-    }, forceInstall);
   }
 }

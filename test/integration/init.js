@@ -1,5 +1,6 @@
-import { setUpTmpQuestionAndComponents } from './integration-test-helper';
+import { init } from 'log-factory';
 import { join } from 'path';
+import { setUpTmpQuestionAndComponents } from './integration-test-helper';
 import { spawnSync } from 'child_process';
 
 let getSamplesPath = () => {
@@ -14,7 +15,7 @@ let getSamplesPath = () => {
 before(function (done) {
   console.log('[INTEGRATION-TEST] init...');
   this.timeout(40000);
-
+  init(process.env.LOG_LEVEL || 'info');
   let sampleDataPath = getSamplesPath();
 
   global.it = {

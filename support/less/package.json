@@ -1,0 +1,12 @@
+{
+  "name": "less-support",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "css-loader": "^0.26.2",
+    "less": "^2.7.2",
+    "less-loader": "^2.2.3",
+    "style-loader": "^0.13.2"
+  },
+  "main": "./index.js"
+}

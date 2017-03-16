@@ -1,6 +1,7 @@
+/* tslint:disable */
 const schema = {
-  title: 'config.json',
   description: 'The schema for a question config',
+  title: 'config.json',
   type: 'object',
   properties: {
     weights: {
