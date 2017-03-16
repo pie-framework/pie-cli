@@ -7,16 +7,14 @@ By default it generates:
  * `pie-view.js` - contains all the logic for rendering, includes the individual pies, a pie-player, pie-controller and pie-control-panel. 
  * `pie-controller.js` - contains a map of pie names to their controllers, exports the map to either `window` or `exports`.
 
-You can also generate a single js file that defines a custom element with everything pre-defined by adding `--includeComplete | -C`.
+You can also generate a single js file `pie-item.js` that defines a custom element with everything pre-defined by adding `--includeComplete | -C`.
 
 ### Options
 
   <%= loadFile('common-opts.md') %>
-  `--keepBuildAssets` - keep supporting build assets (like node_modules etc) after packing has completed - default: `false`
-  `--manifestOutfile` - where to write out the manifest.json default: `null`
-  `--includeComplete` | `-C` - generate a single js file that defines a custom element with everything predefined - default: `false`
-  `--questionItemTagName` - if building using `--includeComplete` - this is the name of the custom element that is created. default: `pie-item`
-  `--questionExample` - if building using `--includeComplete` - this is the name of the example markup file that is created. default: `example.html` 
+  `--includeComplete` | `-C` - generate a single js file that defines a custom element with everything predefined - default: `false`. This also generates an example markup file `example.html`
+  `--app` | `-a` - the app type to use available types are `default` and `catalog`. For now you can just skip this and it'll use the `default` app type.
+  `--createArchive` - create an archive from the pie item dir after packing -  default: `false`. 
 
 ### Examples
 ```shell

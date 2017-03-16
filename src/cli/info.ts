@@ -14,7 +14,7 @@ class Cmd extends CliCommand {
   constructor() {
     super(
       'info',
-      'run the info server'
+      'start a server and display the pie info page.'
     );
   }
 

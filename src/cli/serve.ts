@@ -14,7 +14,7 @@ class Cmd extends CliCommand {
   constructor() {
     super(
       'serve',
-      'run a dev server'
+      'start a server and load the pie item.'
     );
   }
 
