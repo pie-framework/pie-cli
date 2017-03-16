@@ -7,11 +7,21 @@ rm -fr support/react/node_modules
 rm -fr support/less/node_modules
 rm -fr support/corespring-legacy/node_modules
 
+pwd
+
 cd support/base
-npm install
+
+pwd
+npm install --json > base.log
+
+pwd
 cd ../react
-npm install 
+npm install --json > react.log
+
+pwd
 cd ../less
-npm install
+npm install --json > less.log
+
+pwd
 cd ../corespring-legacy
-npm install
+npm install --json > corespring-legacy.log
