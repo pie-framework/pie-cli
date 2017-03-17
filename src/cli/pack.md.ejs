@@ -11,10 +11,12 @@ You can also generate a single js file `pie-item.js` that defines a custom eleme
 
 ### Options
 
-  <%= loadFile('common-opts.md') %>
+<%= loadFile('common-opts.md') %>
   `--includeComplete` | `-C` - generate a single js file that defines a custom element with everything predefined - default: `false`. This also generates an example markup file `example.html`
   `--app` | `-a` - the app type to use available types are `default` and `catalog`. For now you can just skip this and it'll use the `default` app type.
   `--createArchive` - create an archive from the pie item dir after packing -  default: `false`. 
+
+> The catalog app is used for the `pie-catalog` web app.
 
 ### Examples
 ```shell
