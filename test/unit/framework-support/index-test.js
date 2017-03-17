@@ -1,32 +1,42 @@
-import proxyquire from 'proxyquire';
-import { stub, spy } from 'sinon';
+import { spy, stub } from 'sinon';
+
 import { expect } from 'chai';
+import proxyquire from 'proxyquire';
 
 describe('framework-support', () => {
 
-  describe('BuildConfig', () => {
+  let mod, deps;
 
-    let BuildConfig;
+  beforeEach(() => {
+    deps = {
+      'fs-extra': {},
+      resolve: {},
+      './support-module': {}
+    };
+
+    mod = proxyquire('../../../lib/framework-support', deps);
+  });
+
+  describe('findModuleRoot', () => {
+
+    it('find the module root', () => {
+      deps['resolve'].sync = stub().returns('a/b/c/blah/src/index.js');
+      expect(mod.findModuleRoot('blah')).to.eql('a/b/c/blah');
+    });
+  });
+
+  describe('MultiConfig', () => {
+
+    let MultiConfig;
+
     beforeEach(() => {
-      BuildConfig = proxyquire('../../../lib/framework-support', {
-        'fs-extra': {},
-        resolve: {},
-        './support-module': {}
-      }).BuildConfig;
+      MultiConfig = mod.MultiConfig;
     });
-
-    describe('get npmDependencies', () => {
-      it('handles modules with no npmDependencies', () => {
-        let config = new BuildConfig([{}, { npmDependencies: { a: '1.0.0' } }]);
-        expect(config.npmDependencies).to.eql({ a: '1.0.0' });
-      });
-    });
-
 
     describe('rules', () => {
 
       it('flattens rules', () => {
-        let config = new BuildConfig([{ rules: [{ test: 'a' }] }, { rules: [{ test: 't' }] }]);
+        let config = new MultiConfig({ rules: [{ test: 'a' }] }, { rules: [{ test: 't' }] });
         expect(config.rules).to.eql([{ test: 'a' }, { test: 't' }]);
       });
     });
@@ -35,7 +45,7 @@ describe('framework-support', () => {
 
       let assertExternals = (modules, expected) => {
         return () => {
-          let config = new BuildConfig(modules);
+          let config = new MultiConfig(...modules);
           expect(config.externals).to.eql(expected);
         }
       }
@@ -69,123 +79,12 @@ describe('framework-support', () => {
     });
 
     it('handles modules with no externals', () => {
-      let config = new BuildConfig([{}, { externals: { js: ['a'], css: ['b'] } }]);
+      let config = new MultiConfig({}, { externals: { js: ['a'], css: ['b'] } });
       expect(config.externals).to.eql({ js: ['a'], css: ['b'] });
     });
   });
 
-  describe('buildConfigFromPieDependencies', () => {
-
-    let frameworkSupport, FrameworkSupport, supportArray;
-
-    beforeEach(() => {
-      FrameworkSupport = require('../../../lib/framework-support').default;
-      supportArray = [{
-        support: (deps) => {
-          if (deps.react) {
-            return {
-              npmDependencies: {
-                'babel-preset-react': '1.0'
-              },
-              rules: [
-                { test: 'test' }
-              ]
-            }
-          }
-        }
-      }];
-    });
-
-    let assertNpmDependencies = (expected) => {
-      it('returns a build config with npmDependencies', () => {
-        let config = frameworkSupport.buildConfigFromPieDependencies(
-          {
-            react: ['1.2.3']
-          }
-        );
-        expect(config.npmDependencies).to.eql(expected);
-      });
-    }
-
-    let assertRules = (expected) => {
-      it('returns the rules', () => {
-        let config = frameworkSupport.buildConfigFromPieDependencies({
-          react: ['1.2.3']
-        });
-        expect(config.rules).to.eql([expected]);
-
-      });
-    }
-    // let assertWebpackLoaders = (expected) => {
-    //   it('returns the webpack loaders', () => {
-    //     let config = frameworkSupport.buildConfigFromPieDependencies({
-    //       react: ['1.2.3']
-    //     });
-    //     expect(config.webpackLoaders()).to.eql([expected]);
-    //   });
-    // }
-
-    describe('with support function', () => {
-      beforeEach(() => {
-        frameworkSupport = new FrameworkSupport(supportArray);
-      });
-
-      assertNpmDependencies({ 'babel-preset-react': '1.0' });
-      assertRules({ test: 'test' });
-    });
-
-    describe('with default function', () => {
-      beforeEach(() => {
-        frameworkSupport = new FrameworkSupport([function () {
-          return {
-            npmDependencies: {
-              'babel-preset-react': '1.0'
-            },
-            rules: [
-              { test: 'test' }
-            ]
-          }
-        }]);
-      });
-
-      assertNpmDependencies({ 'babel-preset-react': '1.0' });
-      assertRules({ test: 'test' });
-    });
-
-    describe('with object', () => {
-      beforeEach(() => {
-        frameworkSupport = new FrameworkSupport([
-          {
-            npmDependencies: {
-              'babel-preset-react': '1.0'
-            },
-            rules: [{ test: 'test' }]
-          }
-        ]);
-      });
-
-      assertNpmDependencies({ 'babel-preset-react': '1.0' });
-      assertRules({ test: 'test' });
-    });
-
-
-    describe('with null', () => {
-      let config;
-      beforeEach(() => {
-        frameworkSupport = new FrameworkSupport([null]);
-
-        config = frameworkSupport.buildConfigFromPieDependencies({
-          react: ['1.2.3']
-        });
-      });
-
-      it('returns an empty npm dependency object', () => {
-        expect(config.npmDependencies).to.eql({});
-      });
-
-      it('returns an empty rules array', () => {
-        expect(config.rules).to.eql([]);
-      });
-    });
+  xdescribe('load', () => {
+    it('loads from package', () => { });
   });
 });

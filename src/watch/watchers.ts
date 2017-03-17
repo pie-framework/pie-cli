@@ -1,10 +1,11 @@
 import * as _ from 'lodash';
 import * as chokidar from 'chokidar';
-import * as fs from 'fs-extra';
 import * as touch from 'touch';
 
+import { copy, remove } from 'fs-extra';
 import { join, relative, resolve } from 'path';
 
+import { Dirs } from '../install';
 import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
@@ -52,22 +53,22 @@ export class BaseWatch implements Roots, Watch {
     });
 
     /**
-     * Note: There appears to be a bug in the new webpack where simply copying a file that sits in a 
-     * dependency graph won't push the changes through. Adding a `touch` to force it through. 
-     * TODO: try and recreate the issue in a sample project: 
+     * Note: There appears to be a bug in the new webpack where simply copying a file that sits in a
+     * dependency graph won't push the changes through. Adding a `touch` to force it through.
+     * TODO: try and recreate the issue in a sample project:
      * @see https://github.com/PieLabs/pie-cli/issues/99
-     * @param path 
-     * @param dest 
+     * @param path - the path to copy
+     * @param dest - the destination
      */
     const copyThenTouch = (path, dest) => {
       logger.silly(`copy ${path} -> ${dest}`);
-      fs.copy(path, dest, (e) => {
+      copy(path, dest, (e) => {
         if (!e) {
           logger.silly(`touch ${dest}`);
           setTimeout(() => {
-            touch(dest, (e) => {
-              if (e) {
-                logger.error(e);
+            touch(dest, err => {
+              if (err) {
+                logger.error(err);
               }
             });
           }, 10);
@@ -91,7 +92,7 @@ export class BaseWatch implements Roots, Watch {
 
     const onUnlink = (path) => {
       logger.debug(`File unlinked: ${path} - delete`);
-      fs.remove(this.getDestination(path));
+      remove(this.getDestination(path));
     };
 
     const onError = (e) => logger.error(e);
@@ -112,34 +113,51 @@ export class BaseWatch implements Roots, Watch {
 
 export class PackageWatch extends BaseWatch {
   constructor(private name: string,
-    private relativePath: string,
-    readonly rootDir: string,
+    readonly pkgDir: string,
+    readonly targetDir: string,
     ignore: (string | RegExp)[] = []) {
     super(ignore);
   }
 
   get srcRoot() {
-    return resolve(this.rootDir, this.relativePath);
+    return this.pkgDir;
   }
 
   get targetRoot() {
-    return resolve(join(this.rootDir, 'node_modules', this.name));
+    return resolve(join(this.targetDir, 'node_modules', this.name));
   }
 }
 
+/**
+ * TODO: These watches below should not be hard coding the expected name of the lib.
+ */
+export class PieConfigureWatch extends BaseWatch {
 
-export class PieControllerWatch extends BaseWatch {
-
-  constructor(private name, private relativePath, private rootDir) {
+  constructor(private pkgDir: string, private targetDir: string, private moduleName: string) {
     super([]);
   }
 
   get srcRoot() {
-    return resolve(join(this.rootDir, this.relativePath, 'controller'));
+    return resolve(join(this.pkgDir, 'configure'));
   }
 
   get targetRoot() {
-    return resolve(join(this.rootDir, 'controllers', 'node_modules', `${this.name}-controller`));
+    return resolve(join(this.targetDir, `node_modules`, this.moduleName));
+  }
+}
+
+export class PieControllerWatch extends BaseWatch {
+
+  constructor(private pkgDir: string, private targetDir: string, private moduleName: string) {
+    super([]);
+  }
+
+  get srcRoot() {
+    return resolve(join(this.pkgDir, 'controller'));
+  }
+
+  get targetRoot() {
+    return resolve(join(this.targetDir, `node_modules`, this.moduleName));
   }
 }
 
@@ -147,16 +165,29 @@ export class PieWatch {
 
   private client;
   private controller;
+  private configure;
+  constructor(
+    name: string,
+    pieItemDir: string,
+    relativePath: string,
+    installDirs: Dirs,
+    targets: { controller: string, configure: string }) {
+    logger.debug('[PieWatch] constructor: ', name, relativePath, pieItemDir, installDirs, targets);
+    const pkgDir = resolve(join(pieItemDir, relativePath));
+    this.client = new PackageWatch(name, pkgDir, installDirs.root, [/.*controller.*/, /.*configure.*/]);
+    this.controller = new PieControllerWatch(pkgDir, installDirs.controllers, targets.controller);
 
-  constructor(name, relativePath, rootDir) {
-    logger.debug('[PieWatch] constructor: ', name, relativePath, rootDir);
-    this.client = new PackageWatch(name, relativePath, rootDir, [/.*controller.*/]);
-    this.controller = new PieControllerWatch(name, relativePath, rootDir);
+    if (targets.configure) {
+      this.configure = new PieConfigureWatch(pkgDir, installDirs.configure, targets.configure);
+    }
   }
 
   public start() {
     this.client.start();
     this.controller.start();
+    if (this.configure) {
+      this.configure.start();
+    }
   }
 }
 

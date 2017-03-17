@@ -1,4 +1,5 @@
-import { assert, stub, match, spy } from 'sinon';
+import { assert, match, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 
@@ -14,15 +15,14 @@ describe('catalog', () => {
       },
       'fs-extra': {
         existsSync: stub().returns(true),
-        writeFile: stub()
+        writeFileSync: stub()
       },
       '../create-archive': {
         createArchive: stub().returns(Promise.resolve('archive.tar.gz')),
         archiveIgnores: stub().returns([])
       },
-      '../../code-gen/webpack-builder': {
-        mkConfig: stub().returns({}),
-        build: stub().returns(Promise.resolve({}))
+      '../../code-gen': {
+        buildWebpack: stub().returns(Promise.resolve({}))
       },
       'bluebird': {
         promisify: spy(function (fn) {
@@ -67,31 +67,10 @@ describe('catalog', () => {
 
   });
 
-  describe('install', () => {
-
-    beforeEach(() => {
-      catalog.allInOneBuild = {
-        install: stub().returns(Promise.resolve())
-      }
-    });
-
-    it('calls allInOne.install', () => {
-      return catalog.install(false)
-        .then(() => {
-          assert.calledWith(catalog.allInOneBuild.install, {
-            dependencies: {},
-            devDependencies: {}
-          },
-            false
-          );
-        })
-    });
-  });
-
   describe('build', () => {
     let result;
     beforeEach(() => {
-      catalog.install = stub().returns(Promise.resolve([]));
+      catalog.installer.install = stub().returns(Promise.resolve({ controllers: [], configure: [] }));
       catalog.support = {
         rules: []
       }
@@ -101,20 +80,22 @@ describe('catalog', () => {
     });
 
     it('calls install', () => {
-      assert.called(catalog.install);
+      assert.called(catalog.installer.install);
     });
 
-    it('calls writeFile', () => {
-      assert.calledWith(deps['fs-extra'].writeFile, 'dir/.catalog.entry.js');
+    it('calls writeFileSync', () => {
+      assert.calledWith(deps['fs-extra'].writeFileSync, 'dir/.pie/catalog.entry.js');
     });
 
     it('calls buildWebpack', () => {
-      assert.calledWith(deps['../../code-gen/webpack-builder'].build, match.object, '.catalog.webpack.config.js')
+      assert.calledWith(deps['../../code-gen'].buildWebpack, match.object, 'catalog.webpack.config.js');
     });
 
-    it('returns the bundle name', () => {
-      expect(result).to.eql([NAMES.bundle]);
-    })
+    xit('assert webpack config object', () => { });
+
+    it('returns mappings', () => {
+      expect(result).to.eql({ controllers: [], configure: [] });
+    });
 
   });
 
@@ -132,7 +113,12 @@ describe('catalog', () => {
           addExtras = ae;
           return Promise.resolve(name);
         });
-      catalog.createArchive();
+      catalog.createArchive({
+        controllers: [], configure: [{
+          pie: 'my-pie',
+          target: 'my-pie-configure'
+        }]
+      });
       addExtras(archive);
       done();
 
@@ -160,6 +146,10 @@ describe('catalog', () => {
 
     it('calls archive.append for externals.json', () => {
       assert.calledWith(archive.append, JSON.stringify(support.externals), { name: 'pie-pkg/externals.json' });
+    });
+
+    it('calls archive.append for configure-map.json', () => {
+      assert.calledWith(archive.append, JSON.stringify({ 'my-pie': 'my-pie-configure' }), { name: 'pie-pkg/configure-map.json' });
     });
 
     describe('when schemas does not exist', () => {

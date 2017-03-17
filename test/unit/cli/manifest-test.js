@@ -1,11 +1,10 @@
 import { assert, stub } from 'sinon';
-import { loadStubApp, runCmd } from './helper';
 
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 
 describe('manifest', () => {
-  let cmd, app, stubbed, cmdResult;
+  let mod, cmd, app, cmdResult, deps;
 
   beforeEach(() => {
     app = {
@@ -13,17 +12,23 @@ describe('manifest', () => {
       build: stub()
     }
 
-    stubbed = loadStubApp('../../../lib/cli/manifest', app);
-    cmd = stubbed.module.default;
+    deps = {
+      '../apps': {
+        loadApp: stub().returns(app)
+      }
+    }
+
+    mod = proxyquire('../../../lib/cli/manifest', deps);
+    cmd = mod.default;
   });
 
   describe('run', () => {
 
     describe('with dir', () => {
-      beforeEach((done) => runCmd(cmd, {}, done));
+      beforeEach(() => cmd.run({}));
 
       it('calls loadApp', () => {
-        assert.calledWith(stubbed.loadApp, {});
+        assert.calledWith(deps['../apps'].loadApp, {});
       });
 
       it('calls app.manifest', () => {
@@ -32,10 +37,10 @@ describe('manifest', () => {
     });
 
     describe('with dir and outfile', () => {
-      beforeEach((done) => runCmd(cmd, { dir: 'dir', outfile: 'out.json' }, done));
+      beforeEach(() => cmd.run({ dir: 'dir', outfile: 'out.json' }));
 
       it('calls loadApp', () => {
-        assert.calledWith(stubbed.loadApp, { dir: 'dir', outfile: 'out.json' });
+        assert.calledWith(deps['../apps'].loadApp, { dir: 'dir', outfile: 'out.json' });
       });
 
       it('calls app.manifest', () => {
@@ -44,10 +49,10 @@ describe('manifest', () => {
     });
 
     describe('with dir', () => {
-      beforeEach((done) => runCmd(cmd, { dir: 'dir' }, done));
+      beforeEach(() => cmd.run({ dir: 'dir' }));
 
       it('calls loadApp', () => {
-        assert.calledWith(stubbed.loadApp, { dir: 'dir' });
+        assert.calledWith(deps['../apps'].loadApp, { dir: 'dir' });
       });
 
       it('calls app.manifest', () => {

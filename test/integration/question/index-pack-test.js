@@ -1,7 +1,8 @@
+import { packExample, setUpTmpQuestionAndComponents } from '../integration-test-helper';
+
 import { expect } from 'chai';
 import fs from 'fs-extra';
 import { join } from 'path';
-import { packExample, setUpTmpQuestionAndComponents } from '../integration-test-helper';
 
 describe('Question', () => {
 
@@ -14,16 +15,15 @@ describe('Question', () => {
     let tmpPath = setUpTmpQuestionAndComponents('index-pack-test');
     questionPath = `${tmpPath}/example-questions/one`;
     console.log('questionPath: ', questionPath);
-    let configuration = require('../../../lib/cli/configuration').default;
-    return packCmd.run({ dir: questionPath, includeComplete: true, configuration: configuration });
+    return packCmd.run({ dir: questionPath, includeComplete: true });
   });
 
   it('builds pie-view.js', () => {
     expect(fs.existsSync(join(questionPath, 'pie-view.js'))).to.eql(true);
   });
 
-  it('builds pie-controller.js', () => {
-    expect(fs.existsSync(join(questionPath, 'pie-controller.js'))).to.eql(true);
+  it('builds pie-controllers.js', () => {
+    expect(fs.existsSync(join(questionPath, 'pie-controllers.js'))).to.eql(true);
   });
 
   it('builds pie-item.js', () => {

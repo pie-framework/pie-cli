@@ -1,26 +1,28 @@
 import * as express from 'express';
-import * as http from 'http';
 import * as jsesc from 'jsesc';
 import * as pug from 'pug';
 import * as webpack from 'webpack';
 import * as webpackMiddleware from 'webpack-dev-middleware';
 
-import AllInOneBuild, { ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
-import { App, Servable, ServeOpts } from '../types';
-import AppServer, { utils as su } from '../../server';
-import { Names, clientDependencies, getNames } from '../common';
-import { existsSync, readFileSync, readJsonSync } from 'fs-extra';
+import { App, Servable, ServeOpts, ServeResult } from '../types';
+import AppServer, { linkCompilerToServer } from '../../server';
+import { existsSync, readFileSync, readJsonSync, writeFileSync } from 'fs-extra';
 import { join, resolve } from 'path';
 
+import Install from '../../install';
 import { JsonConfig } from '../../question/config';
+import { SupportConfig } from './../../framework-support';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
+import { webpackConfig } from '../common';
 import { writeConfig } from '../../code-gen/webpack-write-config';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
 export default class InfoApp implements App, Servable {
+
+  public static generatedFiles: string[] = [];
 
   public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
 
@@ -30,34 +32,28 @@ export default class InfoApp implements App, Servable {
       throw new Error(`Can't find a 'docs/demo' directory in path: ${dir}. Is this a pie directory?`);
     }
 
-    const config = new JsonConfig(join(dir, 'docs/demo'));
+    const config = JsonConfig.build(join(dir, 'docs/demo'), args);
 
     return loadSupport(config)
       .then((s) => {
-        return new InfoApp(args, dir, config, s, getNames(args));
+        return new InfoApp(args, dir, config, s);
       });
   }
 
-  private allInOneBuild: AllInOneBuild;
-  private controllersBuild: ControllersBuild;
+  private static BUNDLE = 'info.bundle.js';
+  private static ENTRY = 'info.entry.js';
+
   private template: any;
+  private installer: Install;
 
   constructor(private args: any,
     private pieRoot: string,
     readonly config: JsonConfig,
-    private support: SupportConfig,
-    private names: Names) {
-
-    this.allInOneBuild = new AllInOneBuild(
-      config,
-      support,
-      this.names.build.entryFile,
-      this.names.out.completeItemTag.path,
-      this.args.writeWebpackConfig !== false);
-
-    this.controllersBuild = new ControllersBuild(config, false);
+    private support: SupportConfig) {
 
     this.template = pug.compileFile(templatePath);
+
+    this.installer = new Install(config);
   }
 
   /**
@@ -67,30 +63,20 @@ export default class InfoApp implements App, Servable {
     return [
       resolve(join(this.pieRoot, 'README.md')),
       resolve(join(this.pieRoot, 'package.json')),
-    ]
+    ];
   }
 
-  public clean(): Promise<any> {
-    return null;
-  }
-
-  public async server(opts: ServeOpts): Promise<{
-    server: http.Server,
-    reload: (n: string) => void
-  }> {
+  public async server(opts: ServeOpts): Promise<ServeResult> {
     logger.silly('[server] opts:', opts);
-    await this.install(opts.forceInstall);
+    const mappings = await this.installer.install(opts.forceInstall);
 
     const js = entryJs(
       this.config.declarations,
-      this.controllersBuild.controllerDependencies,
+      mappings,
       AppServer.SOCK_PREFIX);
 
-    const config = this.allInOneBuild.webpackConfig(js);
-
-    config.resolve.modules.push(resolve(join(__dirname, '../../../node_modules')));
-    config.resolveLoader.modules.push(resolve(join(__dirname, '../../../node_modules')));
-
+    writeFileSync(join(this.installer.dir, InfoApp.ENTRY), js, 'utf8');
+    const config = webpackConfig(this.installer, this.support, InfoApp.ENTRY, InfoApp.BUNDLE);
 
     const cssRule = config.module.rules.find((r) => {
       const match = r.test.source === '\\.css$';
@@ -109,7 +95,7 @@ export default class InfoApp implements App, Servable {
       ],
     }].concat(config.module.rules);
 
-    writeConfig(join(this.config.dir, 'info.config.js'), config);
+    writeConfig(join(this.installer.dirs.root, 'info.webpack.config.js'), config);
 
     const compiler = webpack(config);
     const r = this.router(compiler);
@@ -118,10 +104,7 @@ export default class InfoApp implements App, Servable {
 
     const server = new AppServer(app);
 
-    /** Note: delay linking the compiler to give it time to flush out the initial compilations */
-    setTimeout(() => {
-      su.linkCompilerToServer('main', compiler, server);
-    }, 5000);
+    linkCompilerToServer('main', compiler, server);
 
     const reload = (name) => {
       logger.info('File Changed: ', name);
@@ -129,7 +112,12 @@ export default class InfoApp implements App, Servable {
       server.reload(name);
     };
 
-    return { server: server.httpServer, reload };
+    return {
+      dirs: this.installer.dirs,
+      mappings,
+      reload,
+      server: server.httpServer,
+    };
   }
 
   private router(compiler: webpack.Compiler): express.Router {
@@ -141,7 +129,7 @@ export default class InfoApp implements App, Servable {
       publicPath: '/'
     });
 
-    middleware.waitUntilValid(function () {
+    middleware.waitUntilValid(() => {
       logger.info('[middleware] ---> Package is in a valid state');
     });
 
@@ -156,8 +144,8 @@ export default class InfoApp implements App, Servable {
 
         demo: {
           config: {
-            elementModels: this.config.elementModels,
-            models: this.config.pieModels
+            elementModels: this.config.elementModels(this.installer.installedPies),
+            models: this.config.pieModels(this.installer.installedPies)
           },
           markup: jsesc(this.config.markup),
         },
@@ -169,10 +157,10 @@ export default class InfoApp implements App, Servable {
           repo: pkg.name,
           tag: pkg.version
         },
-        js: [
+        js: this.support.externals.js.concat([
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
-          this.allInOneBuild.fileout,
-        ],
+          `/${InfoApp.BUNDLE}`
+        ]),
         orgRepo: {
           repo: pkg.name,
         }
@@ -187,13 +175,4 @@ export default class InfoApp implements App, Servable {
     router.use(express.static(this.config.dir));
     return router;
   }
-
-
-  private async install(forceInstall: boolean): Promise<void> {
-    await this.allInOneBuild.install({
-      dependencies: clientDependencies(this.args),
-      devDependencies: this.support.npmDependencies || {},
-    }, forceInstall);
-  }
-
 }

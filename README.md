@@ -115,6 +115,35 @@ This creates a new github release from the `develop` branch:
 npm run release
 ```
 
+
+## Architecture Notes 
+
+When you run any of the commands that generate/serve js you are running one or more webpack builds via an `App`. For example `pie info` uses the `InfoApp` which has a `serve` function. This method will run an `install` then run a server that will make use of `webpack-dev-middleware`.
+
+The high level flow is: `cmd` -> `install` -> `prepare webpack config(s)` -> `run webpack build` | `run webpack-dev-middleware`. 
+
+###  .pie - build directory
+
+When you install, you are installing the dependencies for your `pie` package.
+This happens in a directory called `.pie` that is relative to the `pie item` directory.
+
+Inside the `.pie` directory is: 
+* `package.json` - the install generated package.json that lists the pies that are dependencies
+* `.controllers` - the controllers install directory for controller related dependencies
+* `.configure` - the configure install directory for configure related dependencies.
+* `*.entry.js` - entry files for the given app type
+* `*.config.js` - webpack config js files (useful for debugging builds)
+
+### build support
+
+The webpack builds inside `.pie` make use of some pre-installed support directories that are located in `pie-cli/support`. They are npm packages that get installed along with `pie-cli`. Their `node_modules` directories are added to the webpack `resolve.modules` and `resolveLoader.modules` arrays. 
+
+They also contain `rules` that can be added to a webpack config. All the apps in `pie-cli` make use of any rules in the default support packages.
+
+We do this to speed up intallation by only having to install these once. It gives greater control over supporting libs are added to the webpack build.
+
+The support package is a standard npm package and we hope to enable the inclusion of external support packages via command line options for custom builds.
+
 ##### Credits
 
 > Special thanks to Ken Pratt @kenpratt for the `pie` npm package name

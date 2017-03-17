@@ -1,86 +1,71 @@
 import * as express from 'express';
-import * as http from 'http';
 import * as jsesc from 'jsesc';
 import * as pug from 'pug';
 import * as webpack from 'webpack';
 import * as webpackMiddleware from 'webpack-dev-middleware';
 
-import AllInOneBuild, { ControllersBuild, SupportConfig } from '../../question/build/all-in-one';
-import { App, Servable, ServeOpts } from '../types';
-import AppServer, { utils as su } from '../../server';
-import { Names, getNames } from "../common";
+import { App, Servable, ServeOpts, ServeResult } from '../types';
+import AppServer, { linkCompilerToServer } from '../../server';
 import { join, resolve } from 'path';
 
-import { ElementDeclaration } from './../../code-gen/declaration';
+import Install from '../../install';
 import { JsonConfig } from '../../question/config';
+import { SupportConfig } from '../../framework-support';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
+import { webpackConfig } from '../common';
+import { writeConfig } from '../../code-gen/webpack-write-config';
+import { writeFileSync } from 'fs-extra';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
-const clientDependencies = (args: any) => args.configuration.app.dependencies;
-
 export default class ItemApp implements App, Servable {
+
+  public static generatedFiles: string[] = [];
 
   public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
 
     const dir = resolve(args.dir || process.cwd());
-    const config = new JsonConfig(dir);
+    const config = JsonConfig.build(dir, args);
 
     return loadSupport(config)
       .then((s) => {
-        return new ItemApp(args, config, s, getNames(args));
+        return new ItemApp(args, config, s);
       });
   }
 
-  private allInOneBuild: AllInOneBuild;
-  private controllersBuild: ControllersBuild;
+  private static BUNDLE: string = 'item.bundle.js';
+  private static ENTRY: string = 'item.entry.js';
+
   private template: any;
+  private installer: Install;
 
   constructor(private args: any,
     readonly config: JsonConfig,
-    private support: SupportConfig,
-    private names: Names) {
+    private support: SupportConfig) {
 
-    this.allInOneBuild = new AllInOneBuild(
-      config,
-      support,
-      this.names.build.entryFile,
-      this.names.out.completeItemTag.path,
-      this.args.writeWebpackConfig !== false);
-
-    this.controllersBuild = this.allInOneBuild.controllers;
+    this.installer = new Install(config);
 
     this.template = pug.compileFile(templatePath);
-  }
-
-  public clean() {
-    return null;
   }
 
   public watchableFiles(): string[] {
     return [];
   }
 
-  public async server(opts: ServeOpts): Promise<{
-    server: http.Server,
-    reload: (n: string) => void
-  }> {
+  public async server(opts: ServeOpts): Promise<ServeResult> {
     logger.silly('[server] opts:', opts);
-    await this.install(opts.forceInstall);
+    const mappings = await this.installer.install(opts.forceInstall);
 
     const js = entryJs(
       this.config.declarations,
-      this.controllersBuild.controllerDependencies,
+      mappings.controllers,
       AppServer.SOCK_PREFIX);
 
-    const config = this.allInOneBuild.webpackConfig(js);
-
-    config.resolve.modules.push(resolve(join(__dirname, '../../../node_modules')));
-    config.resolveLoader.modules.push(resolve(join(__dirname, '../../../node_modules')));
-
-    //writeConfig(join(this.config.dir, 'info.config.js'), config);
+    writeFileSync(join(this.installer.dirs.root, ItemApp.ENTRY), js, 'utf8');
+    const config = webpackConfig(this.installer, this.support, ItemApp.ENTRY, ItemApp.BUNDLE, this.config.dir);
+    writeConfig(join(this.installer.dirs.root, 'item.webpack.config.js'), config);
 
     const compiler = webpack(config);
     const r = this.router(compiler);
@@ -89,7 +74,7 @@ export default class ItemApp implements App, Servable {
 
     const server = new AppServer(app);
 
-    su.linkCompilerToServer('main', compiler, server);
+    linkCompilerToServer('main', compiler, server);
 
     const reload = (name) => {
       logger.info('File Changed: ', name);
@@ -97,7 +82,12 @@ export default class ItemApp implements App, Servable {
       server.reload(name);
     };
 
-    return { server: server.httpServer, reload };
+    return {
+      dirs: this.installer.dirs,
+      mappings,
+      reload,
+      server: server.httpServer
+    };
   }
 
   private router(compiler: webpack.Compiler): express.Router {
@@ -109,7 +99,7 @@ export default class ItemApp implements App, Servable {
       publicPath: '/'
     });
 
-    middleware.waitUntilValid(function () {
+    middleware.waitUntilValid(() => {
       logger.info('[middleware] ---> Package is in a valid state');
     });
 
@@ -118,18 +108,18 @@ export default class ItemApp implements App, Servable {
     router.get('/', (req, res) => {
 
       const page = this.template({
-
+        css: this.support.externals.css,
         demo: {
           config: {
-            elementModels: this.config.elementModels,
-            models: this.config.pieModels
+            elementModels: this.config.elementModels(this.installer.installedPies),
+            models: this.config.pieModels(this.installer.installedPies)
           },
           markup: jsesc(this.config.markup),
         },
-        js: [
+        js: this.support.externals.js.concat([
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
-          this.allInOneBuild.fileout
-        ]
+          `/${ItemApp.BUNDLE}`
+        ]),
       });
 
       res
@@ -140,12 +130,5 @@ export default class ItemApp implements App, Servable {
 
     router.use(express.static(this.config.dir));
     return router;
-  }
-
-  private async install(forceInstall: boolean): Promise<void> {
-    await this.allInOneBuild.install({
-      dependencies: clientDependencies(this.args),
-      devDependencies: this.support.npmDependencies || {},
-    }, forceInstall);
   }
 }

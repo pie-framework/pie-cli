@@ -1,6 +1,7 @@
+import { assert, match, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
 import proxyquire from 'proxyquire'
-import { spy, stub, assert, match } from 'sinon';
 import { resolve } from 'path';
 
 describe('watchers', () => {
@@ -129,7 +130,7 @@ describe('watchers', () => {
     let watch;
 
     beforeEach(() => {
-      watch = new watchers.PackageWatch('my-pie', '../../my-pie', '.', []);
+      watch = new watchers.PackageWatch('my-pie', '../../my-pie', './.pie', []);
     });
 
     describe('constructor', () => {
@@ -144,13 +145,13 @@ describe('watchers', () => {
 
     describe('srcRoot', () => {
       it('points to the pie controller dir', () => {
-        expect(watch.srcRoot).to.eql(resolve('.', '../../my-pie'));
+        expect(watch.srcRoot).to.eql('../../my-pie');
       });
     });
 
     describe('targetRoot', () => {
       it('points to the target', () => {
-        expect(watch.targetRoot).to.eql(resolve('./node_modules/my-pie'));
+        expect(watch.targetRoot).to.eql(resolve('./.pie/node_modules/my-pie'));
       });
     });
   });
@@ -159,7 +160,7 @@ describe('watchers', () => {
     let watch;
 
     beforeEach(() => {
-      watch = new watchers.PieControllerWatch('my-pie', '../../my-pie', '.');
+      watch = new watchers.PieControllerWatch('../../my-pie', './.pie/.controllers', 'my-pie-controller');
     });
 
     describe('constructor', () => {
@@ -176,21 +177,60 @@ describe('watchers', () => {
 
     describe('targetRoot', () => {
       it('points to the target', () => {
-        expect(watch.targetRoot).to.eql(resolve('./controllers/node_modules/my-pie-controller'));
+        expect(watch.targetRoot).to.eql(resolve('./.pie/.controllers/node_modules/my-pie-controller'));
+      });
+    });
+  });
+
+  describe('PieConfigureWatch', () => {
+    let watch;
+
+    beforeEach(() => {
+      watch = new watchers.PieConfigureWatch('../../my-pie', './.pie/.configure', 'my-pie-configure');
+    });
+
+    describe('constructor', () => {
+      it('is not null', () => {
+        expect(watch).not.eql(undefined);
+      })
+    });
+
+    describe('srcRoot', () => {
+      it('points to the pie controller dir', () => {
+        expect(watch.srcRoot).to.eql(resolve('.', '../../my-pie/configure'));
+      });
+    });
+
+    describe('targetRoot', () => {
+      it('points to the target', () => {
+        expect(watch.targetRoot).to.eql(resolve('./.pie/.configure/node_modules/my-pie-configure'));
       });
     });
   });
 
   describe('PieWatch', () => {
 
-    let watch;
+    let watch, dirs, targets;
     beforeEach(() => {
+      dirs = {
+        root: '.pie',
+        controllers: '.pie/.controllers',
+        configure: '.pie/.configure'
+      }
 
-      watch = new watchers.PieWatch('my-pie', '../../my-pie', '.');
+      targets = {
+        controller: 'my-pie-controller',
+        configure: 'my-pie-configure'
+      }
+
+      watch = new watchers.PieWatch('my-pie', '.', '../../my-pie', dirs, targets);
       watch.client = {
         start: stub()
       }
       watch.controller = {
+        start: stub()
+      }
+      watch.configure = {
         start: stub()
       }
     });
@@ -211,6 +251,9 @@ describe('watchers', () => {
 
       it('calls controller.start', () => {
         assert.called(watch.controller.start);
+      });
+      it('calls configure.start', () => {
+        assert.called(watch.configure.start);
       });
     });
   });

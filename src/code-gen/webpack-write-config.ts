@@ -1,11 +1,12 @@
-import { fileLogger } from 'log-factory';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
-let logger = fileLogger(__filename);
+import { fileLogger } from 'log-factory';
+
+const logger = fileLogger(__filename);
 
 export function configToJsString(config) {
-  let json = JSON.stringify(config, (key, value) => {
+  const json = JSON.stringify(config, (key, value) => {
     if (value instanceof RegExp) {
       return '<RE>' + value.source + '</RE>';
     } else {
@@ -13,7 +14,7 @@ export function configToJsString(config) {
     }
   }, '  ');
 
-  let tweaked = json
+  const tweaked = json
     .replace(/"<RE>(.*?)<\/RE>"/g, '/$1/')
     .replace(/\\\\/g, '\\');
 

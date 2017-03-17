@@ -1,19 +1,30 @@
+import { assert, match, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
-import { assert, stub, spy } from 'sinon';
-import { loadStubApp, runCmd } from './helper';
 
 describe('clean', () => {
 
-  let cmd, app, stubbed;
+  let cmd, app, mod, deps;
 
   beforeEach(() => {
 
     app = {
       clean: stub().returns('done')
     }
-    stubbed = loadStubApp('../../../lib/cli/clean', app);
-    cmd = stubbed.module.default;
+
+    deps = {
+      '../apps/load-app': {
+        allApps: stub().returns([])
+      },
+      '../apps/common': {
+        removeFiles: stub().returns(Promise.resolve([]))
+      }
+    };
+
+    mod = proxyquire('../../../lib/cli/clean', deps);
+
+    cmd = mod.default;
   });
 
   describe('match', () => {
@@ -25,14 +36,14 @@ describe('clean', () => {
 
   describe('run', () => {
 
-    beforeEach((done) => runCmd(cmd, { dir: 'dir' }, done));
+    beforeEach(() => cmd.run({}));
 
-    it('calls loadApp', () => {
-      assert.calledWith(stubbed.loadApp, { dir: 'dir' });
+    it('calls allApps', () => {
+      assert.called(deps['../apps/load-app'].allApps);
     });
 
-    it('calls app.clean', () => {
-      assert.called(app.clean);
+    it('calls removeFiles', () => {
+      assert.calledWith(deps['../apps/common'].removeFiles, match.string, ['.pie']);
     });
   });
 });

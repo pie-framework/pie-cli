@@ -5,7 +5,9 @@ const gulp = require('gulp'),
   tsProject = ts.createProject('tsconfig.json'),
   fsExtra = require('fs-extra'),
   runSequence = require('run-sequence'),
-  path = require('path');
+  path = require('path'),
+  spawn = require('child_process').spawn,
+  { join } = require('path');
 
 //Init custom release tasks
 releaseHelper.init(gulp);
@@ -52,3 +54,4 @@ gulp.task('build', done => runSequence('clean', ['md', 'ejs', 'pug', 'ts'], done
 gulp.task('dev', ['build', 'watch-md', 'watch-ejs', 'watch-pug', 'watch-ts']);
 
 gulp.task('test', ['unit']);
+

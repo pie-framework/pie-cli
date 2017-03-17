@@ -1,22 +1,13 @@
+import { assert, match, spy, stub } from 'sinon';
+
+import _ from 'lodash';
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
-import _ from 'lodash';
-import { assert, match, stub, spy } from 'sinon';
 
 describe('webpack-builder', () => {
 
-  let mod, stats, duplicateLoadersCtr, duplicateLoadersInstance, webpack;
+  let mod, stats, webpack;
   beforeEach(() => {
-
-    duplicateLoadersInstance = {
-      present: false,
-      error: new Error('duplicate error')
-    }
-
-    duplicateLoadersCtr = stub().returns(duplicateLoadersInstance);
-    duplicateLoadersCtr['@noCallThru'] = true;
-    duplicateLoadersCtr.fromConfig = stub().returns(duplicateLoadersInstance);
-
 
     stats = {
       hasErrors: stub().returns(false),
@@ -30,8 +21,7 @@ describe('webpack-builder', () => {
     });
 
     mod = proxyquire('../../../lib/code-gen/webpack-builder', {
-      webpack: webpack,
-      './duplicate-loaders': { default: duplicateLoadersCtr }
+      webpack: webpack
     })
   });
 
@@ -52,10 +42,7 @@ describe('webpack-builder', () => {
         done(new Error('e'));
       });
 
-      mod = proxyquire('../../../lib/code-gen/webpack-builder', {
-        webpack: webpack,
-        './duplicate-loaders': { default: duplicateLoadersCtr }
-      });
+      mod = proxyquire('../../../lib/code-gen/webpack-builder', { webpack: webpack });
 
       mod.build({})
         .then(() => done(new Error('should have failed')))
@@ -79,10 +66,7 @@ describe('webpack-builder', () => {
         done(null, badStats);
       });
 
-      mod = proxyquire('../../../lib/code-gen/webpack-builder', {
-        webpack: webpack,
-        './duplicate-loaders': { default: duplicateLoadersCtr }
-      });
+      mod = proxyquire('../../../lib/code-gen/webpack-builder', { webpack: webpack });
 
       mod.build({})
         .then(() => done(new Error('should have failed')))

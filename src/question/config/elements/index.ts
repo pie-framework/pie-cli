@@ -50,6 +50,7 @@ export class LocalPackage implements Element {
 export class PiePackage implements Element {
 
   public static CONTROLLER = 'controller';
+  public static CONFIGURE = 'configure';
 
   public static build(root: string, key: string, value: string) {
 
@@ -66,6 +67,10 @@ export class PiePackage implements Element {
 
   get controllerDir() {
     return join(this.value, PiePackage.CONTROLLER);
+  }
+
+  get configureDir() {
+    return join(this.value, PiePackage.CONFIGURE);
   }
 
   get schemasDir() {

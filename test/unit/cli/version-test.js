@@ -1,6 +1,7 @@
-import proxyquire from 'proxyquire';
 import { assert, stub } from 'sinon';
+
 import { expect } from 'chai';
+import proxyquire from 'proxyquire';
 
 describe('version', () => {
 

@@ -1,18 +1,18 @@
-import { buildLogger } from 'log-factory';
 import CliCommand from './cli-command';
-import loadApp from '../apps/load-app';
-import { App } from '../apps/types';
-
-const logger = buildLogger();
+import { allApps } from '../apps/load-app';
+import { removeFiles } from '../apps/common';
 
 class CleanCommand extends CliCommand {
   constructor() {
     super('clean', 'clean build assets');
   }
 
-  async run(args) {
-    let a: App = await loadApp(args);
-    return a.clean();
+  public async run(args) {
+    args = args || {};
+    const files = allApps().reduce((acc, a) => acc.concat(a.generatedFiles || []), []);
+    const dir = args.dir || args.d || process.cwd();
+    await removeFiles(dir, ['.pie'].concat(files));
+    return files;
   }
 }
 

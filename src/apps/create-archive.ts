@@ -1,19 +1,22 @@
+import * as _ from 'lodash';
 import * as archiver from 'archiver';
-import { existsSync, readFileSync, createWriteStream } from 'fs-extra';
+
+import { createWriteStream, existsSync, readFileSync } from 'fs-extra';
+
 import { buildLogger } from 'log-factory';
 import { join } from 'path';
-import * as _ from 'lodash';
 
 export { archiver };
 
 const logger = buildLogger();
+
 export function archiveIgnores(dir: string) {
-  let gitIgnorePath = join(dir, '.gitignore');
-  let gitIgnores = existsSync(gitIgnorePath) ? readFileSync(gitIgnorePath, 'utf8').split('\n').map(s => s.trim()) : [];
+  const gitIgnorePath = join(dir, '.gitignore');
+  const gitIgnores = existsSync(gitIgnorePath) ?
+    readFileSync(gitIgnorePath, 'utf8').split('\n').map(s => s.trim()) : [];
 
   return _(gitIgnores).concat([
-    'node_modules/**',
-    'controllers/**',
+    '.pie',
     '\.*',
     'package.json',
     '*.tar.gz'
@@ -24,29 +27,26 @@ export function createArchive(
   name: string,
   cwd: string,
   ignore: string[],
-  addExtras: (any) => void): Promise<string> {
+  addExtras: (a: any) => void): Promise<string> {
   return new Promise<string>((resolve, reject) => {
 
-    let archiveName = name.endsWith('.tar.gz') ? name : `${name}.tar.gz`;
+    const archiveName = name.endsWith('.tar.gz') ? name : `${name}.tar.gz`;
 
-    let output = createWriteStream(archiveName);
-    let archive = archiver('tar', { gzip: true });
+    const output = createWriteStream(archiveName);
+    const archive = archiver('tar', { gzip: true });
 
-    output.on('close', function () {
+    output.on('close', () => {
       logger.debug(archiveName, (archive as any).pointer() + ' total bytes');
       resolve(archiveName);
     });
 
-    archive.on('error', function (err) {
+    archive.on('error', (err) => {
       reject(err);
     });
 
     archive.pipe(output);
 
-    archive.glob('**', {
-      cwd: cwd,
-      ignore: ignore,
-    });
+    archive.glob('**', { cwd, ignore });
 
     addExtras(archive);
 

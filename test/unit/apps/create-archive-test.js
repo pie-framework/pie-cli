@@ -1,5 +1,6 @@
+import { assert, match, spy, stub } from 'sinon';
+
 import { expect } from 'chai';
-import { stub, match, assert, spy } from 'sinon';
 import proxyquire from 'proxyquire';
 
 describe('create-archive', () => {
@@ -58,12 +59,10 @@ describe('create-archive', () => {
       });
     };
 
-    includes('node_modules/**');
-    includes('controllers/**');
+    includes('.pie');
     includes('\.*');
     includes('package.json');
     includes('*.tar.gz');
-    includes('.git-file');
   });
 
   describe('createArchive', () => {

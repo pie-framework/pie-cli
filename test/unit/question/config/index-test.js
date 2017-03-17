@@ -6,7 +6,7 @@ import proxyquire from 'proxyquire';
 
 describe('JsonConfig', () => {
 
-  let c, mod, Config, fsExtra, validator, raw, rawConfig, elements;
+  let c, mod, Config, fsExtra, validator, raw, rawConfig, elements, deps;
 
   let realElements = require('../../../../lib/question/config/elements');
 
@@ -61,18 +61,21 @@ describe('JsonConfig', () => {
         }
       }
     }
-    mod = proxyquire('../../../../lib/question/config', {
+    deps = {
       'fs-extra': fsExtra,
-      '../../npm/dependency-helper': {
+      '../../npm': {
         hash: stub().returns('xxxx')
       },
-      '../../code-gen/declaration': declaration,
+      '../../code-gen': declaration,
       './elements': elements,
-      './raw': raw,
-      './validator': validator
-    });
-  });
+      './validator': validator,
+      './types': {
+        fromPath: stub().returns(rawConfig)
+      }
+    };
 
+    mod = proxyquire('../../../../lib/question/config', deps);
+  });
 
   let init = (filenames) => {
     return new mod.JsonConfig('dir', filenames);
@@ -90,7 +93,7 @@ describe('JsonConfig', () => {
       });
 
       it('calls fromPath', () => {
-        assert.calledWith(raw.fromPath, 'dir/config.json');
+        assert.calledWith(deps['./types'].fromPath, 'dir/config.json');
       });
 
       it('calls validate', () => {
@@ -104,11 +107,11 @@ describe('JsonConfig', () => {
         c.reload();
       });
 
-      it('calls raw._readRaw()', () => {
-        assert.calledTwice(raw.fromPath);
+      it('calls readRaw()', () => {
+        assert.calledTwice(deps['./types'].fromPath);
       });
 
-      it('calls raw._readRaw()', () => {
+      it('calls validator.validate()', () => {
         assert.calledWith(validator.validate, rawConfig, match.array);
       });
     });
@@ -147,7 +150,7 @@ describe('JsonConfig', () => {
 
       it('returns local file declaration', () => {
         let localFile = _.find(declarations, c => c.key === 'local-file');
-        expect(localFile.value).to.eql('local-file.js');
+        expect(localFile.value).to.match(/.*local-file.js$/);
       });
 
       it('returns non local file declarations', () => {
@@ -203,30 +206,11 @@ describe('JsonConfig', () => {
       });
     });
 
-    describe('installedPies', () => {
-
-      beforeEach(() => {
-        fsExtra.existsSync.returns(true);
-        rawConfig.models = [
-          {
-            element: 'pie-package',
-            id: '1'
-          }
-        ]
-        c = init();
-      });
-
-      it('returns installed pies', () => {
-        expect(c.installedPies).to.eql([
-          new realElements.PiePackage('pie-package', 'pie-package')
-        ]);
-      });
-    });
 
     describe('pieModels', () => {
 
       it('returns pie only models', () => {
-        expect(c.pieModels).to.eql([
+        expect(c.pieModels([{ key: 'pie-package', target: 'pkg' }])).to.eql([
           { id: '1', element: 'pie-package' }
         ]);
       });
@@ -234,13 +218,13 @@ describe('JsonConfig', () => {
 
     describe('elementModels', () => {
       it('returns element models', () => {
-        expect(c.elementModels).to.eql([
+        expect(c.elementModels([{ key: 'pie-package', target: 'pkg' }])).to.eql([
           { id: '2', element: 'local-file' }
         ]);
       });
     });
 
-    describe('valid', () => {
+    xdescribe('valid', () => {
 
       let isValid;
 
@@ -273,7 +257,7 @@ describe('JsonConfig', () => {
 
     describe('constructor', () => {
       it('calls fromPath', () => {
-        assert.calledWith(raw.fromPath, 'dir/c.json');
+        assert.calledWith(deps['./types'].fromPath, 'dir/c.json');
       });
     });
 
