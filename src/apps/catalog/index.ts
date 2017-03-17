@@ -24,7 +24,7 @@ const templatePath = join(__dirname, 'views/index.pug');
 export default class CatalogApp
   implements App, Archivable<Mappings>, Buildable<Mappings> {
 
-  public static generatedFiles: string[] = ['pie-item.tar.gz'];
+  public static generatedFiles: string[] = ['pie-item.tar.gz', 'pie-catalog.bundle.js'];
 
   public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
     const dir = resolve(args.dir || process.cwd());
