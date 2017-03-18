@@ -25,6 +25,9 @@ export default class AppServer implements ReloadOrError, HasServer {
   constructor(app: express.Application, sockJsUrl = AppServer.SOCK_JS_URL) {
     this.httpServer = http.createServer(app);
     this.sockServer = sockjs.createServer({
+      log: () => {
+        // do nothing
+      },
       sockjs_url: sockJsUrl
     });
 
