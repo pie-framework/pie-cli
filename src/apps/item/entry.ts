@@ -21,6 +21,10 @@ ${declarations.map(e => e.js).join('\n')}
 // the catalog ui
 import CatalogDemo from 'pie-catalog-client/src/catalog-demo';
 customElements.define('catalog-demo', CatalogDemo);
+
+import DemoPane from 'pie-catalog-client/src/catalog-demo/demo-pane';
+customElements.define('demo-pane', DemoPane);
+
 import ItemPreview from 'pie-catalog-client/src/catalog-demo/item-preview';
 customElements.define('item-preview', ItemPreview);
 import ControlPanel from 'pie-catalog-client/src/catalog-demo/control-panel';
