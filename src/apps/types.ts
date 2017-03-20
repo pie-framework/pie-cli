@@ -33,13 +33,15 @@ export class ServeOpts {
     return new ServeOpts(
       args.dir || process.cwd(),
       args.port || 4000,
-      args.forceInstall === true);
+      args.forceInstall === true,
+      args.sourceMaps !== false);
   }
 
   constructor(
     readonly dir: string,
     readonly port: number,
-    readonly forceInstall: boolean) { }
+    readonly forceInstall: boolean,
+    readonly sourceMaps: boolean) { }
 
 }
 
