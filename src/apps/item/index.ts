@@ -64,7 +64,17 @@ export default class ItemApp implements App, Servable {
       AppServer.SOCK_PREFIX);
 
     writeFileSync(join(this.installer.dirs.root, ItemApp.ENTRY), js, 'utf8');
-    const config = webpackConfig(this.installer, this.support, ItemApp.ENTRY, ItemApp.BUNDLE, this.config.dir);
+
+    logger.info('add sourceMaps? ', opts.sourceMaps);
+
+    const config = webpackConfig(
+      this.installer,
+      this.support,
+      ItemApp.ENTRY,
+      ItemApp.BUNDLE,
+      this.config.dir,
+      opts.sourceMaps);
+
     writeConfig(join(this.installer.dirs.root, 'item.webpack.config.js'), config);
 
     const compiler = webpack(config);
