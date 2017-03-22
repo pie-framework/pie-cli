@@ -45,4 +45,5 @@ export default function (opts) {
       console.error(err);
       process.exit(1);
     });
+
 }

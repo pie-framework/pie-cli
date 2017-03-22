@@ -42,7 +42,8 @@ export function webpackConfig(
   support: SupportConfig,
   entry: string,
   bundle: string,
-  outpath?: string) {
+  outpath?: string,
+  sourceMaps: boolean = false) {
 
   outpath = outpath || installer.dir;
   const modules = (d: string) => resolve(join(d, 'node_modules'));
@@ -86,6 +87,11 @@ export function webpackConfig(
       modules: resolveLoaderModules
     }
   });
+
+  if (sourceMaps) {
+    out.devtool = 'eval';
+  }
+
   return out;
 };
 
