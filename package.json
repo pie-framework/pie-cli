@@ -1,6 +1,6 @@
 {
   "name": "pie",
-  "version": "6.1.0",
+  "version": "6.1.1-prerelease",
   "description": "The Portable Interaction Elements framework CLI",
   "preferGlobal": true,
   "bin": {
@@ -53,7 +53,6 @@
     "@types/temp": "^0.8.29",
     "@types/touch": "0.0.1",
     "@types/webpack": "^2.2.11",
-    "@types/winston": "2.2.0",
     "acorn": "^4.0.11",
     "babel-cli": "^6.24.0",
     "babel-core": "^6.24.0",
@@ -92,7 +91,7 @@
     "glob": "^7.1.1",
     "jsesc": "^2.4.0",
     "lodash": "^4.17.4",
-    "log-factory": "github:pielabs/log-factory#master",
+    "log-factory": "github:pielabs/log-factory#v0.0.1",
     "marked": "^0.3.6",
     "marked-terminal": "^2.0.0",
     "minimist": "^1.2.0",
