@@ -47,7 +47,6 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
   public async build(opts: BuildOpts): Promise<string[]> {
     const forceInstall = opts ? opts.forceInstall : false;
     const mappings = await this.installer.install(forceInstall);
-    console.log('call report...');
     const client = await report('building client', this.buildClient());
     const controllers = await report('building controllers', this.buildControllers(mappings.controllers));
     const { includeComplete } = this.defaultOpts;
