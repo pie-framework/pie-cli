@@ -47,10 +47,10 @@ describe('install', () => {
         install: stub().returns(Promise.resolve({}))
       }
       installer.controllers = {
-        install: stub().returns([])
+        install: stub().returns(Promise.resolve([]))
       }
       installer.configure = {
-        install: stub().returns([])
+        install: stub().returns(Promise.resolve([]))
       }
       return installer.install().then(m => mappings = m);
     });

@@ -3,6 +3,8 @@ import * as ora from 'ora';
 
 import { blue, green, red } from 'chalk';
 
+type WritableStream = NodeJS.WritableStream;
+
 interface Instance {
   finish(e?: Error): boolean;
 }
@@ -15,16 +17,13 @@ class SpinnerInstance implements Instance {
 
   private spinner: any;
 
-  constructor(private label: string) {
-    this.spinner = ora({
-      stream: process.stdout,
-      text: label
-    }).start();
+  constructor(stream: WritableStream, private text: string) {
+    this.spinner = ora({ stream, text }).start();
   }
 
   public finish(e?: Error) {
     if (!e) {
-      this.spinner.succeed(this.label);
+      this.spinner.succeed(this.text);
     } else {
       this.spinner.fail(e.message);
     }
@@ -34,29 +33,33 @@ class SpinnerInstance implements Instance {
 }
 
 class DefaultHandler implements Handler {
+
+  constructor(private stream: WritableStream) {
+
+  }
   public indeterminate(label: string) {
-    return new SpinnerInstance(label);
+    return new SpinnerInstance(this.stream, label);
   }
 }
 
-class Report {
+export class Report {
 
   private handler: Handler;
 
-  public setHandler(h) {
-    this.handler = h;
+  constructor(private stream: WritableStream) {
+    this.handler = new DefaultHandler(stream);
   }
 
   public info(s: string): void {
-    process.stdout.write(blue(`${emoji.get('information_source')} ${s}\n`));
+    this.stream.write(blue(`${emoji.get('information_source')} ${s}\n`));
   }
 
   public success(s: string): void {
-    process.stdout.write(green(`${emoji.get('heavy_check_mark')} ${s}\n`));
+    this.stream.write(green(`${emoji.get('heavy_check_mark')} ${s}\n`));
   }
 
   public failure(s: string): void {
-    process.stdout.write(red(`${emoji.get('heavy_multiplication_x')} ${s}\n`));
+    this.stream.write(red(`${emoji.get('heavy_multiplication_x')} ${s}\n`));
   }
 
   public indeterminate<A>(label: string, p: Promise<A>): Promise<A> {
@@ -77,6 +80,8 @@ class Report {
   }
 }
 
-const r = new Report();
-r.setHandler(new DefaultHandler());
+const r = new Report(process.stdout);
+
 export default r;
+
+export const indeterminate = r.indeterminate.bind(r);
