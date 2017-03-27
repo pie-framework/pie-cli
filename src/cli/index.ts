@@ -36,11 +36,9 @@ export default function (opts) {
   const cmd: CliCommand = _.find(allCmds, c => c.match(opts)) || help;
   const p = (cmd.run(opts) || Promise.resolve({ msg: 'done!' }));
 
-  report.info('running...');
-
   return p
     .then((r) => {
-      if (r) {
+      if (r && r.msg) {
         report.success(r.msg);
       }
     })

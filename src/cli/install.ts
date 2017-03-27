@@ -21,8 +21,8 @@ class Cmd extends CliCommand {
 
     const i: Install = new Install(config);
 
-    i.install(args.force === 'true' || args.force === true)
-      .then(() => 'installed');
+    return i.install(args.force === 'true' || args.force === true)
+      .then(() => ({ msg: 'installed' }));
   }
 }
 

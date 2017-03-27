@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+
 import CliCommand from './cli-command';
 
 export class Help extends CliCommand {
@@ -28,6 +29,6 @@ export class Help extends CliCommand {
       console.log('--');
       console.log(`you can also run: \n\t${this.rootCmd} help $command-name\nfor more detail.`);
     }
-    return Promise.resolve('--');
+    return Promise.resolve();
   }
 }

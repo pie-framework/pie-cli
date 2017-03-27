@@ -93,7 +93,7 @@
     "glob": "^7.1.1",
     "jsesc": "^2.4.0",
     "lodash": "^4.17.4",
-    "log-factory": "github:pielabs/log-factory#v0.0.1",
+    "log-factory": "github:pielabs/log-factory#v1.0.0",
     "marked": "^0.3.6",
     "marked-terminal": "^2.0.0",
     "minimist": "^1.2.0",

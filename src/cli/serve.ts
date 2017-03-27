@@ -28,7 +28,10 @@ class Cmd extends CliCommand {
       const { server, reload, mappings, dirs } = await a.server(opts);
       await report.indeterminate('starting server', startServer(opts.port, server));
       const extraFilesToWatch = [];
-      await initWatch(a.config, reload, extraFilesToWatch, mappings, dirs);
+      await report.indeterminate('setting up file watching', new Promise(r => {
+        initWatch(a.config, reload, extraFilesToWatch, mappings, dirs);
+        r();
+      }));
 
       return {
         msg: `server listening on ${opts.port}`,
