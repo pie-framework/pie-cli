@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as chokidar from 'chokidar';
 import * as touch from 'touch';
 
-import { copy, remove } from 'fs-extra';
+import { Stats, copy, existsSync, remove, statSync } from 'fs-extra';
 import { join, relative, resolve } from 'path';
 
 import { Dirs } from '../install';
@@ -10,10 +10,39 @@ import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 
+type Info = { path: string, stat: Stats };
+
 interface Roots {
   srcRoot: string;
   targetRoot: string;
 }
+
+
+/**
+ * Note: There appears to be a bug in the new webpack where simply copying a file that sits in a
+ * dependency graph won't push the changes through. Adding a `touch` to force it through.
+ * TODO: try and recreate the issue in a sample project:
+ * @see https://github.com/PieLabs/pie-cli/issues/99
+ * @param path - the path to copy
+ * @param dest - the destination
+ */
+const copyThenTouch = (path, dest) => {
+  logger.silly(`copy ${path} -> ${dest}`);
+  copy(path, dest, (e) => {
+    if (!e) {
+      logger.silly(`touch ${dest}`);
+      setTimeout(() => {
+        touch(dest, err => {
+          if (err) {
+            logger.error(err);
+          }
+        });
+      }, 10);
+    } else {
+      logger.error(e.toString());
+    }
+  });
+};
 
 export interface Watch {
   start: () => void;
@@ -38,6 +67,10 @@ export class BaseWatch implements Roots, Watch {
     logger.debug('[BaseWatch] [start] srcRoot: ', this.srcRoot);
 
     this.watcher = chokidar.watch(this.srcRoot, {
+      // awaitWriteFinish: {
+      //   pollInterval: 100,
+      //   stabilityThreshold: 2000,
+      // },
       ignoreInitial: true,
       ignored: _.concat(this.ignores, [
         /package\.json/,
@@ -47,36 +80,14 @@ export class BaseWatch implements Roots, Watch {
         /.*docs.*/,
         /.*\.d\.ts/,
         /typings/,
-        /jsconfig\.json/
+        /.*\.log$/,
+        /tsconfig\.json/,
+        /jsconfig\.json/,
+        /\/test\//
       ]),
       persistent: true
     });
 
-    /**
-     * Note: There appears to be a bug in the new webpack where simply copying a file that sits in a
-     * dependency graph won't push the changes through. Adding a `touch` to force it through.
-     * TODO: try and recreate the issue in a sample project:
-     * @see https://github.com/PieLabs/pie-cli/issues/99
-     * @param path - the path to copy
-     * @param dest - the destination
-     */
-    const copyThenTouch = (path, dest) => {
-      logger.silly(`copy ${path} -> ${dest}`);
-      copy(path, dest, (e) => {
-        if (!e) {
-          logger.silly(`touch ${dest}`);
-          setTimeout(() => {
-            touch(dest, err => {
-              if (err) {
-                logger.error(err);
-              }
-            });
-          }, 10);
-        } else {
-          logger.error(e.toString());
-        }
-      });
-    }
 
     const onAdd = (path) => {
       logger.debug(`File added: ${path} - copy`);
@@ -99,6 +110,7 @@ export class BaseWatch implements Roots, Watch {
     const onReady = () => {
       logger.info(`Watcher for ${this.srcRoot} - Ready`);
       logger.silly('watched: \n', this.watcher.getWatched());
+      this.copyOnceIfNeeded(this.watcher.getWatched());
     };
 
     this.watcher
@@ -108,8 +120,58 @@ export class BaseWatch implements Roots, Watch {
       .on('error', onError)
       .on('ready', onReady);
   }
-}
 
+  /**
+   * Inspect the chokidar watched object.
+   * If the watched file is significantly newer than it's target, copy it across.
+   * This handles the scenario when the target has already been built, but the src has changed.
+   * This only happens at the start, thereafter the chokidar watching kicks in.
+   * Note:
+   *   `chokidar.opts.ignoreInitial: false`
+   *   was tried but it causes webpack compile errors - maybe it happens too soon?
+   * @param watched
+   */
+  private copyOnceIfNeeded(watched: chokidar.WatchedPaths): void {
+
+    const slim = (src: Info, dest: Info) => {
+      const destMtime = dest.stat ? dest.stat.mtime.getTime() : 0;
+      const diff = src.stat.mtime.getTime() - destMtime;
+      return {
+        dest: dest.path,
+        diff,
+        src: src.path,
+      };
+    };
+
+    /**
+     * If the src is more than 5 seconds newer than the installed file then its considered a user change
+     * that needs to go across.
+     */
+    const AGE = 5000;
+    const newFiles = _.reduce(watched, (acc, arr, key) => {
+      const files = arr
+        .map(n => join(key, n))
+        .map(n => {
+          return { path: n, stat: statSync(n) };
+        })
+        .filter(o => o.stat.isFile())
+        .map(o => {
+          const path = this.getDestination(o.path);
+          const stat = existsSync(path) ? statSync(path) : null;
+          return slim(o, { path, stat });
+        })
+        .filter(({ diff }) => diff > AGE);
+      return acc.concat(files);
+    }, []);
+
+    logger.debug('files that need to be copied over: ', newFiles);
+
+    // we have to wait a short while before copying? webpack issue?
+    setTimeout(() => {
+      _.forEach(newFiles, f => copyThenTouch(f.src, f.dest));
+    }, 1000);
+  }
+}
 
 export class PackageWatch extends BaseWatch {
   constructor(private name: string,
