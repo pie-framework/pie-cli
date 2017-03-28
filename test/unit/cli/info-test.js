@@ -17,10 +17,15 @@ describe('info', () => {
         })
       },
       '../server': {
-        startServer: stub().returns({})
+        startServer: stub().returns(Promise.resolve({}))
       },
       '../watch/watchmaker': {
         init: stub().returns(Promise.resolve())
+      },
+      './report': {
+        default: {
+          indeterminate: spy(p => p)
+        }
       }
     };
     mod = proxyquire(`${ROOT}/cli/info`, deps);

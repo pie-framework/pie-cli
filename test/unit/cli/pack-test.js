@@ -45,9 +45,6 @@ describe('pack', () => {
       assert.calledWith(app.build, types.BuildOpts.build({}));
     });
 
-    it('calls app.manifest', () => {
-      assert.calledWith(app.manifest, types.ManifestOpts.build({}));
-    });
   });
 
 });

@@ -5,6 +5,7 @@ import { loadApp, types } from '../apps';
 import CliCommand from './cli-command';
 import { buildLogger } from 'log-factory';
 import { init as initWatch } from '../watch/watchmaker';
+import report from './report';
 import { startServer } from '../server';
 
 const logger = buildLogger();
@@ -24,11 +25,15 @@ class Cmd extends CliCommand {
 
     if (types.isServable(a)) {
       const { server, reload, mappings, dirs } = await a.server(opts);
-      this.cliLogger.info('starting server...');
-      await startServer(opts.port, server);
+      await report.indeterminate('starting server', startServer(opts.port, server));
       this.cliLogger.info('init watchers...');
-      await initWatch(a.config, reload, a.watchableFiles(), mappings, dirs);
-      return `server listening on ${opts.port}`;
+      await report.indeterminate('setting up file watching', new Promise(r => {
+        initWatch(a.config, reload, a.watchableFiles(), mappings, dirs);
+        r();
+      }));
+      return {
+        msg: `server listening on ${opts.port}`
+      };
     } else {
       logger.error('this app isnt servable');
       throw new Error('this app isnt servable');

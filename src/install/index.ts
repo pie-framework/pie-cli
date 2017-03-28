@@ -9,7 +9,10 @@ import Controllers from './controllers';
 import { PieTarget } from './common';
 import { buildLogger } from 'log-factory';
 
+import report from '../cli/report';
+
 const logger = buildLogger();
+
 
 export { PieTarget }
 
@@ -55,11 +58,19 @@ export default class Install {
       v => pathIsDir(this.config.dir, v) ? resolve(this.config.dir, v) : v);
 
     logger.debug('resolved deps: ', deps);
-    await this.npm.install('pie-root-install', deps, {}, force);
+
+    const rootInstall = this.npm.install('pie-root-install', deps, {}, force);
+    await report.indeterminate('installing root package', rootInstall);
     const installedPies = getInstalledPies(join(this.dir, 'node_modules'), this.config.elements.map(e => e.key));
     logger.debug('installed pies: ', installedPies);
-    const controllerMappings = await this.controllers.install(installedPies, force);
-    const configureMappings = await this.configure.install(installedPies, force);
+    const controllerMappings = await report.indeterminate(
+      'installing controllers',
+      this.controllers.install(installedPies, force));
+
+    const configureMappings = await report.indeterminate(
+      'installing configure', this.configure.install(installedPies, force)
+    );
+
     return {
       configure: configureMappings,
       controllers: controllerMappings,

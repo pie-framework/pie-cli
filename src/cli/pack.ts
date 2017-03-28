@@ -5,6 +5,7 @@ import {
 
 import CliCommand from './cli-command';
 import { buildLogger } from 'log-factory';
+import report from './report';
 
 const logger = buildLogger();
 
@@ -24,19 +25,23 @@ class PackCommand extends CliCommand {
       if (buildOpts.createArchive) {
         if (apps.isArchivable(a)) {
           this.cliLogger.info('creating archive...');
-          const zip = await a.createArchive(result);
+          const zip = await report.indeterminate('creating archive', a.createArchive(result));
           this.cliLogger.info('archive: ', zip);
         } else {
           logger.warn('tried to create an archive but this app type isnt archivable');
         }
       }
 
-      if (apps.isManifestable(a)) {
-        const manifestOpts = apps.ManifestOpts.build(args);
-        return a.manifest(manifestOpts);
-      } else {
-        return {};
-      }
+      /**
+       * TODO: Re-add manifest information
+       * The idea of the manifest is to provide build information to the runner
+       * so that they know if they need to run the command at all.
+       * - however things have changed in 6.0.0+ which means we'll probably want to review what info we add.
+       */
+
+      return {
+        msg: 'pack complete'
+      };
 
     } else {
       logger.warn('this app isnt buildable');

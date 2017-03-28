@@ -106,7 +106,8 @@ export default class ItemApp implements App, Servable {
 
     const middleware = webpackMiddleware(compiler, {
       noInfo: false,
-      publicPath: '/'
+      publicPath: '/',
+      quiet: true
     });
 
     middleware.waitUntilValid(() => {

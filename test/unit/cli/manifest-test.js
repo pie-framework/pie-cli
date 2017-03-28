@@ -24,40 +24,14 @@ describe('manifest', () => {
 
   describe('run', () => {
 
-    describe('with dir', () => {
-      beforeEach(() => cmd.run({}));
-
-      it('calls loadApp', () => {
-        assert.calledWith(deps['../apps'].loadApp, {});
-      });
-
-      it('calls app.manifest', () => {
-        assert.calledWith(app.manifest, { dir: process.cwd(), outfile: undefined });
-      });
-    });
-
-    describe('with dir and outfile', () => {
-      beforeEach(() => cmd.run({ dir: 'dir', outfile: 'out.json' }));
-
-      it('calls loadApp', () => {
-        assert.calledWith(deps['../apps'].loadApp, { dir: 'dir', outfile: 'out.json' });
-      });
-
-      it('calls app.manifest', () => {
-        assert.calledWith(app.manifest, { dir: 'dir', outfile: 'out.json' });
-      });
-    });
-
-    describe('with dir', () => {
-      beforeEach(() => cmd.run({ dir: 'dir' }));
-
-      it('calls loadApp', () => {
-        assert.calledWith(deps['../apps'].loadApp, { dir: 'dir' });
-      });
-
-      it('calls app.manifest', () => {
-        assert.calledWith(app.manifest, { dir: 'dir', outfile: undefined });
-      });
+    it('the promise is rejected because manifest is currently disabled', () => {
+      return cmd.run()
+        .then(() => {
+          throw new Error('should have failed');
+        })
+        .catch(e => {
+          //ok
+        });
     });
   });
 });
