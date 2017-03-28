@@ -1,7 +1,7 @@
 import * as emoji from 'node-emoji';
 import * as ora from 'ora';
 
-import { blue, green, red } from 'chalk';
+import { blue, green, red, yellow } from 'chalk';
 
 type WritableStream = NodeJS.WritableStream;
 
@@ -60,6 +60,10 @@ export class Report {
 
   public failure(s: string): void {
     this.stream.write(red(`${emoji.get('heavy_multiplication_x')} ${s}\n`));
+  }
+
+  public warning(s: string): void {
+    this.stream.write(yellow(`${emoji.get('warning')} ${s}\n`));
   }
 
   public indeterminate<A>(label: string, p: Promise<A>): Promise<A> {

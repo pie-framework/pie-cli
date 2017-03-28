@@ -126,7 +126,17 @@ export default class InfoApp implements App, Servable {
 
     const middleware = webpackMiddleware(compiler, {
       noInfo: true,
-      publicPath: '/'
+      publicPath: '/',
+      quiet: true
+      /*reporter: reporter((type, msg, stats) => {
+        if (type === 'error') {
+          report.failure(msg);
+          logger.error(stats.toString({ errors: true }));
+        } else if (type === 'warning') {
+          report.warning(msg);
+          logger.warn(stats.toString({ warnings: true }));
+        }
+      })*/
     });
 
     middleware.waitUntilValid(() => {
