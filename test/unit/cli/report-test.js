@@ -18,8 +18,22 @@ describe('report', () => {
       write: stub()
     }
 
+    const echo = () => {
+      return function (k) {
+        return k;
+      }
+    }
+
     deps = {
-      'ora': stub().returns(oraInstance)
+      'ora': stub().returns(oraInstance),
+      'node-emoji': {
+        get: spy(echo())
+      },
+      'chalk': {
+        blue: spy(echo()),
+        red: spy(echo()),
+        green: spy(echo())
+      }
     };
 
     mod = proxyquire('../../../lib/cli/report', deps);
@@ -61,5 +75,31 @@ describe('report', () => {
 
     });
   });
+
+  let assertCall = (fnName, chalkColor, emoji) => {
+
+    return () => {
+      beforeEach(() => {
+        let r = new mod.Report(stream);
+        r[fnName]('test');
+      });
+
+      it(`calls emoji.get("${emoji}")`, () => {
+        assert.calledWith(deps['node-emoji'].get, emoji);
+      });
+
+      it(`calls chalk.${chalkColor}`, () => {
+        assert.calledWith(deps['chalk'][chalkColor], `${emoji} test\n`);
+      });
+
+      it('calls write', () => {
+        assert.calledWith(stream.write, `${emoji} test\n`);
+      });
+    }
+  }
+
+  describe('info', assertCall('info', 'blue', 'information_source'));
+  describe('success', assertCall('success', 'green', 'heavy_check_mark'));
+  describe('failure', assertCall('failure', 'red', 'heavy_multiplication_x'));
 
 });
