@@ -67,10 +67,6 @@ export class BaseWatch implements Roots, Watch {
     logger.debug('[BaseWatch] [start] srcRoot: ', this.srcRoot);
 
     this.watcher = chokidar.watch(this.srcRoot, {
-      // awaitWriteFinish: {
-      //   pollInterval: 100,
-      //   stabilityThreshold: 2000,
-      // },
       ignoreInitial: true,
       ignored: _.concat(this.ignores, [
         /package\.json/,
