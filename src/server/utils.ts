@@ -32,7 +32,7 @@ export function linkCompilerToServer(name: string,
   //  TODO: would be nice to call report.indeterminate here ...
   const onCompile = (params) => {
     logger.info('The compiler is starting to compile...');
-    report.info('Webpack re-compiling...');
+    report.info('Webpack compiling...');
   };
 
   const onDone = (stats: Stats) => {
@@ -47,7 +47,7 @@ export function linkCompilerToServer(name: string,
         handlers.error(name, json.errors);
       } else {
         logger.debug(`${name}: reload!`);
-        report.success('Webpack recompile successful');
+        report.success('Webpack compilation successful');
         handlers.reload(name);
       }
     });
