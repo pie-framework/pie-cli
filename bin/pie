@@ -5,7 +5,7 @@ let minimist = require('minimist');
 let args = minimist(process.argv.slice(2));
 let logFactory = require('log-factory');
 let defaultLogConfig = require('../lib/log-config').default;
-let { removeSync } = require('fs-extra');
+let { removeSync, writeFile } = require('fs-extra');
 
 let logOpts = {
   file: args.logFile || args['log-file'],
@@ -14,7 +14,7 @@ let logOpts = {
 }
 
 if (logOpts.file) {
-  removeSync(logOpts.file);
+  writeFile(logOpts.file, '');
 }
 
 logFactory.init(logOpts);

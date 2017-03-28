@@ -105,7 +105,7 @@ export default class ItemApp implements App, Servable {
     const router = express.Router();
 
     const middleware = webpackMiddleware(compiler, {
-      noInfo: false,
+      noInfo: true,
       publicPath: '/',
       quiet: true
     });

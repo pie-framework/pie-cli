@@ -80,7 +80,7 @@ describe('info app', () => {
       externals: {
         js: [],
         css: []
-      } 
+      }
     };
 
     instance = new InfoApp(args, 'pie-root', config, supportConfig);
@@ -142,7 +142,11 @@ describe('info app', () => {
     });
 
     it('calls webpackMiddleware', () => {
-      assert.calledWith(deps['webpack-dev-middleware'], match.object, { noInfo: true, publicPath: '/' });
+      assert.calledWith(deps['webpack-dev-middleware'], match.object, {
+        noInfo: true,
+        quiet: true,
+        publicPath: '/'
+      });
     });
 
     it('calls router.use', () => {
@@ -180,8 +184,6 @@ describe('info app', () => {
       it('calls readFileSync for README.md', () => {
         assert.calledWith(deps['fs-extra'].readFileSync, 'pie-root/README.md');
       });
-
     });
   });
-
 });

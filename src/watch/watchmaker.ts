@@ -27,7 +27,6 @@ export function init(
 
   const watchers: Watch[] = _(config.elements).map((e: LocalFile | PiePackage | LocalPackage) => {
 
-    logger.silly('e: ', e);
     if (e instanceof PiePackage) {
       logger.silly('create PieWatch', e.key, e.value);
       const targets = {

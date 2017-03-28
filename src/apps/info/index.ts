@@ -126,7 +126,8 @@ export default class InfoApp implements App, Servable {
 
     const middleware = webpackMiddleware(compiler, {
       noInfo: true,
-      publicPath: '/'
+      publicPath: '/',
+      quiet: true
     });
 
     middleware.waitUntilValid(() => {
