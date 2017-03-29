@@ -15,6 +15,7 @@ export interface SupportConfig {
   externals: { js: string[], css: string[] };
   modules: string[];
   rules: Rule[];
+  extensions: string[];
 }
 
 export function findModuleRoot(moduleName: string) {
@@ -49,9 +50,9 @@ export function findModuleRoot(moduleName: string) {
  * A support module will consist of a package.json, node_modules dir and a main script.
  * The main script is expected to contain: `rules` and `externals`.
  */
-export function load(config: JsonConfig, path: string): Promise<SupportConfig> {
+export function load(config: JsonConfig, path: string, moduleRequire: (string) => any = require): Promise<SupportConfig> {
   logger.debug('[load] path: ', path);
-  const mod = require(path);
+  const mod = moduleRequire(path);
 
   if (_.isFunction(mod.support) && !mod.support(config.dependencies)) {
     return Promise.resolve(null);
@@ -70,8 +71,10 @@ export function load(config: JsonConfig, path: string): Promise<SupportConfig> {
         js: mod.externals ? mod.externals.js : []
       },
       modules,
-      rules: mod.rules
+      rules: mod.rules || [],
+      extensions: mod.extensions || []
     };
+
     logger.silly('[load] out: ', out);
     return Promise.resolve(out);
   }
@@ -94,14 +97,20 @@ export class MultiConfig implements SupportConfig {
   }
 
   get modules(): string[] {
-    return this.configs.reduce((acc, c) => {
+    return _.uniq(this.configs.reduce((acc, c) => {
       return acc.concat(c.modules || []);
-    }, []);
+    }, []));
   }
 
   get rules(): Rule[] {
     return this.configs.reduce((acc, c) => {
       return acc.concat(c.rules || []);
     }, []);
+  }
+
+  get extensions(): string[] {
+    return _.uniq(this.configs.reduce((acc, c) => {
+      return acc.concat(c.extensions || []);
+    }, []));
   }
 }

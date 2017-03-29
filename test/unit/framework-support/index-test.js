@@ -84,7 +84,62 @@ describe('framework-support', () => {
     });
   });
 
-  xdescribe('load', () => {
-    it('loads from package', () => { });
+  describe('load', () => {
+
+    let moduleRequire, result, moduleData;
+
+    describe('with no data', () => {
+      beforeEach(() => {
+        moduleData = {};
+        moduleRequire = stub().returns(moduleData);
+        return mod.load({}, 'path', moduleRequire)
+          .then(r => result = r);
+      });
+
+      it('returns empty extensions', () => {
+        expect(result.extensions).to.eql([])
+      });
+
+      it('returns empty externals', () => {
+        expect(result.externals).to.eql({ js: [], css: [] });
+      });
+
+      it('returns empty rules array', () => {
+        expect(result.rules).to.eql([]);
+      });
+    });
+
+    describe('with data', () => {
+      beforeEach(() => {
+        moduleData = {
+          extensions: ['.extension'],
+          externals: {
+            js: ['external.js'],
+            css: ['external.css']
+          },
+          rules: [
+            { test: 'test' }
+          ]
+        };
+
+        moduleRequire = stub().returns(moduleData);
+
+        return mod.load({}, 'path', moduleRequire)
+          .then(r => result = r);
+      });
+
+      it('returns the extensions', () => {
+        expect(result.extensions).to.eql(moduleData.extensions)
+      });
+
+      it('returns the externals', () => {
+        expect(result.externals).to.eql(moduleData.externals);
+      });
+
+      it('returns the rules', () => {
+        expect(result.rules).to.eql(moduleData.rules);
+      });
+
+    });
   });
 });
