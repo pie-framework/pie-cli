@@ -7,8 +7,8 @@ import proxyquire from 'proxyquire';
 
 const ROOT = '../../../../lib';
 
-describe('info app', () => {
-  let InfoApp, instance, mod, args, deps, config, supportConfig, middlewareInstance, routerInstance, express, compiler;
+describe('item app', () => {
+  let ItemApp, instance, mod, args, deps, config, supportConfig, middlewareInstance, routerInstance, express, compiler;
 
   beforeEach(() => {
 
@@ -63,9 +63,9 @@ describe('info app', () => {
       }
     }
 
-    mod = proxyquire(`${ROOT}/apps/info`, deps);
+    mod = proxyquire(`${ROOT}/apps/item`, deps);
 
-    InfoApp = mod.default;
+    ItemApp = mod.default;
 
     args = {};
 
@@ -83,7 +83,7 @@ describe('info app', () => {
       }
     };
 
-    instance = new InfoApp(args, 'pie-root', config, supportConfig);
+    instance = new ItemApp(args, config, supportConfig);
   });
 
   describe('constructor', () => {
@@ -116,11 +116,11 @@ describe('info app', () => {
     });
 
     it('calls writeEntryJs', () => {
-      assert.calledWith(deps['../../code-gen'].writeEntryJs, '.pie/info.entry.js', match.string);
+      assert.calledWith(deps['../../code-gen'].writeEntryJs, 'dir/item.entry.js', match.string);
     });
 
     it('calls webpackConfig', () => {
-      assert.calledWith(deps['../common'].webpackConfig, match.object, match.object, 'info.entry.js', 'info.bundle.js');
+      assert.calledWith(deps['../common'].webpackConfig, match.object, match.object, 'item.entry.js', 'item.bundle.js');
     });
 
     it('calls webpack', () => {
@@ -177,13 +177,6 @@ describe('info app', () => {
         assert.called(instance.template);
       });
 
-      it('calls readJsonSync for package.json', () => {
-        assert.calledWith(deps['fs-extra'].readJsonSync, 'pie-root/package.json');
-      });
-
-      it('calls readFileSync for README.md', () => {
-        assert.calledWith(deps['fs-extra'].readFileSync, 'pie-root/README.md');
-      });
     });
   });
 });
