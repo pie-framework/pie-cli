@@ -57,7 +57,6 @@ export function linkCompilerToServer(name: string,
    * TODO:  This shouldn't be necessary but something is causing webpack to recompile repeatedly.
    * For now we debounce the done handler.
    */
-  compiler.plugin('compile', _.debounce(onCompile, 450, { leading: true, trailing: false }));
-  const debouncedOnDone = _.debounce(onDone, 450, { leading: false, trailing: true });
-  compiler.plugin('done', debouncedOnDone);
+  compiler.plugin('compile', onCompile);
+  compiler.plugin('done', onDone);
 }
