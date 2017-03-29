@@ -14,7 +14,7 @@ import { SupportConfig } from '../../framework-support';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
 import { webpackConfig } from '../common';
-import { writeConfig } from '../../code-gen/webpack-write-config';
+import { writeConfig, writeEntryJs } from '../../code-gen';
 import { writeFileSync } from 'fs-extra';
 
 const logger = buildLogger();
@@ -63,7 +63,7 @@ export default class ItemApp implements App, Servable {
       mappings.controllers,
       AppServer.SOCK_PREFIX);
 
-    writeFileSync(join(this.installer.dirs.root, ItemApp.ENTRY), js, 'utf8');
+    await writeEntryJs(join(this.installer.dirs.root, ItemApp.ENTRY), js);
 
     logger.info('add sourceMaps? ', opts.sourceMaps);
 
@@ -105,8 +105,9 @@ export default class ItemApp implements App, Servable {
     const router = express.Router();
 
     const middleware = webpackMiddleware(compiler, {
-      noInfo: false,
-      publicPath: '/'
+      noInfo: true,
+      publicPath: '/',
+      quiet: true
     });
 
     middleware.waitUntilValid(() => {

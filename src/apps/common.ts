@@ -80,7 +80,7 @@ export function webpackConfig(
       path: outpath
     },
     resolve: {
-      extensions: ['.js', '.jsx'],
+      extensions: _.uniq(['.js'].concat(support.extensions)),
       modules: resolveModules,
     },
     resolveLoader: {

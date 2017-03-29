@@ -5,6 +5,7 @@ import { Compiler, Stats } from 'webpack';
 
 import { ReloadOrError } from './types';
 import { buildLogger } from 'log-factory';
+import report from '../cli/report';
 
 const logger = buildLogger();
 
@@ -24,11 +25,15 @@ export let startServer = (port: number, server: http.Server) => new Promise((res
 });
 
 
-export function linkCompilerToServer(name, compiler: Compiler, handlers: ReloadOrError) {
+export function linkCompilerToServer(name: string,
+  compiler: Compiler,
+  handlers: ReloadOrError) {
 
-  compiler.plugin('compile', (params) => {
+  //  TODO: would be nice to call report.indeterminate here ...
+  const onCompile = (params) => {
     logger.info('The compiler is starting to compile...');
-  });
+    report.info('Webpack compiling...');
+  };
 
   const onDone = (stats: Stats) => {
     logger.info('>> [compiler] done');
@@ -36,11 +41,13 @@ export function linkCompilerToServer(name, compiler: Compiler, handlers: ReloadO
     process.nextTick(() => {
       if (stats.hasErrors()) {
         logger.error('recompile failed');
-        const info = stats.toJson('errors-only');
-        logger.error(info.errors);
-        handlers.error(name, info.errors);
+        report.failure('webpack compilation failed');
+        const json = stats.toJson('errors-only');
+        logger.error(json.errors);
+        handlers.error(name, json.errors);
       } else {
         logger.debug(`${name}: reload!`);
+        report.success('Webpack compilation successful');
         handlers.reload(name);
       }
     });
@@ -50,6 +57,6 @@ export function linkCompilerToServer(name, compiler: Compiler, handlers: ReloadO
    * TODO:  This shouldn't be necessary but something is causing webpack to recompile repeatedly.
    * For now we debounce the done handler.
    */
-  const debouncedOnDone = _.debounce(onDone, 350, { leading: false, trailing: true });
-  compiler.plugin('done', debouncedOnDone);
+  compiler.plugin('compile', onCompile);
+  compiler.plugin('done', onDone);
 }

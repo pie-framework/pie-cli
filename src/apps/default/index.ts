@@ -9,6 +9,7 @@ import { buildWebpack, writeConfig } from '../../code-gen';
 import { join, resolve } from 'path';
 
 import { SupportConfig } from '../../framework-support';
+import { indeterminate as report } from '../../cli/report';
 import { webpackConfig } from '../common';
 import { writeFileSync } from 'fs-extra';
 
@@ -46,11 +47,12 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
   public async build(opts: BuildOpts): Promise<string[]> {
     const forceInstall = opts ? opts.forceInstall : false;
     const mappings = await this.installer.install(forceInstall);
-    const client = await this.buildClient();
-    const controllers = await this.buildControllers(mappings.controllers);
+    const client = await report('building client', this.buildClient());
+    const controllers = await report('building controllers', this.buildControllers(mappings.controllers));
     const { includeComplete } = this.defaultOpts;
-    const allInOne = includeComplete ? await this.buildAllInOne(mappings.controllers) : [];
-    const example = includeComplete ? await this.buildExample() : [];
+    const allInOne = includeComplete ?
+      await report('building all-in-one', this.buildAllInOne(mappings.controllers)) : [];
+    const example = includeComplete ? await report('building example', this.buildExample()) : [];
     return _.concat(client, controllers, allInOne, example);
   }
 

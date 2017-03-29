@@ -1,4 +1,4 @@
-import { assert, match, spy, stub } from 'sinon';
+import { assert, match, spy, stub, useFakeTimers } from 'sinon';
 
 import { expect } from 'chai';
 import proxyquire from 'proxyquire'
@@ -34,7 +34,9 @@ describe('watchers', () => {
 
     fs = {
       copy: stub(),
-      remove: stub()
+      remove: stub(),
+      statSync: stub(),
+      existsSync: stub()
     }
 
     watchers = proxyquire('../../../lib/watch/watchers', {
@@ -63,6 +65,15 @@ describe('watchers', () => {
     });
 
     describe('start', () => {
+      let clock;
+      before(() => {
+        let date = new Date();
+        clock = useFakeTimers(date.getTime());
+      });
+
+      after(() => {
+        clock.restore();
+      });
 
       beforeEach(() => {
         baseWatch.start();
@@ -88,6 +99,59 @@ describe('watchers', () => {
           chokidarWatcher.run('unlink', 'path');
           assert.calledWith(fs.remove, 'path');
         });
+
+        let assertOnReady = (timeDiff, expectCopy) => {
+          return () => {
+
+            let srcMTime = new Date();
+            let installedMTime = new Date(srcMTime.getTime() - timeDiff);
+
+            baseWatch.getDestination = spy(function (p) {
+              return `destination/${p}`;
+            });
+
+            fs.existsSync.withArgs('path/file.js').returns(true);
+            fs.existsSync.withArgs('destination/path/file.js').returns(true);
+
+            fs.statSync
+              .withArgs('destination/path/file.js')
+              .returns({
+                isFile: () => true,
+                mtime: installedMTime
+              });
+
+            fs.statSync
+              .withArgs('path/file.js')
+              .returns({
+                mtime: srcMTime,
+                isFile: () => true
+              });
+
+            chokidarWatcher.getWatched = stub().returns({
+              'path': [
+                'file.js'
+              ]
+            });
+
+            chokidarWatcher.run('ready');
+
+            clock.tick(1100);
+
+            if (expectCopy) {
+              assert.calledWith(fs.copy, 'path/file.js', 'destination/path/file.js');
+            } else {
+              assert.notCalled(fs.copy);
+            }
+          }
+        }
+
+        it('ready triggers a copy if the src more than 5 seconds newer',
+          assertOnReady(5001, true)
+        );
+
+        it('ready does not trigger a copy if the src is less than 5 seconds newer',
+          assertOnReady(4999, false)
+        );
       });
     });
 

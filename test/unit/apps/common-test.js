@@ -34,7 +34,8 @@ describe('common', () => {
     }
 
     support = {
-      rules: []
+      rules: [],
+      extensions: ['.support-extension']
     }
 
     mod = proxyquire('../../../lib/apps/common', deps);
@@ -67,6 +68,13 @@ describe('common', () => {
         'node_modules',
         resolve(join(__dirname, '../../../node_modules'))
       ])
+    });
+
+    it('adds extensions', () => {
+      expect(config.resolve.extensions).to.eql([
+        '.js',
+        '.support-extension'
+      ]);
     });
 
     it('adds devtool: eval if sourceMaps is true', () => {

@@ -13,6 +13,7 @@ import { JsonConfig } from '../../question/config';
 import { SupportConfig } from '../../framework-support';
 import { buildLogger } from 'log-factory';
 import { buildWebpack } from '../../code-gen';
+import report from '../../cli/report';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
@@ -105,7 +106,7 @@ export default class CatalogApp
 
     logger.info('config: ', config);
 
-    await buildWebpack(config, CatalogApp.WEBPACK_CONFIG);
+    await report.indeterminate('building webpack', buildWebpack(config, CatalogApp.WEBPACK_CONFIG));
 
     return mappings;
   }

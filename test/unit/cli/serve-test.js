@@ -8,7 +8,7 @@ describe('serve', () => {
 
   beforeEach(() => {
 
-    startServer = stub();
+    startServer = stub().returns(Promise.resolve({}));
     init = stub();
 
     app = {

@@ -2,6 +2,7 @@ import { build as buildWebpack } from './webpack-builder';
 import { pascalCase } from 'change-case';
 import { writeConfig } from './webpack-write-config';
 export { buildWebpack, writeConfig }
+import { writeFile, utimes } from 'fs-extra';
 
 export interface Declaration {
   key: string;
@@ -24,3 +25,40 @@ export class ElementDeclaration implements Declaration {
   }
 }
 
+function writeFilePromise(path: string, content: string): Promise<{}> {
+  return new Promise((resolve, reject) => {
+    writeFile(path, content, 'utf8', (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+function adjustUTimes(path: string, ageInSeconds: number) {
+  return new Promise((resolve, reject) => {
+    const now = Date.now() / 1000;
+    const then = now - ageInSeconds;
+    utimes(path, then, then, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+/**
+ * Write the entry js - backdate the file's mtime to avoid the following issue:  
+ * https://github.com/webpack/watchpack/issues/25
+ * 
+ * @param path 
+ * @param js 
+ */
+export function writeEntryJs(path: string, js: string): Promise<{}> {
+  return writeFilePromise(path, js)
+    .then(() => adjustUTimes(path, 10));
+}

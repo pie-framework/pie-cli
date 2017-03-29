@@ -5,7 +5,20 @@ let minimist = require('minimist');
 let args = minimist(process.argv.slice(2));
 let logFactory = require('log-factory');
 let defaultLogConfig = require('../lib/log-config').default;
-logFactory.init(args.logLevel || args['log-level'] || defaultLogConfig);
+let { removeSync, writeFile } = require('fs-extra');
+
+let logOpts = {
+  file: args.logFile || args['log-file'],
+  console: false,
+  log: args.logLevel || args['log-level'] || defaultLogConfig
+}
+
+if (logOpts.file) {
+  writeFile(logOpts.file, '');
+}
+
+logFactory.init(logOpts);
+
 require('../lib/cli').default(args)
   .then(() => { })
   .catch((e) => {
