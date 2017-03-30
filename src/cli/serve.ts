@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { types as apps, loadApp } from '../apps';
+import { types as apps, clean, loadApp } from '../apps';
 
 import CliCommand from './cli-command';
 import { buildLogger } from 'log-factory';
@@ -23,6 +23,10 @@ class Cmd extends CliCommand {
     // -> you must use the `item` app type.
     const a: apps.App = await loadApp(_.extend(args, { app: 'item' }));
     const opts = apps.ServeOpts.build(args);
+
+    if (opts.clean) {
+      await report.promise('removing files', clean(opts.dir));
+    }
 
     if (apps.isServable(a)) {
       const { server, reload, mappings, dirs } = await a.server(opts);

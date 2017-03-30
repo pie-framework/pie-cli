@@ -1,10 +1,11 @@
 import * as _ from 'lodash';
 
-import { loadApp, types } from '../apps';
+import { clean, loadApp, types } from '../apps';
 
 import CliCommand from './cli-command';
 import { buildLogger } from 'log-factory';
 import { init as initWatch } from '../watch/watchmaker';
+import { join } from 'path';
 import report from './report';
 import { startServer } from '../server';
 
@@ -23,6 +24,11 @@ class Cmd extends CliCommand {
     const a: types.App = await loadApp(_.merge(args, { app: 'info' }));
     const opts = types.ServeOpts.build(args);
 
+    if (opts.clean) {
+      const dir = join(opts.dir, 'docs/demo');
+      await report.promise('removing files', clean(dir) );
+    }
+    
     if (types.isServable(a)) {
       const { server, reload, mappings, dirs } = await a.server(opts);
       await report.promise('starting server', startServer(opts.port, server));
