@@ -1,5 +1,5 @@
-import * as emoji from 'node-emoji';
 import * as ora from 'ora';
+import { info, success, warning, error } from 'log-symbols';
 
 import { blue, green, red, yellow } from 'chalk';
 
@@ -51,19 +51,23 @@ export class Report {
   }
 
   public info(s: string): void {
-    this.stream.write(blue(`${emoji.get('information_source')} ${s}\n`));
+    this.stream.write(info);
+    this.stream.write(blue(` ${s}\n`));
   }
 
   public success(s: string): void {
-    this.stream.write(green(`${emoji.get('heavy_check_mark')} ${s}\n`));
+    this.stream.write(success);
+    this.stream.write(green(` ${s}\n`));
   }
 
   public failure(s: string): void {
-    this.stream.write(red(`${emoji.get('heavy_multiplication_x')} ${s}\n`));
+    this.stream.write(error);
+    this.stream.write(red(` ${s}\n`));
   }
 
   public warning(s: string): void {
-    this.stream.write(yellow(`${emoji.get('warning')} ${s}\n`));
+    this.stream.write(warning);
+    this.stream.write(yellow(`${s}\n`));
   }
 
   public promise<A>(label: string, p: Promise<A>): Promise<A> {
