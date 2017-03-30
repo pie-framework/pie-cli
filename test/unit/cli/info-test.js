@@ -24,7 +24,7 @@ describe('info', () => {
       },
       './report': {
         default: {
-          indeterminate: spy(p => p)
+          promise: spy(p => p)
         }
       }
     };

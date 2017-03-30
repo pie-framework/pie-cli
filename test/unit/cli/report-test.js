@@ -39,12 +39,24 @@ describe('report', () => {
     mod = proxyquire('../../../lib/cli/report', deps);
   });
 
-  describe('indeterminate', () => {
+  describe('instance', () => {
+
+    it('calls handler.indeterminate', () => {
+      let r = new mod.Report(stream);
+      r.handler = {
+        indeterminate: stub()
+      }
+      r.instance('label');
+      assert.calledWith(r.handler.indeterminate, 'label');
+    });
+  });
+
+  describe('promise', () => {
 
     describe('successful', () => {
       beforeEach(() => {
         let r = new mod.Report(stream);
-        return r.indeterminate('test', new Promise(r => setTimeout(r, 10)))
+        return r.promise('test', new Promise(r => setTimeout(r, 10)))
       });
 
       it('calls ora.start', () => {
@@ -59,7 +71,7 @@ describe('report', () => {
     describe('failed', () => {
       beforeEach(() => {
         let r = new mod.Report(stream);
-        return r.indeterminate('test',
+        return r.promise('test',
           new Promise((resolve, reject) => {
             setTimeout(() => reject(new Error('no'), 10));
           }))
@@ -84,9 +96,10 @@ describe('report', () => {
         r[fnName]('test');
       });
 
-      it(`calls emoji.get("${emoji}")`, () => {
-        assert.calledWith(deps['node-emoji'].get, emoji);
-      });
+      it(`calls emoji.get("${emoji}")
+      `, () => {
+          assert.calledWith(deps['node-emoji'].get, emoji);
+        });
 
       it(`calls chalk.${chalkColor}`, () => {
         assert.calledWith(deps['chalk'][chalkColor], `${emoji} test\n`);
