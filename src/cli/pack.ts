@@ -25,7 +25,7 @@ class PackCommand extends CliCommand {
       if (buildOpts.createArchive) {
         if (apps.isArchivable(a)) {
           this.cliLogger.info('creating archive...');
-          const zip = await report.indeterminate('creating archive', a.createArchive(result));
+          const zip = await report.promise('creating archive', a.createArchive(result));
           this.cliLogger.info('archive: ', zip);
         } else {
           logger.warn('tried to create an archive but this app type isnt archivable');

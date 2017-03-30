@@ -26,9 +26,9 @@ class Cmd extends CliCommand {
 
     if (apps.isServable(a)) {
       const { server, reload, mappings, dirs } = await a.server(opts);
-      await report.indeterminate('starting server', startServer(opts.port, server));
+      await report.promise('starting server', startServer(opts.port, server));
       const extraFilesToWatch = [];
-      await report.indeterminate('setting up file watching', new Promise(r => {
+      await report.promise('setting up file watching', new Promise(r => {
         initWatch(a.config, reload, extraFilesToWatch, mappings, dirs);
         r();
       }));

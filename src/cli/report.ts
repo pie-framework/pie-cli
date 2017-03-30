@@ -5,7 +5,7 @@ import { blue, green, red, yellow } from 'chalk';
 
 type WritableStream = NodeJS.WritableStream;
 
-interface Instance {
+export interface Instance {
   finish(e?: Error): boolean;
 }
 
@@ -66,11 +66,7 @@ export class Report {
     this.stream.write(yellow(`${emoji.get('warning')} ${s}\n`));
   }
 
-  public indeterminate<A>(label: string, p: Promise<A>): Promise<A> {
-
-    if (!this.handler) {
-      return p;
-    }
+  public promise<A>(label: string, p: Promise<A>): Promise<A> {
 
     const id = this.handler.indeterminate(label);
     return p
@@ -82,10 +78,14 @@ export class Report {
         id.finish(e);
       });
   }
+
+  public instance(label: string): Instance {
+    return this.handler.indeterminate(label);
+  }
 }
 
 const r = new Report(process.stdout);
 
 export default r;
 
-export const indeterminate = r.indeterminate.bind(r);
+export const promise = r.promise.bind(r);
