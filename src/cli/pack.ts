@@ -1,5 +1,6 @@
 import {
   types as apps,
+  clean,
   loadApp,
 } from '../apps';
 
@@ -19,6 +20,11 @@ class PackCommand extends CliCommand {
 
     if (apps.isBuildable<T>(a)) {
       const buildOpts = apps.BuildOpts.build(args);
+
+      if (buildOpts.clean) {
+        await report.promise('removing files', clean(a.config.dir));
+      }
+
       const result: T = await a.build(buildOpts);
       this.cliLogger.info('build complete, run manifest...');
 

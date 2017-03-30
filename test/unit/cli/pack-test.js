@@ -13,12 +13,21 @@ describe('pack', () => {
 
     app = {
       build: stub().returns('done'),
-      manifest: stub().returns('done')
+      manifest: stub().returns('done'),
+      config: {
+        dir: 'dir'
+      }
     }
 
     deps = {
       '../apps': {
-        loadApp: stub().returns(app)
+        loadApp: stub().returns(app),
+        clean: stub().returns(Promise.resolve([]))
+      },
+      './report' : {
+        default: {
+          promise: spy(p => p)
+        }
       }
     }
 
@@ -35,16 +44,30 @@ describe('pack', () => {
 
   describe('run', () => {
 
-    beforeEach(() => cmd.run({}));
+    describe('with defaults', () => {
+      beforeEach(() => cmd.run({}));
 
-    it('calls loadApp', () => {
-      assert.calledWith(deps['../apps'].loadApp, {});
+      it('calls loadApp', () => {
+        assert.calledWith(deps['../apps'].loadApp, {});
+      });
+
+      it('calls app.build', () => {
+        assert.calledWith(app.build, types.BuildOpts.build({}));
+      });
+
+      it('does not call clean', () => {
+
+        assert.notCalled(deps['../apps'].clean);
+      });
+    }); 
+
+    describe('with --clean', () => {
+      beforeEach(() => cmd.run({ clean: true }));
+
+      it('calls clean', () => {
+        assert.calledWith(deps['../apps'].clean, 'dir');
+      });
     });
-
-    it('calls app.build', () => {
-      assert.calledWith(app.build, types.BuildOpts.build({}));
-    });
-
   });
 
 });

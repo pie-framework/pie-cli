@@ -13,17 +13,16 @@ export class BuildOpts {
 
   public static build(args: any) {
     return new BuildOpts(
-      args.clean,
+      args.clean === true,
       args.keepBuildAssets === true,
       args.createArchive === true,
       args.forceInstall === true);
   }
 
-  constructor(readonly clean: boolean = false,
-    readonly keepBuildAssets: boolean = false,
-    readonly createArchive: boolean = false,
-    readonly forceInstall: boolean = false
-  ) { }
+  constructor(readonly clean: boolean,
+    readonly keepBuildAssets: boolean,
+    readonly createArchive: boolean,
+    readonly forceInstall: boolean) { }
 }
 
 export class ServeOpts {
@@ -34,6 +33,7 @@ export class ServeOpts {
       args.dir || process.cwd(),
       args.port || 4000,
       args.forceInstall === true,
+      args.clean === true,
       args.sourceMaps !== false);
   }
 
@@ -41,6 +41,7 @@ export class ServeOpts {
     readonly dir: string,
     readonly port: number,
     readonly forceInstall: boolean,
+    readonly clean: boolean,
     readonly sourceMaps: boolean) { }
 
 }

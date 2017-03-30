@@ -6,13 +6,15 @@ import CatalogApp from './catalog';
 import DefaultApp from './default';
 import InfoApp from './info';
 import ItemApp from './item';
+import { clean } from './clean';
 
 export {
-  types,
-  InfoApp,
-  DefaultApp,
   CatalogApp,
+  clean,
+  DefaultApp,
+  InfoApp,
   ItemApp,
   loadApp,
-  loadSupportConfig
+  loadSupportConfig,
+  types,
 }
