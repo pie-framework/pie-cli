@@ -72,6 +72,8 @@ export default class NpmDir {
   };
 
   private spawnPromise(args: string[], ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
-    return sp('npm', this.rootDir, args, ignoreExitCode);
+    const isWin = /^win/.test(process.platform);
+    const cmd = isWin ? 'npm.cmd' : 'npm';
+    return sp(cmd, this.rootDir, args, ignoreExitCode);
   };
 }

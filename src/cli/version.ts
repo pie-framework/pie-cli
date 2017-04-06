@@ -16,11 +16,12 @@ class VersionCommand extends CliCommand {
   run(opts) {
     let log = _.isFunction(opts.log) ? opts.log : console.log;
     let pkg = readJsonSync(join(__dirname, '..', '..', 'package.json'));
-    let projectRoot = join(__dirname, '../..');
+    let projectRoot = join(__dirname, '..', '..');
     let gitDir = join(projectRoot, '.git');
     let gitSha = '';
     if (existsSync(gitDir)) {
-      gitSha = execSync(`git --git-dir=${gitDir} --work-tree=${projectRoot} rev-parse --short HEAD`, { encoding: 'utf8' });
+      const cmd = `git --git-dir="${gitDir}" --work-tree="${projectRoot}" rev-parse --short HEAD`; 
+      gitSha = execSync(cmd, { encoding: 'utf8' });
       gitSha = gitSha.trim();
     }
     let message = `version: ${pkg.version}`;

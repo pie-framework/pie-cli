@@ -23,7 +23,7 @@ export function allInOne(
   customElements.define('pie-control-panel', ControlPanel);
 
   const controllerMap = {}; 
-  ${controllerMap.map(t => `controllerMap['${t.pie}'] = require('${t.target}');`)}
+  ${controllerMap.map(t => `controllerMap['${t.pie}'] = require('${t.target}');`).join('\n')}
   
   export default class Bundled extends HTMLElement{
 
