@@ -57,7 +57,7 @@ describe('info', () => {
     beforeEach(() => cmd.run({ clean: true }));
 
     it('calls clean', () => {
-      assert.calledWith(deps['../apps'].clean, match(/.*docs\/demo$/));
+      assert.calledWith(deps['../apps'].clean, match(/.*docs[\/|\\]demo$/));
     });
   });
 });

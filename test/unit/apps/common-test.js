@@ -3,6 +3,7 @@ import { join, resolve } from 'path';
 
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
+import {path as p} from '../../../lib/string-utils';
 
 describe('common', () => {
 
@@ -54,20 +55,20 @@ describe('common', () => {
 
     it('adds resolve.modules', () => {
       expect(config.resolve.modules).to.eql([
-        'configure/node_modules',
-        'controllers/node_modules',
-        'root/node_modules',
-        'node_modules',
+        p`configure/node_modules`,
+        p`controllers/node_modules` ,
+        p`root/node_modules`,
+        p`node_modules`,
         resolve(join(__dirname, '../../../node_modules'))
       ]);
     });
 
     it('adds resolveLoader.modules', () => {
       expect(config.resolveLoader.modules).to.eql([
-        'root/node_modules',
-        'node_modules',
+        p`root/node_modules`,
+        p`node_modules`,
         resolve(join(__dirname, '../../../node_modules'))
-      ])
+      ]);
     });
 
     it('adds extensions', () => {

@@ -2,6 +2,7 @@ import { assert, match, spy, stub } from 'sinon';
 
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
+import { path as p } from '../../../../../lib/string-utils';
 
 describe('elements', () => {
 
@@ -112,14 +113,14 @@ describe('elements', () => {
     describe('schemasDir', () => {
       it('returns schemas dir', () => {
         let pp = new elements.PiePackage('key', 'value');
-        expect(pp.schemasDir).to.eql('value/docs/schemas');
+        expect(pp.schemasDir).to.eql(p`value/docs/schemas`);
       });
     });
 
     describe('controllerDir', () => {
       it('returns controller dir', () => {
         let pp = new elements.PiePackage('key', 'value');
-        expect(pp.controllerDir).to.eql('value/controller');
+        expect(pp.controllerDir).to.eql(p`value/controller`);
       });
     });
   });

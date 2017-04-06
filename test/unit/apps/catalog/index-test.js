@@ -2,6 +2,7 @@ import { assert, match, spy, stub } from 'sinon';
 
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
+import { path as p } from '../../../../lib/string-utils';
 
 describe('catalog', () => {
 
@@ -84,7 +85,7 @@ describe('catalog', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, 'dir/.pie/catalog.entry.js');
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/catalog.entry.js`);
     });
 
     it('calls buildWebpack', () => {
@@ -141,7 +142,7 @@ describe('catalog', () => {
     });
 
     it('calls archive.directory for package.json', () => {
-      assert.calledWith(archive.directory, match(/.*docs\/schemas$/), 'schemas');
+      assert.calledWith(archive.directory, match(/.*docs[\/|\\]schemas$/), 'schemas');
     });
 
     it('calls archive.append for externals.json', () => {

@@ -3,6 +3,7 @@ import { assert, match, stub } from 'sinon';
 import _ from 'lodash';
 import { expect } from 'chai';
 import proxyquire from 'proxyquire'
+import { path as p } from '../../../lib/string-utils';
 
 describe('watchmaker', () => {
 
@@ -122,11 +123,11 @@ describe('watchmaker', () => {
       });
 
       it('calls file watch constructor for index.html', () => {
-        assert.calledWith(fileWatchConstructor, 'dir/index.html', match.func);
+        assert.calledWith(fileWatchConstructor, p`dir/index.html`, match.func);
       });
 
       it('calls file watch constructor for config.json', () => {
-        assert.calledWith(fileWatchConstructor, 'dir/config.json', match.func);
+        assert.calledWith(fileWatchConstructor, p`dir/config.json`, match.func);
       });
 
     });

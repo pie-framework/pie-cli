@@ -4,6 +4,7 @@ import { Base } from '../helper';
 import { expect } from 'chai';
 import path from 'path';
 import proxyquire from 'proxyquire';
+import { path as p } from '../../../../lib/string-utils';
 
 const ROOT = '../../../../lib';
 
@@ -116,7 +117,7 @@ describe('item app', () => {
     });
 
     it('calls writeEntryJs', () => {
-      assert.calledWith(deps['../../code-gen'].writeEntryJs, 'dir/item.entry.js', match.string);
+      assert.calledWith(deps['../../code-gen'].writeEntryJs, p`dir/item.entry.js`, match.string);
     });
 
     it('calls webpackConfig', () => {

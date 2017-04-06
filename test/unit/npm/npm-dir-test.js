@@ -65,7 +65,7 @@ describe('npm-dir', () => {
       fs.existsSync.returns(false);
       return dir.install({})
         .then(() => {
-          assert.calledWith(io.spawnPromise, 'npm', __dirname, ['install'], false);
+          assert.calledWith(io.spawnPromise, dir.cmd, __dirname, ['install'], false);
         });
     });
 
@@ -81,7 +81,7 @@ describe('npm-dir', () => {
       fs.existsSync.returns(true);
       return dir.install('name', {}, {}, true)
         .then(() => {
-          assert.calledWith(io.spawnPromise, 'npm', __dirname, ['install'], false);
+          assert.calledWith(io.spawnPromise, dir.cmd, __dirname, ['install'], false);
         });
     });
   });
