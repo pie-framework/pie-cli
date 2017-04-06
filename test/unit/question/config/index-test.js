@@ -4,6 +4,8 @@ import _ from 'lodash';
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 
+import { path as p } from '../../../../lib/string-utils';
+
 describe('JsonConfig', () => {
 
   let c, mod, Config, fsExtra, validator, raw, rawConfig, elements, deps;
@@ -93,7 +95,7 @@ describe('JsonConfig', () => {
       });
 
       it('calls fromPath', () => {
-        assert.calledWith(deps['./types'].fromPath, 'dir/config.json');
+        assert.calledWith(deps['./types'].fromPath, p`dir/config.json`);
       });
 
       it('calls validate', () => {
@@ -244,7 +246,7 @@ describe('JsonConfig', () => {
     describe('markup', () => {
       it('calls readFileSync', () => {
         c.markup;
-        assert.calledWith(fsExtra.readFileSync, 'dir/index.html');
+        assert.calledWith(fsExtra.readFileSync, p`dir/index.html`);
       });
     });
   });
@@ -257,14 +259,14 @@ describe('JsonConfig', () => {
 
     describe('constructor', () => {
       it('calls fromPath', () => {
-        assert.calledWith(deps['./types'].fromPath, 'dir/c.json');
+        assert.calledWith(deps['./types'].fromPath, p`dir/c.json`);
       });
     });
 
     describe('markup', () => {
       it('calls readFileSync', () => {
         c.markup;
-        assert.calledWith(fsExtra.readFileSync, 'dir/i.html');
+        assert.calledWith(fsExtra.readFileSync, p`dir/i.html`);
       });
     });
   });

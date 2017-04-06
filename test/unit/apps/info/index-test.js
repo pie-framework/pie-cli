@@ -4,6 +4,7 @@ import { Base } from '../helper';
 import { expect } from 'chai';
 import path from 'path';
 import proxyquire from 'proxyquire';
+import { path as p } from '../../../../lib/string-utils';
 
 const ROOT = '../../../../lib';
 
@@ -116,7 +117,7 @@ describe('info app', () => {
     });
 
     it('calls writeEntryJs', () => {
-      assert.calledWith(deps['../../code-gen'].writeEntryJs, '.pie/info.entry.js', match.string);
+      assert.calledWith(deps['../../code-gen'].writeEntryJs, p`.pie/info.entry.js`, match.string);
     });
 
     it('calls webpackConfig', () => {
@@ -178,11 +179,11 @@ describe('info app', () => {
       });
 
       it('calls readJsonSync for package.json', () => {
-        assert.calledWith(deps['fs-extra'].readJsonSync, 'pie-root/package.json');
+        assert.calledWith(deps['fs-extra'].readJsonSync, p`pie-root/package.json`);
       });
 
       it('calls readFileSync for README.md', () => {
-        assert.calledWith(deps['fs-extra'].readFileSync, 'pie-root/README.md');
+        assert.calledWith(deps['fs-extra'].readFileSync, p`pie-root/README.md`);
       });
     });
   });

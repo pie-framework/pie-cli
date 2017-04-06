@@ -4,6 +4,8 @@ import { expect } from 'chai';
 import proxyquire from 'proxyquire'
 import { resolve } from 'path';
 
+import { path as p } from '../../../lib/string-utils';
+
 describe('watchers', () => {
 
   let watchers, baseWatch, chokidar, chokidarWatcher, fs;
@@ -106,22 +108,22 @@ describe('watchers', () => {
             let srcMTime = new Date();
             let installedMTime = new Date(srcMTime.getTime() - timeDiff);
 
-            baseWatch.getDestination = spy(function (p) {
-              return `destination/${p}`;
+            baseWatch.getDestination = spy(function (a) {
+              return p`destination/${a}`;
             });
 
-            fs.existsSync.withArgs('path/file.js').returns(true);
-            fs.existsSync.withArgs('destination/path/file.js').returns(true);
+            fs.existsSync.withArgs(p`path/file.js`).returns(true);
+            fs.existsSync.withArgs(p`destination/path/file.js`).returns(true);
 
             fs.statSync
-              .withArgs('destination/path/file.js')
+              .withArgs(p`destination/path/file.js`)
               .returns({
                 isFile: () => true,
                 mtime: installedMTime
               });
 
             fs.statSync
-              .withArgs('path/file.js')
+              .withArgs(p`path/file.js`)
               .returns({
                 mtime: srcMTime,
                 isFile: () => true
@@ -138,7 +140,7 @@ describe('watchers', () => {
             clock.tick(1100);
 
             if (expectCopy) {
-              assert.calledWith(fs.copy, 'path/file.js', 'destination/path/file.js');
+              assert.calledWith(fs.copy, p`path/file.js`, p`destination/path/file.js`);
             } else {
               assert.notCalled(fs.copy);
             }
