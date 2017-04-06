@@ -49,6 +49,8 @@ export function linkCompilerToServer(name: string,
         if (reporter) {
           reporter.finish(new Error('compiling webpack failed'));
           reporter = null;
+        } else {
+          report.failure('compiling webpack failed');
         }
       } else {
         logger.debug(`${name}: reload!`);
