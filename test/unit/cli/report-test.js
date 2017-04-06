@@ -29,6 +29,12 @@ describe('report', () => {
       'node-emoji': {
         get: spy(echo())
       },
+      'log-symbols': {
+        success: '',
+        info: '',
+        error: '',
+        warning: ''
+      },
       'chalk': {
         blue: spy(echo()),
         red: spy(echo()),
@@ -96,17 +102,13 @@ describe('report', () => {
         r[fnName]('test');
       });
 
-      it(`calls emoji.get("${emoji}")
-      `, () => {
-          assert.calledWith(deps['node-emoji'].get, emoji);
-        });
 
       it(`calls chalk.${chalkColor}`, () => {
-        assert.calledWith(deps['chalk'][chalkColor], `${emoji} test\n`);
+        assert.calledWith(deps['chalk'][chalkColor], ` test\n`);
       });
 
       it('calls write', () => {
-        assert.calledWith(stream.write, `${emoji} test\n`);
+        assert.calledWith(stream.write, ` test\n`);
       });
     }
   }
