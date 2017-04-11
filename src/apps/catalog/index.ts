@@ -106,7 +106,7 @@ export default class CatalogApp
 
     logger.info('config: ', config);
 
-    await report.indeterminate('building webpack', buildWebpack(config, CatalogApp.WEBPACK_CONFIG));
+    await report.promise('building webpack', buildWebpack(config, CatalogApp.WEBPACK_CONFIG));
 
     return mappings;
   }

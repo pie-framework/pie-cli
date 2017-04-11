@@ -4,6 +4,7 @@ import { Base } from '../helper';
 import { expect } from 'chai';
 import path from 'path';
 import proxyquire from 'proxyquire';
+import { path as p } from '../../../../lib/string-utils';
 
 const ROOT = '../../../../lib';
 
@@ -118,7 +119,7 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, 'dir/.pie/controllers.entry.js');
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/controllers.entry.js`);
     });
 
     it('calls webpackConfig', () => {
@@ -143,7 +144,7 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, 'dir/.pie/client.entry.js');
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/client.entry.js`);
     });
 
     it('calls webpackConfig', () => {
@@ -183,7 +184,7 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, 'dir/.pie/all-in-one.entry.js');
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/all-in-one.entry.js`);
     });
 
     it('calls webpackConfig', () => {
@@ -206,7 +207,7 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, 'dir/example.html', 'template', 'utf8');
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/example.html`, 'template', 'utf8');
     });
   });
 

@@ -11,6 +11,7 @@ describe('info', () => {
   beforeEach(() => {
     deps = {
       '../apps': {
+        clean: stub().returns(Promise.resolve([])),
         loadApp: stub().returns({
           server: stub().returns({}),
           watchableFiles: stub().returns([])
@@ -24,7 +25,7 @@ describe('info', () => {
       },
       './report': {
         default: {
-          indeterminate: spy(p => p)
+          promise: spy(p => p)
         }
       }
     };
@@ -44,6 +45,19 @@ describe('info', () => {
       return cmd.run({ app: 'default' }).then(() => {
         assert.calledWith(deps['../apps'].loadApp, { app: 'info' });
       });
+    });
+
+    it('does not call clean', () => {
+      assert.notCalled(deps['../apps'].clean);
+    });
+  });
+  
+
+  describe('run with --clean', () => {
+    beforeEach(() => cmd.run({ clean: true }));
+
+    it('calls clean', () => {
+      assert.calledWith(deps['../apps'].clean, match(/.*docs[\/|\\]demo$/));
     });
   });
 });

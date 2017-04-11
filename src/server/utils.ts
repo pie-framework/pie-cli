@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
 import * as http from 'http';
 
-import { Compiler, Stats } from 'webpack';
+import { Compiler, Stats, Watching } from 'webpack';
 
+import { Instance } from './../cli/report';
 import { ReloadOrError } from './types';
 import { buildLogger } from 'log-factory';
 import report from '../cli/report';
@@ -29,26 +30,38 @@ export function linkCompilerToServer(name: string,
   compiler: Compiler,
   handlers: ReloadOrError) {
 
+  let reporter: Instance;
+
   //  TODO: would be nice to call report.indeterminate here ...
   const onCompile = (params) => {
     logger.info('The compiler is starting to compile...');
-    report.info('Webpack compiling...');
+    reporter = report.instance('compiling webpack');
   };
-
+  
   const onDone = (stats: Stats) => {
     logger.info('>> [compiler] done');
-
     process.nextTick(() => {
       if (stats.hasErrors()) {
         logger.error('recompile failed');
-        report.failure('webpack compilation failed');
         const json = stats.toJson('errors-only');
         logger.error(json.errors);
         handlers.error(name, json.errors);
+        if (reporter) {
+          reporter.finish(new Error('compiling webpack failed'));
+          reporter = null;
+        } else {
+          report.failure('compiling webpack failed');
+        }
       } else {
         logger.debug(`${name}: reload!`);
-        report.success('Webpack compilation successful');
         handlers.reload(name);
+        if (reporter) {
+          reporter.finish();
+          reporter = null;
+        } else {
+          report.success('compiling webpack');
+        }
+
       }
     });
   };

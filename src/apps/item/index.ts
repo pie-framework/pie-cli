@@ -7,6 +7,7 @@ import * as webpackMiddleware from 'webpack-dev-middleware';
 import { App, Servable, ServeOpts, ServeResult } from '../types';
 import AppServer, { linkCompilerToServer } from '../../server';
 import { join, resolve } from 'path';
+import { writeConfig, writeEntryJs } from '../../code-gen';
 
 import Install from '../../install';
 import { JsonConfig } from '../../question/config';
@@ -14,8 +15,6 @@ import { SupportConfig } from '../../framework-support';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
 import { webpackConfig } from '../common';
-import { writeConfig, writeEntryJs } from '../../code-gen';
-import { writeFileSync } from 'fs-extra';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');

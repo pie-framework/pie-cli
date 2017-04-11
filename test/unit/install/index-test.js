@@ -3,6 +3,8 @@ import { assert, match, spy, stub } from 'sinon';
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
 
+import { path as p } from '../../../lib/string-utils';
+
 describe('install', () => {
 
   let installer, mod, deps, config;
@@ -77,7 +79,7 @@ describe('install', () => {
 
     it('calls getInstalledPies', () => {
       installer.installedPies;
-      assert.calledWith(deps['../question/config'].getInstalledPies, 'dir/.pie/node_modules', []);
+      assert.calledWith(deps['../question/config'].getInstalledPies, p`dir/.pie/node_modules`, []);
     })
   });
 });

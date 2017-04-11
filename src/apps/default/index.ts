@@ -9,7 +9,7 @@ import { buildWebpack, writeConfig } from '../../code-gen';
 import { join, resolve } from 'path';
 
 import { SupportConfig } from '../../framework-support';
-import { indeterminate as report } from '../../cli/report';
+import { promise as report } from '../../cli/report';
 import { webpackConfig } from '../common';
 import { writeFileSync } from 'fs-extra';
 

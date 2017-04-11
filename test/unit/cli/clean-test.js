@@ -14,11 +14,13 @@ describe('clean', () => {
     }
 
     deps = {
-      '../apps/load-app': {
-        allApps: stub().returns([])
+      '../apps/clean': {
+        clean: stub().returns(Promise.resolve([]))
       },
-      '../apps/common': {
-        removeFiles: stub().returns(Promise.resolve([]))
+      './report' : {
+        default: {
+          promise: spy(p => p)
+        }
       }
     };
 
@@ -38,12 +40,9 @@ describe('clean', () => {
 
     beforeEach(() => cmd.run({}));
 
-    it('calls allApps', () => {
-      assert.called(deps['../apps/load-app'].allApps);
+    it('calls clean', () => {
+      assert.called(deps['../apps/clean'].clean)
     });
 
-    it('calls removeFiles', () => {
-      assert.calledWith(deps['../apps/common'].removeFiles, match.string, ['.pie']);
-    });
   });
 });

@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { types as apps, loadApp } from '../apps';
+import { types as apps, clean, loadApp } from '../apps';
 
 import CliCommand from './cli-command';
 import { buildLogger } from 'log-factory';
@@ -24,11 +24,15 @@ class Cmd extends CliCommand {
     const a: apps.App = await loadApp(_.extend(args, { app: 'item' }));
     const opts = apps.ServeOpts.build(args);
 
+    if (opts.clean) {
+      await report.promise('removing files', clean(opts.dir));
+    }
+
     if (apps.isServable(a)) {
       const { server, reload, mappings, dirs } = await a.server(opts);
-      await report.indeterminate('starting server', startServer(opts.port, server));
+      await report.promise('starting server', startServer(opts.port, server));
       const extraFilesToWatch = [];
-      await report.indeterminate('setting up file watching', new Promise(r => {
+      await report.promise('setting up file watching', new Promise(r => {
         initWatch(a.config, reload, extraFilesToWatch, mappings, dirs);
         r();
       }));

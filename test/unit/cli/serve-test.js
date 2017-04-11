@@ -18,13 +18,19 @@ describe('serve', () => {
 
     deps = {
       '../apps': {
-        loadApp: stub().returns(app)
+        loadApp: stub().returns(app),
+        clean: stub().returns(Promise.resolve([]))
       },
       '../server': {
         startServer: startServer
       },
       '../watch/watchmaker': {
         init: init
+      },
+      './report' : {
+        default: {
+          promise: spy(p => p)
+        }
       }
     }
 
@@ -53,6 +59,19 @@ describe('serve', () => {
     it('calls initWatch', () => {
       assert.calledWith(init, app.config, undefined);
     });
+    
+    it('does not call clean', () => {
+      assert.notCalled(deps['../apps'].clean);
+    });
 
+  });
+  
+
+  describe('run with --clean', () => {
+    beforeEach(() => cmd.run({ clean: true, dir: 'dir' }));
+
+    it('calls clean', () => {
+      assert.calledWith(deps['../apps'].clean, 'dir');
+    });
   });
 });

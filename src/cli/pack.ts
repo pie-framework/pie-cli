@@ -1,5 +1,6 @@
 import {
   types as apps,
+  clean,
   loadApp,
 } from '../apps';
 
@@ -19,13 +20,18 @@ class PackCommand extends CliCommand {
 
     if (apps.isBuildable<T>(a)) {
       const buildOpts = apps.BuildOpts.build(args);
+
+      if (buildOpts.clean) {
+        await report.promise('removing files', clean(a.config.dir));
+      }
+
       const result: T = await a.build(buildOpts);
       this.cliLogger.info('build complete, run manifest...');
 
       if (buildOpts.createArchive) {
         if (apps.isArchivable(a)) {
           this.cliLogger.info('creating archive...');
-          const zip = await report.indeterminate('creating archive', a.createArchive(result));
+          const zip = await report.promise('creating archive', a.createArchive(result));
           this.cliLogger.info('archive: ', zip);
         } else {
           logger.warn('tried to create an archive but this app type isnt archivable');
