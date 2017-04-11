@@ -1,6 +1,6 @@
 {
   "name": "pie",
-  "version": "7.2.0-prerelease",
+  "version": "7.2.0",
   "description": "The Portable Interaction Elements framework CLI",
   "preferGlobal": true,
   "bin": {
