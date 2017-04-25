@@ -1,10 +1,12 @@
+import * as _ from 'lodash';
+
 import { assert, match, spy, stub } from 'sinon';
 
 import { Base } from '../helper';
 import { expect } from 'chai';
+import { path as p } from '../../../../lib/string-utils';
 import path from 'path';
 import proxyquire from 'proxyquire';
-import { path as p } from '../../../../lib/string-utils';
 
 const ROOT = '../../../../lib';
 
@@ -64,7 +66,7 @@ describe('index', () => {
       }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
-      return instance.build().then(r => result = r);
+      return instance.build({}).then(r => result = r);
     });
 
     it('calls installer.install', () => {
@@ -95,7 +97,7 @@ describe('index', () => {
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       instance.buildAllInOne = stub().returns(Promise.resolve(['all-in-one.js']));
       instance.buildExample = stub().returns(Promise.resolve(['example.html']));
-      return instance.build();
+      return instance.build({});
     });
 
     it('calls buildAllInOne', () => {
@@ -104,6 +106,29 @@ describe('index', () => {
 
     it('calls buildExample', () => {
       assert.called(instance.buildExample);
+    });
+  });
+
+  describe('build with addPlayerAndControlPanel', () => {
+    beforeEach(() => {
+      instance = new DefaultApp({ c: false }, jsonConfig, supportConfig);
+      instance.installer = {
+        install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
+      }
+      instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
+      return instance.build({ addPlayerAndControlPanel: true });
+    });
+
+    it('calls generator.client with pie-player', () => {
+      const call = deps['./src-generators'].client.firstCall;
+      let arr = call.args[0];
+      expect(_.some(arr, ed => ed.tag === 'pie-player')).to.be.true;
+    });
+
+    it('calls generator.client with pie-control-panel', () => {
+      const call = deps['./src-generators'].client.firstCall;
+      let arr = call.args[0];
+      expect(_.some(arr, ed => ed.tag === 'pie-player')).to.be.true;
     });
   });
 
