@@ -3,9 +3,9 @@ import * as generators from './src-generators';
 import * as pug from 'pug';
 
 import { App, BuildOpts, Buildable, MakeManifest, ManifestOpts } from '../types';
+import { ElementDeclaration, buildWebpack, writeConfig } from '../../code-gen';
 import Install, { PieTarget } from '../../install';
 import { JsonConfig, Manifest } from '../../question/config';
-import { buildWebpack, writeConfig } from '../../code-gen';
 import { join, resolve } from 'path';
 
 import { SupportConfig } from '../../framework-support';
@@ -46,13 +46,15 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
 
   public async build(opts: BuildOpts): Promise<string[]> {
     const forceInstall = opts ? opts.forceInstall : false;
+
     const mappings = await this.installer.install(forceInstall);
-    const client = await report('building client', this.buildClient());
+    const client = await report('building client', this.buildClient(opts.addPlayerAndControlPanel));
     const controllers = await report('building controllers', this.buildControllers(mappings.controllers));
     const { includeComplete } = this.defaultOpts;
     const allInOne = includeComplete ?
       await report('building all-in-one', this.buildAllInOne(mappings.controllers)) : [];
     const example = includeComplete ? await report('building example', this.buildExample()) : [];
+
     return _.concat(client, controllers, allInOne, example);
   }
 
@@ -60,8 +62,13 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
     return Promise.resolve(this.config.manifest);
   }
 
-  private async buildClient(): Promise<string[]> {
-    const js = generators.client(this.config.declarations);
+  private async buildClient(addPlayerAndControlPanel: boolean): Promise<string[]> {
+
+    const js = generators.client(this.config.declarations.concat(addPlayerAndControlPanel ? [
+      new ElementDeclaration('pie-player'),
+      new ElementDeclaration('pie-control-panel')
+    ] : []));
+
     writeFileSync(join(this.installer.dir, 'client.entry.js'), js, 'utf8');
     const config = webpackConfig(this.installer, this.support, 'client.entry.js', 'pie-view.js', this.config.dir);
 

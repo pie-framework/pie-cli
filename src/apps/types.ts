@@ -16,13 +16,16 @@ export class BuildOpts {
       args.clean === true,
       args.keepBuildAssets === true,
       args.createArchive === true,
-      args.forceInstall === true);
+      args.forceInstall === true,
+      args.addPlayerAndControlPanel === true);
   }
 
   constructor(readonly clean: boolean,
     readonly keepBuildAssets: boolean,
     readonly createArchive: boolean,
-    readonly forceInstall: boolean) { }
+    readonly forceInstall: boolean,
+    /** For legacy reasons allow a user to build a view with the player and control panel bundled. */
+    readonly addPlayerAndControlPanel: boolean) { }
 }
 
 export class ServeOpts {
