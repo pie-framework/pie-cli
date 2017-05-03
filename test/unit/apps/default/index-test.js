@@ -52,7 +52,7 @@ describe('index', () => {
         js: []
       }
     };
-    instance = new DefaultApp(args, jsonConfig, supportConfig);
+    instance = new DefaultApp(jsonConfig, supportConfig);
   });
 
   describe('constructor', () => {
@@ -69,7 +69,7 @@ describe('index', () => {
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       instance.buildConfigure = stub().returns(Promise.resolve(['configure.js']));
-      return instance.build({}).then(r => result = r);
+      return instance.build({ pieName: 'pie-item' }).then(r => result = r);
     });
 
     it('calls installer.install', () => {
@@ -81,7 +81,7 @@ describe('index', () => {
     });
 
     it('calls buildControllers', () => {
-      assert.calledWith(instance.buildControllers, []);
+      assert.calledWith(instance.buildControllers, 'pie-item', []);
     });
 
     it('returns the files', () => {
@@ -92,7 +92,7 @@ describe('index', () => {
 
   describe('build with include complete', () => {
     beforeEach(() => {
-      instance = new DefaultApp({ c: true }, jsonConfig, supportConfig);
+      instance = new DefaultApp(jsonConfig, supportConfig);
       instance.installer = {
         install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
       }
@@ -100,11 +100,11 @@ describe('index', () => {
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       instance.buildAllInOne = stub().returns(Promise.resolve(['all-in-one.js']));
       instance.buildExample = stub().returns(Promise.resolve(['example.html']));
-      return instance.build({});
+      return instance.build({ includeComplete: true, pieName: 'pie-item' });
     });
 
     it('calls buildAllInOne', () => {
-      assert.calledWith(instance.buildAllInOne, []);
+      assert.calledWith(instance.buildAllInOne, 'pie-item', []);
     });
 
     it('calls buildExample', () => {
@@ -114,7 +114,7 @@ describe('index', () => {
 
   describe('build with addPlayerAndControlPanel', () => {
     beforeEach(() => {
-      instance = new DefaultApp({ c: false }, jsonConfig, supportConfig);
+      instance = new DefaultApp(jsonConfig, supportConfig);
       instance.installer = {
         install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
       }
@@ -138,7 +138,7 @@ describe('index', () => {
   describe('buildControllers', () => {
     let result;
     beforeEach(() => {
-      return instance.buildControllers([]).then(r => result = r)
+      return instance.buildControllers('pie-item', []).then(r => result = r)
         .then(r => result = r);
     });
 
@@ -221,7 +221,7 @@ describe('index', () => {
         },
         installedPies: []
       };
-      return instance.buildAllInOne([])
+      return instance.buildAllInOne('pie-item', [])
         .then(r => result = r);
     });
 
@@ -230,7 +230,7 @@ describe('index', () => {
     });
 
     it('calls generators.allInOne', () => {
-      assert.calledWith(deps['./src-generators'].allInOne, [], [], match.string, [], [], []);
+      assert.calledWith(deps['./src-generators'].allInOne, 'pie-item', [], [], match.string, [], [], []);
     });
 
     it('calls writeFileSync', () => {
@@ -257,7 +257,7 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/example.html`, 'template', 'utf8');
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/example.html`, 'template', { encoding: 'utf8' });
     });
   });
 

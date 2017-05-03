@@ -33,7 +33,7 @@ export class ElementDeclaration implements Declaration {
 
 function writeFilePromise(path: string, content: string): Promise<{}> {
   return new Promise((resolve, reject) => {
-    writeFile(path, content, 'utf8', (err) => {
+    writeFile(path, content, { encoding: 'utf8' }, (err) => {
       if (err) {
         reject(err);
       } else {

@@ -4,6 +4,7 @@ import {
   loadApp,
 } from '../apps';
 
+import { BuildOpts } from "../apps/types";
 import CliCommand from './cli-command';
 import { buildLogger } from 'log-factory';
 import report from './report';
@@ -18,8 +19,9 @@ class PackCommand extends CliCommand {
   public async run<T>(args) {
     const a: apps.App = await loadApp(args);
 
-    if (apps.isBuildable<T>(a)) {
-      const buildOpts = apps.BuildOpts.build(args);
+    if (apps.isBuildable<T, BuildOpts>(a)) {
+
+      const buildOpts = a.buildOpts(args);
 
       if (buildOpts.clean) {
         await report.promise('removing files', clean(a.config.dir));

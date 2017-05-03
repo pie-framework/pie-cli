@@ -25,7 +25,7 @@ export class Tag {
 }
 
 export function removeFiles(dir, files: string[]): Promise<string[]> {
-  const p = _.map(files, (f) => new Promise((resolve, reject) => {
+  const p: Promise<string>[] = _.map(files, (f) => new Promise((resolve, reject) => {
     remove(join(dir, f), (err) => {
       if (err) {
         reject(err);
