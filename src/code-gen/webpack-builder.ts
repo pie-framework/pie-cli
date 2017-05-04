@@ -8,8 +8,9 @@ import { writeConfig } from './webpack-write-config';
 const logger = buildLogger();
 
 export type BuildResult = { stats: webpack.compiler.Stats, duration: number };
+export type BuildFn = (config: webpack.Configuration) => Promise<BuildResult>;
 
-export function build(config, dumpConfig?: string): Promise<BuildResult> {
+export function build(logFile: string, config: webpack.Configuration, dumpConfig?: string): Promise<BuildResult> {
 
   if (dumpConfig) {
     writeConfig(join(config.context, dumpConfig), config);
@@ -25,7 +26,10 @@ export function build(config, dumpConfig?: string): Promise<BuildResult> {
 
         const out = stats.toJson({ errorDetails: true });
         _.forEach(out.errors, (e) => logger.error(e));
-        reject(new Error('Webpack build errors - see the logs'));
+        const supplemental = logFile ?
+          `see the log file: ${logFile}` :
+          'rerun the command with `--logFile out.log` to see the error details';
+        reject(new Error(`Webpack build errors - ${supplemental}`));
       } else {
         const endTime = (stats as any).endTime;
         const startTime = (stats as any).startTime;

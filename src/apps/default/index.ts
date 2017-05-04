@@ -3,7 +3,7 @@ import * as generators from './src-generators';
 import * as pug from 'pug';
 
 import { App, BuildOpts, Buildable, MakeManifest, ManifestOpts } from '../types';
-import { ElementDeclaration, buildWebpack, writeConfig } from '../../code-gen';
+import { BuildFn, ElementDeclaration, writeConfig } from '../../code-gen';
 import Install, { PieTarget } from '../../install';
 import { JsonConfig, Manifest } from '../../question/config';
 import { join, resolve } from 'path';
@@ -24,17 +24,22 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
     'example.html'
   ];
 
-  public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<DefaultApp> {
+  public static build(args: any, 
+  loadSupport: (JsonConfig) => Promise<SupportConfig>,
+  buildWebpack: BuildFn): Promise<DefaultApp> {
     const dir = resolve(args.dir || args.d || process.cwd());
     const config = JsonConfig.build(dir, args);
-    return loadSupport(config).then(s => new DefaultApp(args, config, s));
+    return loadSupport(config).then(s => new DefaultApp(args, config, s, buildWebpack));
   }
 
   private defaultOpts: { includeComplete: boolean };
   private template: pug.compileTemplate;
   private installer: Install;
 
-  constructor(args: any, readonly config: JsonConfig, private support: SupportConfig) {
+  constructor(args: any,
+  readonly config: JsonConfig,
+  private support: SupportConfig,
+  private buildWebpack : BuildFn) {
     this.template = pug.compileFile(basicExample, { pretty: true });
 
     this.defaultOpts = {
@@ -73,7 +78,7 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
     const config = webpackConfig(this.installer, this.support, 'client.entry.js', 'pie-view.js', this.config.dir);
 
     writeConfig(join(this.installer.dirs.root, 'client.webpack.config.js'), config);
-    await buildWebpack(config);
+    await this.buildWebpack(config);
     return ['pie-view.js'];
   }
 
@@ -91,7 +96,7 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
     config.output.libraryTarget = 'umd';
 
     writeConfig(join(this.installer.dirs.root, 'controllers.webpack.config.js'), config);
-    await buildWebpack(config);
+    await this.buildWebpack(config);
     return ['pie-controllers.js'];
   }
 
@@ -118,7 +123,7 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
       this.config.dir);
 
     writeConfig(join(this.installer.dirs.root, 'all-in-one.webpack.config.js'), config);
-    await buildWebpack(config);
+    await this.buildWebpack(config);
     return ['pie-item.js'];
   }
 

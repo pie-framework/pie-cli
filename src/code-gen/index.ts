@@ -1,9 +1,15 @@
-import { build as buildWebpack } from './webpack-builder';
+import * as webpack from 'webpack';
+
+import { BuildFn, BuildResult, build as buildWebpack } from './webpack-builder';
+import { utimes, writeFile } from 'fs-extra';
+
 import { pascalCase } from 'change-case';
 import { writeConfig } from './webpack-write-config';
-export { buildWebpack, writeConfig }
-import { writeFile, utimes } from 'fs-extra';
 
+export { buildWebpack, writeConfig }
+export {BuildResult, BuildFn}
+
+export {webpack}
 export interface Declaration {
   key: string;
   js: string;

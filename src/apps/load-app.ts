@@ -8,6 +8,7 @@ import DefaultApp from './default';
 import InfoApp from './info';
 import ItemApp from './item';
 import { JsonConfig } from '../question/config';
+import {buildWebpack} from '../code-gen';
 
 const appMap = {
   catalog: CatalogApp,
@@ -36,5 +37,6 @@ export function allApps(): any[] {
 export function loadApp(args: any): Promise<App> {
   const appKey = args.app || args.a || 'default';
   const clazz = appMap[appKey];
-  return clazz.build(args, loadSupportConfig);
+  const buildFn = buildWebpack.bind(null, args.logFile);
+  return clazz.build(args, loadSupportConfig, buildFn);
 };
