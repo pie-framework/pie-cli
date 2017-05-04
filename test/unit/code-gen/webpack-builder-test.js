@@ -59,7 +59,7 @@ describe('webpack-builder', () => {
         compilation: {
           errors: []
         },
-        toJson: stub().returns({ errors: [] })
+        toString: stub().returns('errors')
       };
 
       webpack = spy(function (config, done) {
@@ -71,7 +71,7 @@ describe('webpack-builder', () => {
       mod.build({})
         .then(() => done(new Error('should have failed')))
         .catch(e => {
-          expect(e.message).to.eql('Webpack build errors - see the logs');
+          expect(e.message).to.eql('Webpack build errors - ' + mod.RERUN('out.log'));
           done();
         });
     });

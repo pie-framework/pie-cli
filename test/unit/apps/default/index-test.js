@@ -66,6 +66,7 @@ describe('index', () => {
       }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
+      instance.buildConfigure = stub().returns(Promise.resolve(['configure.js']));
       return instance.build({}).then(r => result = r);
     });
 
@@ -82,7 +83,7 @@ describe('index', () => {
     });
 
     it('returns the files', () => {
-      expect(result).to.eql(['client.js', 'controllers.js']);
+      expect(result).to.eql(['client.js', 'controllers.js', 'configure.js']);
     });
 
   });
@@ -238,7 +239,7 @@ describe('index', () => {
 
   describe('generatedFiles', () => {
     it('returns the files that can be possible generated', () => {
-      expect(DefaultApp.generatedFiles).to.eql(['pie-item.js', 'pie-view.js', 'pie-controllers.js', 'example.html']);
+      expect(DefaultApp.generatedFiles).to.eql(['pie-item.js', 'pie-view.js', 'pie-configure.js', 'pie-controllers.js', 'example.html']);
     });
   });
 });
