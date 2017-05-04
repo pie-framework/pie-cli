@@ -30,7 +30,7 @@ export function build(config, dumpConfig?: string): Promise<BuildResult> {
         const endTime = (stats as any).endTime;
         const startTime = (stats as any).startTime;
         const duration = endTime - startTime;
-        logger.info(`webpack compile done. duration (ms): ${duration}`);
+        logger.info(`webpack compile done for ${config.entry}. duration (ms): ${duration}`);
         resolve({ stats, duration });
       }
     });
