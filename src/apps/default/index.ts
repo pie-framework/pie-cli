@@ -9,13 +9,10 @@ import { JsonConfig, Manifest } from '../../question/config';
 import { join, resolve } from 'path';
 
 import { SupportConfig } from '../../framework-support';
-import { buildLogger } from 'log-factory';
 import { promise as report } from '../../cli/report';
 import { targetsToElements } from '../src-snippets';
 import { webpackConfig } from '../common';
 import { writeFileSync } from 'fs-extra';
-
-const logger = buildLogger();
 
 const basicExample = join(__dirname, 'views/example.pug');
 
@@ -42,8 +39,6 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
   private defaultOpts: { includeComplete: boolean };
   private template: pug.compileTemplate;
   private installer: Install;
-
-
 
   constructor(args: any, readonly config: JsonConfig, private support: SupportConfig) {
     this.template = pug.compileFile(basicExample, { pretty: true });
