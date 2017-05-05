@@ -85,8 +85,7 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
       DefaultApp.CONFIGURE_BUNDLE,
       this.config.dir);
 
-    const result = await buildWebpack(config, DefaultApp.CONFIGURE_WEBPACK_CONFIG);
-    logger.silly('build result: ', result);
+    await buildWebpack(config, DefaultApp.CONFIGURE_WEBPACK_CONFIG);
     return [DefaultApp.CONFIGURE_BUNDLE];
   }
 
