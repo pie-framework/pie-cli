@@ -16,8 +16,6 @@ let logOpts = {
 if (logOpts.file) {
   writeFile(logOpts.file, '');
   //In case of errors - let the error print the name of the log file.
-} else {
-  logFactory.init({ file: null, console: false, log: 'OFF' });
 }
 
 logFactory.init(logOpts);
