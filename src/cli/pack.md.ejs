@@ -6,6 +6,7 @@ Generate javascript files containing all the logic needed to render the question
 By default it generates: 
  * `pie-view.js` - contains all the logic for rendering, includes the individual pies, a pie-player, pie-controller and pie-control-panel. 
  * `pie-controller.js` - contains a map of pie names to their controllers, exports the map to either `window` or `exports`.
+ * `pie-configure.js` - contains all the logic for rendering configure elements for a given pie.
 
 You can also generate a single js file `pie-item.js` that defines a custom element with everything pre-defined by adding `--includeComplete | -C`.
 
@@ -14,6 +15,7 @@ You can also generate a single js file `pie-item.js` that defines a custom eleme
 <%= loadFile('common-opts.md') %>
   `--clean` - clean the pie item directory of any pie build assets before running - default `false`
   `--includeComplete` | `-C` - generate a single js file that defines a custom element with everything predefined - default: `false`. This also generates an example markup file `example.html`
+  `--addPlayerAndControlPanel` - add the `pie-player` and `pie-control-panel` elements to `pie-view.js` - default: false
   `--app` | `-a` - the app type to use available types are `default` and `catalog`. For now you can just skip this and it'll use the `default` app type.
   `--createArchive` - create an archive from the pie item dir after packing -  default: `false`. 
 

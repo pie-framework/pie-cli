@@ -15,9 +15,12 @@ let logOpts = {
 
 if (logOpts.file) {
   writeFile(logOpts.file, '');
+  //In case of errors - let the error print the name of the log file.
 }
 
 logFactory.init(logOpts);
+
+require('../lib/code-gen/webpack-builder').setLogFile(logOpts.file);
 
 require('../lib/cli').default(args)
   .then(() => { })

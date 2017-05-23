@@ -1,5 +1,4 @@
 import * as _ from 'lodash';
-import * as pug from 'pug';
 
 import { App, Archivable, BuildOpts, Buildable } from '../types';
 import Install, { Mappings } from '../../install';
@@ -16,7 +15,6 @@ import { buildWebpack } from '../../code-gen';
 import report from '../../cli/report';
 
 const logger = buildLogger();
-const templatePath = join(__dirname, 'views/index.pug');
 
 /**
  * Builds a bundle that is compatible with the pie-catalog web app.
@@ -63,8 +61,6 @@ export default class CatalogApp
     'react/lib/ReactTransitionGroup': 'React.addons.TransitionGroup'
   };
 
-  private template: pug.compileTemplate;
-
   private installer: Install;
 
   constructor(readonly args: any,
@@ -72,8 +68,6 @@ export default class CatalogApp
     readonly config: JsonConfig,
     readonly support: SupportConfig,
     readonly names: Names) {
-    logger.debug('new CatalogApp..');
-    this.template = pug.compileFile(templatePath, { pretty: true });
     this.installer = new Install(config);
   }
 

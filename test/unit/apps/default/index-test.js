@@ -1,10 +1,12 @@
+import * as _ from 'lodash';
+
 import { assert, match, spy, stub } from 'sinon';
 
 import { Base } from '../helper';
 import { expect } from 'chai';
+import { path as p } from '../../../../lib/string-utils';
 import path from 'path';
 import proxyquire from 'proxyquire';
-import { path as p } from '../../../../lib/string-utils';
 
 const ROOT = '../../../../lib';
 
@@ -28,6 +30,9 @@ describe('index', () => {
       },
       '../common': {
         webpackConfig: stub().returns({ output: {} })
+      },
+      '../src-snippets': {
+        targetsToElements: stub().returns('')
       }
     };
 
@@ -64,7 +69,8 @@ describe('index', () => {
       }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
-      return instance.build().then(r => result = r);
+      instance.buildConfigure = stub().returns(Promise.resolve(['configure.js']));
+      return instance.build({}).then(r => result = r);
     });
 
     it('calls installer.install', () => {
@@ -80,7 +86,7 @@ describe('index', () => {
     });
 
     it('returns the files', () => {
-      expect(result).to.eql(['client.js', 'controllers.js']);
+      expect(result).to.eql(['client.js', 'controllers.js', 'configure.js']);
     });
 
   });
@@ -95,7 +101,7 @@ describe('index', () => {
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       instance.buildAllInOne = stub().returns(Promise.resolve(['all-in-one.js']));
       instance.buildExample = stub().returns(Promise.resolve(['example.html']));
-      return instance.build();
+      return instance.build({});
     });
 
     it('calls buildAllInOne', () => {
@@ -104,6 +110,29 @@ describe('index', () => {
 
     it('calls buildExample', () => {
       assert.called(instance.buildExample);
+    });
+  });
+
+  describe('build with addPlayerAndControlPanel', () => {
+    beforeEach(() => {
+      instance = new DefaultApp({ c: false }, jsonConfig, supportConfig);
+      instance.installer = {
+        install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
+      }
+      instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
+      return instance.build({ addPlayerAndControlPanel: true });
+    });
+
+    it('calls generator.client with pie-player', () => {
+      const call = deps['./src-generators'].client.firstCall;
+      let arr = call.args[0];
+      expect(_.some(arr, ed => ed.tag === 'pie-player')).to.be.true;
+    });
+
+    it('calls generator.client with pie-control-panel', () => {
+      const call = deps['./src-generators'].client.firstCall;
+      let arr = call.args[0];
+      expect(_.some(arr, ed => ed.tag === 'pie-player')).to.be.true;
     });
   });
 
@@ -154,6 +183,32 @@ describe('index', () => {
     it('returns the result', () => {
       expect(result).to.eql(['pie-view.js']);
     });
+  });
+
+  describe('buildConfigure', () => {
+
+    let mappings = { configure: [{ pie: 'my-pie', target: 'my-pie-target' }] };
+
+    beforeEach(() => instance.buildConfigure(mappings));
+
+
+    it('calls targetsToElements', () => {
+      assert.calledWith(deps['../src-snippets'].targetsToElements, mappings.configure);
+    });
+
+    it('calls writeFileSync', () => {
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/${DefaultApp.CONFIGURE_ENTRY}`);
+    });
+
+    it('calls webpackConfig', () => {
+      assert.calledWith(deps['../common'].webpackConfig,
+        match.object,
+        match.object,
+        DefaultApp.CONFIGURE_ENTRY,
+        DefaultApp.CONFIGURE_BUNDLE,
+        match.string);
+    });
+
   });
 
   describe('buildAllInOne', () => {
@@ -213,7 +268,7 @@ describe('index', () => {
 
   describe('generatedFiles', () => {
     it('returns the files that can be possible generated', () => {
-      expect(DefaultApp.generatedFiles).to.eql(['pie-item.js', 'pie-view.js', 'pie-controllers.js', 'example.html']);
+      expect(DefaultApp.generatedFiles).to.eql(['pie-item.js', 'pie-view.js', 'pie-configure.js', 'pie-controllers.js', 'example.html']);
     });
   });
 });
