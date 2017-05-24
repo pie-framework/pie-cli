@@ -100,7 +100,11 @@
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.0",
     "pie-catalog-client": "PieLabs/pie-catalog-client#v1.0.0",
     "pie-control-panel": "^1.3.0",
+<<<<<<< HEAD
     "pie-controller": "^3.0.0",
+=======
+    "pie-controller": "^2.0.0",
+>>>>>>> 60b63ed67eee5bd6909f077070e9b31733e3891b
     "pie-player": "^3.0.0",
     "raw-loader": "^0.5.1",
     "pie-support-corespring-legacy": "github:pielabs/pie-support-corespring-legacy#master",
