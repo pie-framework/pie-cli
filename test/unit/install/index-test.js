@@ -1,9 +1,8 @@
 import { assert, match, spy, stub } from 'sinon';
 
 import { expect } from 'chai';
-import proxyquire from 'proxyquire';
-
 import { path as p } from '../../../lib/string-utils';
+import proxyquire from 'proxyquire';
 
 describe('install', () => {
 
@@ -15,7 +14,7 @@ describe('install', () => {
         pathIsDir: stub().returns(true)
       },
       '../question/config': {
-        getInstalledPies: stub().returns([])
+        getInstalledPies: stub().returns([{ key: 'pie' }])
       },
       './controllers': {
         default: stub().returns({
@@ -32,7 +31,14 @@ describe('install', () => {
     config = {
       dir: 'dir',
       dependencies: {},
-      elements: []
+      elements: [
+        { key: 'pie', value: 'pie' },
+        { key: 'local-file', value: './local-file' }
+      ],
+      models: stub().returns([
+        { id: '1', element: 'pie' },
+        { id: '2', element: 'local-file' }
+      ])
     }
 
     mod = proxyquire('../../../lib/install/index', deps);
@@ -49,7 +55,7 @@ describe('install', () => {
         install: stub().returns(Promise.resolve({}))
       }
       installer.controllers = {
-        install: stub().returns(Promise.resolve([]))
+        install: stub().returns(Promise.resolve([{ pie: 'pie', target: 'pie' }]))
       }
       installer.configure = {
         install: stub().returns(Promise.resolve([]))
@@ -62,15 +68,20 @@ describe('install', () => {
     });
 
     it('calls configure.install', () => {
-      assert.calledWith(installer.configure.install, [], false);
+      assert.calledWith(installer.configure.install, [{ key: 'pie' }], false);
     });
 
     it('calls controllers.install', () => {
-      assert.calledWith(installer.controllers.install, [], false);
+      assert.calledWith(installer.controllers.install, [{ key: 'pie' }], false);
     });
 
     it('returns the mappings', () => {
-      expect(mappings).to.eql({ configure: [], controllers: [] });
+      expect(mappings).to.eql({
+        configure: [], controllers: [
+          { pie: 'pie', target: 'pie' },
+          { pie: 'local-file', target: 'pie-controller/lib/passthrough' }
+        ]
+      });
     });
   });
 
@@ -79,7 +90,7 @@ describe('install', () => {
 
     it('calls getInstalledPies', () => {
       installer.installedPies;
-      assert.calledWith(deps['../question/config'].getInstalledPies, p`dir/.pie/node_modules`, []);
+      assert.calledWith(deps['../question/config'].getInstalledPies, p`dir/.pie/node_modules`, ['pie', 'local-file']);
     })
   });
 });

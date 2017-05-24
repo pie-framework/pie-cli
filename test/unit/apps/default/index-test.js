@@ -45,8 +45,7 @@ describe('index', () => {
       weights: [],
       langs: [],
       declarations: [],
-      pieModels: stub().returns([]),
-      elementModels: stub().returns([])
+      models: stub().returns([])
     };
     supportConfig = {
       externals: {
@@ -227,15 +226,11 @@ describe('index', () => {
     });
 
     it('calls JsonConfig.pieModels', () => {
-      assert.calledWith(jsonConfig.pieModels, []);
-    });
-
-    it('calls JsonConfig.elementModels', () => {
-      assert.calledWith(jsonConfig.elementModels, []);
+      assert.called(jsonConfig.models);
     });
 
     it('calls generators.allInOne', () => {
-      assert.calledWith(deps['./src-generators'].allInOne, [], [], match.string, [], [], [], []);
+      assert.calledWith(deps['./src-generators'].allInOne, [], [], match.string, [], [], []);
     });
 
     it('calls writeFileSync', () => {

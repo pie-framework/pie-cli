@@ -2,9 +2,9 @@ import { assert, match, spy, stub } from 'sinon';
 
 import { Base } from '../helper';
 import { expect } from 'chai';
+import { path as p } from '../../../../lib/string-utils';
 import path from 'path';
 import proxyquire from 'proxyquire';
-import { path as p } from '../../../../lib/string-utils';
 
 const ROOT = '../../../../lib';
 
@@ -73,8 +73,7 @@ describe('info app', () => {
     config = {
       dir: 'dir',
       declarations: [],
-      pieModels: stub(),
-      elementModels: stub()
+      models: stub()
     };
 
     supportConfig = {
