@@ -1,6 +1,6 @@
 {
   "elements": {
-    "hello-world": "../../example-components/no-controller"
+    "no-controller": "../../example-components/no-controller"
   },
   "models": [
     {

@@ -117,11 +117,11 @@ export default class ItemApp implements App, Servable {
 
     router.get('/', (req, res) => {
 
+      //elementModels: this.config.elementModels(this.installer.installedPies),
       const page = this.template({
         css: this.support.externals.css,
         demo: {
           config: {
-            elementModels: this.config.elementModels(this.installer.installedPies),
             langs: this.config.langs,
             models: this.config.pieModels(this.installer.installedPies)
           },

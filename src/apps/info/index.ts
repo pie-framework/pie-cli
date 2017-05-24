@@ -144,9 +144,9 @@ export default class InfoApp implements App, Servable {
 
       const page = this.template({
 
+        // elementModels: this.config.elementModels(this.installer.installedPies),
         demo: {
           config: {
-            elementModels: this.config.elementModels(this.installer.installedPies),
             langs: this.config.langs,
             models: this.config.pieModels(this.installer.installedPies)
           },
