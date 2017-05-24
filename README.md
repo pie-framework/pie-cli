@@ -41,7 +41,7 @@ pie --help
 To debug typescript you'll need to generate the sourcemaps. `gulp-typescript` doesn't do this at the moment, so we use `tsc` instead.
 
 * run `npm run source-maps`
-* run `node --debug-brk $(which pie) ....`
+* run `node --debug-brk --inspect $(which pie) ....`
 
 Node is now running in debug mode on `5858` so boot up a debugger. Visual Studio Code has nice typescript debugging support. In VS: 
 
@@ -51,11 +51,12 @@ Node is now running in debug mode on `5858` so boot up a debugger. Visual Studio
 * Add the following: 
 
 ```json
- {
+{
       "type": "node",
       "request": "attach",
+      "protocol": "inspector",
       "name": "Attach to Process",
-      "port": 5858,
+      "port": 9229,
       "outFiles": [
         "${workspaceRoot}/lib/**/*.js"
       ],

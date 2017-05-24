@@ -12,7 +12,6 @@ import report from '../cli/report';
 
 const logger = buildLogger();
 
-
 export { PieTarget }
 
 export type Mappings = {
@@ -61,10 +60,28 @@ export default class Install {
     const rootInstall = this.npm.install('pie-root-install', deps, {}, force);
     await report.promise('installing root package', rootInstall);
     const installedPies = getInstalledPies(join(this.dir, 'node_modules'), this.config.elements.map(e => e.key));
+
+    const normalElements = this.config.elements.filter(e => {
+      const hasModel = _.some(this.config.models(), m => m.element === e.key);
+      return hasModel && !_.some(installedPies, p => p.key === e.key);
+    });
+
+    logger.silly('normalElements: ', normalElements);
+
+    /**
+     * For elements that have no controller but have a model in the config,
+     * we assign the `pie-controller/lib/passthrough` controller which just  
+     * allows the model to pass through it.
+     */
+    const normalElementsAsTargets = normalElements.map(ne => {
+      return { pie: ne.key, target: 'pie-controller/lib/passthrough' };
+    });
+
     logger.debug('installed pies: ', installedPies);
+
     const controllerMappings = await report.promise(
       'installing controllers',
-      this.controllers.install(installedPies, force));
+      this.controllers.install(installedPies, force).then(m => m.concat(normalElementsAsTargets)));
 
     const configureMappings = await report.promise(
       'installing configure', this.configure.install(installedPies, force)
