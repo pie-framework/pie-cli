@@ -7,7 +7,6 @@ export function allInOne(
   controllerMap: PieTarget[],
   markup: string,
   pieModels: Model[],
-  elementModels: Model[],
   weights: any,
   langs: any,
   scoringType: string = 'weighted'): string {
@@ -42,19 +41,21 @@ export function allInOne(
       
       let controller = new Controller(model, controllerMap);
       let env = { mode: 'gather' };
-      let session = [];
-      let elementModels = ${JSON.stringify(elementModels || [])};
+      let sessions = [];
 
-      this.addEventListener('pie.player-ready', (event) => {
+      this.addEventListener('ready', (event) => {
 
+        if(event.target.tagName.toLowerCase() !== 'pie-player'){
+          return;
+        }
+        
         event.preventDefault();
         event.stopImmediatePropagation();
 
         let player = event.target;
         player.controller = controller;
-        player.env = env;
-        player.session = session;
-        player.elementModels = elementModels;
+        player.env(env)
+          .then(() => player.sessions(sessions))
 
         let panel = this.querySelector('pie-control-panel');
         panel.env = env;
@@ -66,16 +67,19 @@ export function allInOne(
         });
 
         panel.addEventListener('envChanged', function (event) {
-
-          player.env = event.target.env;
-
-          if (event.target.env.mode === 'evaluate') {
-            player.getOutcome().then(function (outcome) {
-              panel.score = ' Score: ' + outcome.summary.percentage + '% Points: ' + outcome.summary.points + '/' + outcome.summary.maxPoints;
+          const {env} = event.target;
+          player.env(env)
+            .then(() => {
+              if (env.mode === 'evaluate') {
+                player.outcomes()
+                  .then(outcome => {
+                    const {percentage, points, maxPoints} = outcome.summary;
+                    panel.score = \` Score: \${percentage}% Points: \${points}/ \${maxPoints}\`;
+                  });
+              } else {
+                panel.score = '';
+              }
             });
-          } else {
-            panel.score = '';
-          }
         });
       });
       

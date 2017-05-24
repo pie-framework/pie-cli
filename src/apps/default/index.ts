@@ -120,13 +120,12 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
   private async buildAllInOne(controllerMap: PieTarget[]): Promise<string[]> {
 
     const pieModels = this.config.pieModels(this.installer.installedPies);
-    const elementModels = this.config.elementModels(this.installer.installedPies);
+
     const js = generators.allInOne(
       this.config.declarations,
       controllerMap,
       this.config.markup,
       pieModels,
-      elementModels,
       this.config.weights,
       this.config.langs
     );
