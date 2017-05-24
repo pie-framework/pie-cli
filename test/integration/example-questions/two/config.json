@@ -1,0 +1,12 @@
+{
+  "elements": {
+    "hello-world": "../../example-components/no-controller"
+  },
+  "models": [
+    {
+      "id": "1",
+      "element": "no-controller",
+      "prompt": "no-controller"
+    }
+  ]
+}
