@@ -61,7 +61,8 @@ export default class Install {
     await report.promise('installing root package', rootInstall);
     const installedPies = getInstalledPies(join(this.dir, 'node_modules'), this.config.elements.map(e => e.key));
     const normalElements = this.config.elements.filter(e => {
-      return !_.some(installedPies, p => p.key === e.key);
+      const hasModel = _.some(this.config.models(), m => m.element === e.key);
+      return hasModel && !_.some(installedPies, p => p.key === e.key);
     });
     logger.info('normalElements: ', normalElements);
 
