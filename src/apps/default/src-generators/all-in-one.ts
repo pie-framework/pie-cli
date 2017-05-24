@@ -35,7 +35,7 @@ export function allInOne(
       let model = {
         weights: ${JSON.stringify(weights || [])},
         scoringType: '${scoringType}',
-        pies: ${JSON.stringify(pieModels)},
+        models: ${JSON.stringify(pieModels)},
         langs: ${JSON.stringify(langs)}
       };
       
@@ -73,8 +73,9 @@ export function allInOne(
               if (env.mode === 'evaluate') {
                 player.outcomes()
                   .then(outcome => {
-                    const {percentage, points, maxPoints} = outcome.summary;
-                    panel.score = \` Score: \${percentage}% Points: \${points}/ \${maxPoints}\`;
+                    const {percentage, max} = outcome.summary;
+                    const points = outcome.pies.reduce((total, p) => total + p.score, 0);
+                    panel.score = \` Score: \${percentage}% Points: \${points}/ \${max}\`;
                   });
               } else {
                 panel.score = '';
