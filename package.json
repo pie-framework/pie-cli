@@ -95,7 +95,6 @@
     "node-github": "0.0.3",
     "npm-registry-client": "^7.5.0",
     "ora": "^1.2.0",
-    "pie-support-base": "github:pielabs/pie-support-base#master",
     "babel-core": "^6.24.0",
     "babel-loader": "^6.4.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.24.0",
