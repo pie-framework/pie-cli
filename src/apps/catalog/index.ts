@@ -21,7 +21,7 @@ const logger = buildLogger();
  * Used for publishing pie archives to the catalog.
  */
 export default class CatalogApp
-  implements App, Archivable<Mappings>, Buildable<Mappings> {
+  implements App, Archivable<Mappings>, Buildable<Mappings, BuildOpts> {
 
   public static generatedFiles: string[] = ['pie-item.tar.gz', 'pie-catalog.bundle.js'];
 
@@ -71,6 +71,10 @@ export default class CatalogApp
     this.installer = new Install(config);
   }
 
+  public buildOpts(args: any): BuildOpts {
+    return BuildOpts.build(args);
+  }
+
   public async build(opts: BuildOpts): Promise<Mappings> {
 
     const mappings = await this.installer.install(opts.forceInstall);
@@ -79,7 +83,6 @@ export default class CatalogApp
       //controllers
       let controllers = window.controllers = {};
       ${ mappings.controllers.map(controllerDependency).join('\n')}
-      
       //custom elements
       ${this.config.declarations.map((d) => d.js).join('\n')}
 

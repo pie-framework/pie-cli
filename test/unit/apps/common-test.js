@@ -2,8 +2,8 @@ import { assert, match, spy, stub } from 'sinon';
 import { join, resolve } from 'path';
 
 import { expect } from 'chai';
+import { path as p } from '../../../lib/string-utils';
 import proxyquire from 'proxyquire';
-import {path as p} from '../../../lib/string-utils';
 
 describe('common', () => {
 
@@ -56,7 +56,7 @@ describe('common', () => {
     it('adds resolve.modules', () => {
       expect(config.resolve.modules).to.eql([
         p`configure/node_modules`,
-        p`controllers/node_modules` ,
+        p`controllers/node_modules`,
         p`root/node_modules`,
         p`node_modules`,
         resolve(join(__dirname, '../../../node_modules'))

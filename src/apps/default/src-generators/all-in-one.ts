@@ -3,6 +3,7 @@ import { Model } from '../../../question/config';
 import { PieTarget } from '../../../install';
 
 export function allInOne(
+  pieName: string = 'pie-item',
   declarations: ElementDeclaration[],
   controllerMap: PieTarget[],
   markup: string,
@@ -122,6 +123,6 @@ export function allInOne(
     }
   }
 
-  customElements.define('pie-item', Bundled);
+  customElements.define('${pieName}', Bundled);
   `;
 };

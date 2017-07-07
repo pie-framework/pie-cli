@@ -72,14 +72,14 @@ describe('common', () => {
     it('rejects if exists is false', () => {
       deps['fs-extra'].existsSync.returns(false);
       return mod.getPkgName('dir')
-        .catch(e => expect(e).to.be.Error);
+        .catch(e => expect(e).to.Throw);
     });
 
     it('rejects if readJson fails', () => {
       deps['fs-extra'].existsSync.returns(true);
       deps['fs-extra'].readJson.yields(new Error('e'));
       return mod.getPkgName('dir')
-        .catch(e => expect(e).to.Error);
+        .catch(e => expect(e).to.Throw);
 
     });
   });

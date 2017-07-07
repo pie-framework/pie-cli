@@ -13,6 +13,9 @@ describe('pack', () => {
 
     app = {
       build: stub().returns('done'),
+      buildOpts: function (args) {
+        return new types.DefaultOpts(args);
+      },
       manifest: stub().returns('done'),
       config: {
         dir: 'dir'
@@ -24,7 +27,7 @@ describe('pack', () => {
         loadApp: stub().returns(app),
         clean: stub().returns(Promise.resolve([]))
       },
-      './report' : {
+      './report': {
         default: {
           promise: spy(p => p)
         }
@@ -52,14 +55,14 @@ describe('pack', () => {
       });
 
       it('calls app.build', () => {
-        assert.calledWith(app.build, types.BuildOpts.build({}));
+        assert.calledWith(app.build, new types.DefaultOpts({}));
       });
 
       it('does not call clean', () => {
 
         assert.notCalled(deps['../apps'].clean);
       });
-    }); 
+    });
 
     describe('with --clean', () => {
       beforeEach(() => cmd.run({ clean: true }));
