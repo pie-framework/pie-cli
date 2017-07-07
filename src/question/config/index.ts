@@ -36,8 +36,8 @@ export interface Config {
   langs: string[];
   weights: Weight[];
   dir: string;
-  pieModels(installed: PiePackage[]): Model[];
-  elementModels(installed: PiePackage[]): Model[];
+  models(): Model[];
+  // elementModels(installed: PiePackage[]): Model[];
 }
 
 export class ReloadableConfig implements Config {
@@ -48,13 +48,13 @@ export class ReloadableConfig implements Config {
     return fn();
   }
 
-  public pieModels(installed: PiePackage[]) {
-    return this.jsonConfig.pieModels(installed);
+  public models() {
+    return this.jsonConfig.models();
   }
 
-  public elementModels(installed: PiePackage[]) {
-    return this.jsonConfig.elementModels(installed);
-  }
+  // public elementModels(installed: PiePackage[]) {
+  //   return this.jsonConfig.elementModels(installed);
+  // }
 
   get scoringType() {
     return this.jsonConfig.scoringType;
@@ -117,15 +117,8 @@ export class JsonConfig implements Config {
     return out;
   }
 
-  public elementModels(installed: PiePackage[]) {
-    const names = installed.map(p => p.key);
-    const fn = (n) => !this.isPie(names, n);
-    return _.filter(this.raw.models, fn);
-  }
-
-  public pieModels(installed: PiePackage[]) {
-    const names = installed.map(p => p.key);
-    return _.filter(this.raw.models, this.isPie.bind(this, names));
+  public models() {
+    return this.raw.models;
   }
 
   public valid(modulesDir: string): boolean {

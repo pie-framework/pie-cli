@@ -1,7 +1,7 @@
 import * as ora from 'ora';
-import { info, success, warning, error } from 'log-symbols';
 
 import { blue, green, red, yellow } from 'chalk';
+import { error, info, success, warning } from 'log-symbols';
 
 type WritableStream = NodeJS.WritableStream;
 
@@ -74,12 +74,13 @@ export class Report {
 
     const id = this.handler.indeterminate(label);
     return p
-      .then(r => {
+      .then((result: A) => {
         id.finish();
-        return r;
+        return result;
       })
       .catch(e => {
         id.finish(e);
+        return e;
       });
   }
 

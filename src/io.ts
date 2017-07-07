@@ -13,7 +13,7 @@ export function spawnPromise(
 
   logger.debug('[_spawnPromise] args: ', args);
 
-  const p = new Promise((resolve, reject) => {
+  const p: Promise<{ stdout: string }> = new Promise((resolve, reject) => {
 
     const s = spawn(cmd, args, { cwd });
 
@@ -57,6 +57,7 @@ export function spawnPromise(
 
   p.catch(e => {
     logger.error(`Error running cmd: ${args}, ${e.message}`);
+    return e;
   });
   return p;
-};
+}

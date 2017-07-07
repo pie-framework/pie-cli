@@ -2,9 +2,8 @@ import { assert, match, spy, stub } from 'sinon';
 
 import _ from 'lodash';
 import { expect } from 'chai';
-import proxyquire from 'proxyquire';
-
 import { path as p } from '../../../../lib/string-utils';
+import proxyquire from 'proxyquire';
 
 describe('JsonConfig', () => {
 
@@ -209,18 +208,11 @@ describe('JsonConfig', () => {
     });
 
 
-    describe('pieModels', () => {
+    describe('models', () => {
 
       it('returns pie only models', () => {
-        expect(c.pieModels([{ key: 'pie-package', target: 'pkg' }])).to.eql([
-          { id: '1', element: 'pie-package' }
-        ]);
-      });
-    });
-
-    describe('elementModels', () => {
-      it('returns element models', () => {
-        expect(c.elementModels([{ key: 'pie-package', target: 'pkg' }])).to.eql([
+        expect(c.models()).to.eql([
+          { id: '1', element: 'pie-package' },
           { id: '2', element: 'local-file' }
         ]);
       });

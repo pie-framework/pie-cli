@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as generators from './src-generators';
 import * as pug from 'pug';
 
-import { App, BuildOpts, Buildable, MakeManifest, ManifestOpts } from '../types';
+import { App, BuildOpts, Buildable, DefaultOpts, MakeManifest, ManifestOpts } from '../types';
 import { ElementDeclaration, buildWebpack, writeConfig } from '../../code-gen';
 import Install, { Mappings, PieTarget } from '../../install';
 import { JsonConfig, Manifest } from '../../question/config';
@@ -16,7 +16,11 @@ import { writeFileSync } from 'fs-extra';
 
 const basicExample = join(__dirname, 'views/example.pug');
 
-export default class DefaultApp implements Buildable<string[]>, App, MakeManifest {
+const ENCODING = { encoding: 'utf8' };
+
+const writeFile = (name: string, contents: string) => writeFileSync(name, contents, ENCODING);
+
+export default class DefaultApp implements Buildable<string[], DefaultOpts>, App, MakeManifest {
 
   public static generatedFiles: string[] = [
     'pie-item.js',
@@ -29,38 +33,36 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
   public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<DefaultApp> {
     const dir = resolve(args.dir || args.d || process.cwd());
     const config = JsonConfig.build(dir, args);
-    return loadSupport(config).then(s => new DefaultApp(args, config, s));
+    return loadSupport(config).then(s => new DefaultApp(config, s));
   }
 
   private static CONFIGURE_ENTRY = 'default.configure.entry.js';
   private static CONFIGURE_BUNDLE = 'pie-configure.js';
   private static CONFIGURE_WEBPACK_CONFIG = 'default.configure.webpack.config.js';
 
-  private defaultOpts: { includeComplete: boolean };
   private template: pug.compileTemplate;
   private installer: Install;
 
-  constructor(args: any, readonly config: JsonConfig, private support: SupportConfig) {
+  constructor(readonly config: JsonConfig, private support: SupportConfig) {
     this.template = pug.compileFile(basicExample, { pretty: true });
-
-    this.defaultOpts = {
-      includeComplete: args.c || args.includeComplete || false
-    };
-
     this.installer = new Install(config);
   }
 
-  public async build(opts: BuildOpts): Promise<string[]> {
+  public buildOpts(args): DefaultOpts {
+    return new DefaultOpts(args);
+  }
+
+  public async build(opts: DefaultOpts): Promise<string[]> {
     const forceInstall = opts ? opts.forceInstall : false;
 
     const mappings = await this.installer.install(forceInstall);
     const client = await report('building client', this.buildClient(opts.addPlayerAndControlPanel));
-    const controllers = await report('building controllers', this.buildControllers(mappings.controllers));
+    const controllers = await report('building controllers', this.buildControllers(opts.pieName, mappings.controllers));
     const configure = await report('building configure', this.buildConfigure(mappings));
-    const { includeComplete } = this.defaultOpts;
-    const allInOne = includeComplete ?
-      await report('building all-in-one', this.buildAllInOne(mappings.controllers)) : [];
-    const example = includeComplete ? await report('building example', this.buildExample()) : [];
+    const allInOne = opts.includeComplete ?
+      await report('building all-in-one', this.buildAllInOne(opts.pieName, mappings.controllers)) : [];
+    const example = opts.includeComplete ?
+      await report('building example', this.buildExample()) : [];
 
     return _.concat(client, controllers, configure, allInOne, example);
   }
@@ -72,7 +74,7 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
   private async buildConfigure(mappings: Mappings): Promise<string[]> {
     const js = targetsToElements(mappings.configure);
 
-    writeFileSync(join(this.installer.dir, DefaultApp.CONFIGURE_ENTRY), js, 'utf8');
+    writeFile(join(this.installer.dir, DefaultApp.CONFIGURE_ENTRY), js);
 
     const config = webpackConfig(this.installer,
       this.support,
@@ -91,7 +93,7 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
       new ElementDeclaration('pie-control-panel')
     ] : []));
 
-    writeFileSync(join(this.installer.dir, 'client.entry.js'), js, 'utf8');
+    writeFile(join(this.installer.dir, 'client.entry.js'), js);
     const config = webpackConfig(this.installer, this.support, 'client.entry.js', 'pie-view.js', this.config.dir);
 
     writeConfig(join(this.installer.dirs.root, 'client.webpack.config.js'), config);
@@ -99,9 +101,9 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
     return ['pie-view.js'];
   }
 
-  private async buildControllers(controllers: PieTarget[]): Promise<string[]> {
+  private async buildControllers(pieName: string, controllers: PieTarget[]): Promise<string[]> {
     const js = generators.controllers(controllers);
-    writeFileSync(join(this.installer.dir, 'controllers.entry.js'), js, 'utf8');
+    writeFile(join(this.installer.dir, 'controllers.entry.js'), js);
     const config = webpackConfig(
       this.installer,
       this.support,
@@ -109,7 +111,7 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
       'pie-controllers.js',
       this.config.dir);
 
-    config.output.library = 'pie-controllers';
+    config.output.library = `pie-controller-${pieName}`;
     config.output.libraryTarget = 'umd';
 
     writeConfig(join(this.installer.dirs.root, 'controllers.webpack.config.js'), config);
@@ -117,21 +119,25 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
     return ['pie-controllers.js'];
   }
 
-  private async buildAllInOne(controllerMap: PieTarget[]): Promise<string[]> {
+  private async buildAllInOne(pieName: string, controllerMap: PieTarget[]): Promise<string[]> {
 
-    const pieModels = this.config.pieModels(this.installer.installedPies);
-    const elementModels = this.config.elementModels(this.installer.installedPies);
+    if (!pieName) {
+      throw new Error('You must specify a `pieName` in the args when using `--includeComplete`');
+    }
+
+    const pieModels = this.config.models();
+
     const js = generators.allInOne(
+      pieName,
       this.config.declarations,
       controllerMap,
       this.config.markup,
       pieModels,
-      elementModels,
       this.config.weights,
       this.config.langs
     );
 
-    writeFileSync(join(this.installer.dir, 'all-in-one.entry.js'), js, 'utf8');
+    writeFile(join(this.installer.dir, 'all-in-one.entry.js'), js);
     const config = webpackConfig(
       this.installer,
       this.support,
@@ -150,7 +156,8 @@ export default class DefaultApp implements Buildable<string[]>, App, MakeManifes
       markup: '<pie-item></pie-item>'
     });
 
-    writeFileSync(join(this.config.dir, 'example.html'), out, 'utf8');
+    writeFile(join(this.config.dir, 'example.html'), out);
+
     return Promise.resolve(['example.html']);
   }
-};
+}

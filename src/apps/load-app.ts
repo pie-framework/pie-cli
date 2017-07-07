@@ -8,7 +8,7 @@ import DefaultApp from './default';
 import InfoApp from './info';
 import ItemApp from './item';
 import { JsonConfig } from '../question/config';
-import {buildWebpack} from '../code-gen';
+import { buildWebpack } from '../code-gen';
 
 const appMap = {
   catalog: CatalogApp,
@@ -21,12 +21,11 @@ const appMap = {
  * prepare support config using the Apps config object.
  */
 export async function loadSupportConfig(config: JsonConfig): Promise<SupportConfig> {
-  const base: SupportConfig = await loadSupportModule(config, 'pie-support-base');
   const less: SupportConfig = await loadSupportModule(config, 'pie-support-less');
   const react: SupportConfig = await loadSupportModule(config, 'pie-support-react');
   const corespringLegacy: SupportConfig = await loadSupportModule(config, 'pie-support-corespring-legacy');
 
-  const support = _.compact([base, less, react, corespringLegacy]);
+  const support = _.compact([less, react, corespringLegacy]);
   return new MultiConfig(...support);
 };
 
