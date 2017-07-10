@@ -16,21 +16,21 @@ export function allInOne(
   import Controller from 'pie-controller';
 
   ${declarations.map(d => d.js).join('\n')}
-  
+
   import PiePlayer from 'pie-player';
   customElements.define('pie-player', PiePlayer);
   import ControlPanel from 'pie-control-panel';
   customElements.define('pie-control-panel', ControlPanel);
 
-  const controllerMap = {}; 
+  const controllerMap = {};
   ${controllerMap.map(t => `controllerMap['${t.pie}'] = require('${t.target}');`).join('\n')}
-  
+
   export default class Bundled extends HTMLElement{
 
     constructor(){
       super();
     }
-    
+
     connectedCallback(){
 
       let model = {
@@ -39,7 +39,7 @@ export function allInOne(
         models: ${JSON.stringify(pieModels)},
         langs: ${JSON.stringify(langs)}
       };
-      
+
       let controller = new Controller(model, controllerMap);
       let env = { mode: 'gather' };
       let sessions = [];
@@ -49,7 +49,7 @@ export function allInOne(
         if(event.target.tagName.toLowerCase() !== 'pie-player'){
           return;
         }
-        
+
         event.preventDefault();
         event.stopImmediatePropagation();
 
@@ -84,7 +84,7 @@ export function allInOne(
             });
         });
       });
-      
+
       this.innerHTML = \`
 
         <style>
@@ -108,12 +108,12 @@ export function allInOne(
             text-transform: uppercase;
             font-size: 14px;
             color: rgba(0,0,0,0.5);
-          } 
+          }
 
         </style>
         <div class="control-panel-holder">
           <label>Control Panel</label>
-          <pie-control-panel></pie-control-panel> 
+          <pie-control-panel></pie-control-panel>
         </div>
         <pie-player>
           ${markup}
@@ -125,4 +125,4 @@ export function allInOne(
 
   customElements.define('${pieName}', Bundled);
   `;
-};
+}

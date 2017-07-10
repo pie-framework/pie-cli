@@ -87,6 +87,12 @@ You'll probably want to run the 1 at a time like so:
 mocha --require test/init test/integration/framework-support/support-module-test.js
 ```
 
+or to run an individual test: 
+
+```shell
+./node_modules/.bin/mocha  --require test/init.js  test/integration/init.js test/integration/cli/install-test.js
+```
+
 > `--require test/init` - inits babel and the logger.
 
 To run them all: 
@@ -148,3 +154,4 @@ The support package is a standard npm package and we hope to enable the inclusio
 ##### Credits
 
 > Special thanks to Ken Pratt @kenpratt for the `pie` npm package name
+

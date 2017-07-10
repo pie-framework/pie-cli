@@ -26,15 +26,15 @@ class Cmd extends CliCommand {
 
     if (opts.clean) {
       const dir = join(opts.dir, 'docs/demo');
-      await report.promise('removing files', clean(dir) );
+      await report.promise('removing files', clean(dir));
     }
-    
+
     if (types.isServable(a)) {
-      const { server, reload, mappings, dirs } = await a.server(opts);
+      const { server, reload, buildInfo, dirs } = await a.server(opts);
       await report.promise('starting server', startServer(opts.port, server));
       this.cliLogger.info('init watchers...');
       await report.promise('setting up file watching', new Promise(r => {
-        initWatch(a.config, reload, a.watchableFiles(), mappings, dirs);
+        initWatch(a.config, reload, a.watchableFiles(), buildInfo, dirs);
         r();
       }));
       return {

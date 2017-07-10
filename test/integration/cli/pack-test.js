@@ -4,7 +4,6 @@ import { existsSync, readdirSync } from 'fs-extra';
 import { expect } from 'chai';
 import { join } from 'path';
 import proxyquire from 'proxyquire';
-import { setUpTmpQuestionAndComponents } from '../integration-test-helper';
 import { spawnSync } from 'child_process';
 
 describe('pack', () => {

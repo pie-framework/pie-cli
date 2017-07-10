@@ -30,7 +30,7 @@ export default class ItemApp implements App, Servable {
 
     return loadSupport(config)
       .then((s) => {
-        return new ItemApp(args, config, s);
+        return new ItemApp(config, s);
       });
   }
 
@@ -40,11 +40,10 @@ export default class ItemApp implements App, Servable {
   private template: any;
   private installer: Install;
 
-  constructor(private args: any,
-    readonly config: JsonConfig,
+  constructor(readonly config: JsonConfig,
     private support: SupportConfig) {
 
-    this.installer = new Install(config);
+    this.installer = new Install(config.dir, config.raw);
 
     this.template = pug.compileFile(templatePath);
   }
@@ -55,12 +54,9 @@ export default class ItemApp implements App, Servable {
 
   public async server(opts: ServeOpts): Promise<ServeResult> {
     logger.silly('[server] opts:', opts);
-    const mappings = await this.installer.install(opts.forceInstall);
+    const buildInfo = await this.installer.install(opts.forceInstall);
 
-    const js = entryJs(
-      this.config.declarations,
-      mappings.controllers,
-      AppServer.SOCK_PREFIX);
+    const js = entryJs(buildInfo, AppServer.SOCK_PREFIX);
 
     await writeEntryJs(join(this.installer.dirs.root, ItemApp.ENTRY), js);
 
@@ -92,8 +88,8 @@ export default class ItemApp implements App, Servable {
     };
 
     return {
+      buildInfo,
       dirs: this.installer.dirs,
-      mappings,
       reload,
       server: server.httpServer
     };

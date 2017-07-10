@@ -1,35 +1,151 @@
+import { assert, match, spy, stub } from 'sinon';
+
 import crypto from 'crypto';
 import { expect } from 'chai';
 import proxyquire from 'proxyquire';
-import sinon from 'sinon';
 
 describe('npm', () => {
 
-  let helper, stat;
+  let mod, deps, Npm, npm;
 
-  before(() => {
-    stat = {
-      isDirectory: sinon.stub().returns(true)
-    };
-    helper = proxyquire('../../../lib/npm', {
-      'fs-extra': {
-        lstatSync: sinon.stub().returns(stat)
+  beforeEach(() => {
+    deps = {
+      '../io': {
+        spawnPromise: stub().returns({ stdout: '{}' })
       },
-      path: {
-        resolve: sinon.stub().returns('resolved')
+      'fs-extra': {
+        writeJson: stub(),
+        readJsonSync: stub(),
+        existsSync: stub().returns(true)
       }
+
+    }
+
+    mod = proxyquire('../../../lib/npm', deps);
+    Npm = mod.default;
+    npm = new Npm('dir');
+  });
+
+  describe('installIfNeeded', () => {
+    it('installs via a new installation', () => {
+
+      deps['../io'].spawnPromise.returns(Promise.resolve({
+        stdout: JSON.stringify({
+          dependencies: {
+            a: {
+              from: '1.0.0'
+            }
+          }
+        })
+      }));
+
+      npm.resolveModuleIds = stub().returns([{
+        moduleId: undefined, dir: undefined, value: 'a'
+      }]);
+
+      return npm.installIfNeeded(['a@1.0.0'])
+        .then(result => {
+          expect(result).to.eql({
+            a: {
+              from: '1.0.0',
+              installationType: 'new-installation'
+            }
+          });
+        });
     });
   });
 
-  describe('pathIsDir', () => {
+  describe('installIfNeeded - new installation', () => {
 
-    it('returns true if path is dir', () => {
-      expect(helper.pathIsDir('root', 'dir')).to.eql(true);
+    let result;
+
+    beforeEach(() => {
+      deps['../io'].spawnPromise.returns(Promise.resolve({
+        stdout: JSON.stringify({
+          dependencies: {
+            a: {
+              from: '1.0.0'
+            }
+          }
+        })
+      }));
+
+      npm.resolveModuleIds = stub().returns([{
+        moduleId: undefined, dir: undefined, value: 'a'
+      }]);
+
+      return npm.installIfNeeded(['a@1.0.0'])
+        .then(r => result = r);
     });
 
-    it('returns false if path is dir', () => {
-      stat.isDirectory = sinon.stub().returns(false);
-      expect(helper.pathIsDir('root', 'dir')).to.eql(false);
+    it('calls spawnPromise with npm ls a', () => {
+      assert.calledWith(deps['../io'].spawnPromise, 'npm', 'dir', ['install', 'a', '--save', '--json']);
     });
+
+    it('calls spawnPromise once', () => {
+      assert.callCount(deps['../io'].spawnPromise, 1);
+    });
+
+    it('installs via a existing installation', () => {
+      expect(result).to.eql({
+        a: {
+          from: '1.0.0',
+          installationType: 'new-installation'
+        }
+      });
+    });
+  });
+
+  describe('installIfNeeded - existing installation', () => {
+    let result;
+
+    beforeEach(() => {
+      deps['../io'].spawnPromise.returns(Promise.resolve({
+        stdout: JSON.stringify({
+          dependencies: {
+            a: {
+              from: '1.0.0'
+            }
+          }
+        })
+      }));
+
+      npm.resolveModuleIds = stub().returns([{
+        moduleId: 'a', dir: 'dir', value: 'a'
+      }]);
+
+      return npm.installIfNeeded(['a@1.0.0'])
+        .then(r => result = r);
+    });
+
+    it('calls spawnPromise with npm ls a', () => {
+      assert.calledWith(deps['../io'].spawnPromise, 'npm', 'dir', ['ls', 'a', '--json']);
+    });
+
+    it('calls spawnPromise once', () => {
+      assert.callCount(deps['../io'].spawnPromise, 1);
+    });
+
+    it('installs via a existing installation', () => {
+      expect(result).to.eql({
+        a: {
+          from: '1.0.0',
+          installationType: 'existing-installation'
+        }
+      });
+    });
+  });
+
+  describe('ls', () => {
+    let result;
+    beforeEach(() => {
+      return npm.ls('a')
+        .then(r => result = r);
+    });
+
+    it('calls spawnPromise ls', () => {
+      assert.calledWith(deps['../io'].spawnPromise, 'npm', 'dir', ['ls', 'a', '--json']);
+    });
+
   });
 });

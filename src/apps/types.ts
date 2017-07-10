@@ -5,7 +5,7 @@ import * as http from 'http';
 
 import { JsonConfig, Manifest } from '../question/config';
 
-import { Mappings } from '../install';
+import { PieBuildInfo } from '../install';
 
 export interface App {
   config: JsonConfig;
@@ -86,7 +86,7 @@ export type ServeResult = {
 
   server: http.Server,
   reload: (name: string) => void,
-  mappings: Mappings,
+  buildInfo: PieBuildInfo[],
   dirs: {
     root: string,
     controllers: string,

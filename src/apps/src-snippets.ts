@@ -1,23 +1,10 @@
 import { PieTarget } from '../install';
-import { camelCase } from 'change-case';
 import { stripMargin } from '../string-utils';
-
-export function targetsToElements(targets: PieTarget[]) {
-  return targets.map(targetToElement).join('\n');
-}
-
-export function targetToElement(pt: PieTarget) {
-  const clazz = camelCase(pt.target);
-  return stripMargin`
-  |import ${clazz} from '${pt.target}';
-  |customElements.define('${pt.target}', ${clazz});
-  |`;
-}
 
 function toKeyMap(acc, pt: PieTarget) {
   acc[pt.pie] = pt.target;
   return acc;
-};
+}
 
 export function targetsToKeyMap(targets: PieTarget[]) {
   return targets.reduce(toKeyMap, {});
@@ -28,7 +15,7 @@ export function sockJs() {
   |function (sockPath){
   |
   |  let sock = new SockJS(sockPath);
-  |  
+  |
   |  sock.onopen = function() {
   |    console.log('sock is open');
   |  };
@@ -51,14 +38,14 @@ export function sockJs() {
   |      alert('webpack errors have occured - check the logs');
   |    }
   |  };
-  |  
+  |
   |  sock.onclose = function() {
   |    console.log('sock is closed');
-  |  };        
+  |  };
   |}
 `;
 }
 
-export function controllerDependency(pt: PieTarget) {
-  return `controllers['${pt.pie}'] = require('${pt.target}');`;
+export function controllerDependency(element: string, moduleId: string) {
+  return `controllers['${element}'] = require('${moduleId}');`;
 }

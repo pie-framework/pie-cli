@@ -3,3 +3,4 @@
   `--question-markup-file` - the name of layout file - default: `index.html`
   `--log-file` - the name of a file to output logging information to - default: not set (no logging)
   `--log-level` - the log level to use can be a level, json string, path to json file - default: 'info'
+  `--log-to-console` - if set, logging will go directly to the console. `--log-file` is ignored.

@@ -1,96 +1,169 @@
 import { assert, match, spy, stub } from 'sinon';
 
+import { ElementDeclaration } from '../../../lib/code-gen';
 import { expect } from 'chai';
 import { path as p } from '../../../lib/string-utils';
 import proxyquire from 'proxyquire';
 
 describe('install', () => {
+  let mod, deps, buildInfo, installedElement, npm;
 
-  let installer, mod, deps, config;
   beforeEach(() => {
+
+    npm = {
+      installIfNeeded: stub().returns(Promise.resolve([]))
+    }
+
     deps = {
-      '../../npm': {
-        NpmDir: stub(),
-        pathIsDir: stub().returns(true)
+      'fs-extra': {
+        ensureDirSync: stub()
       },
-      '../question/config': {
-        getInstalledPies: stub().returns([{ key: 'pie' }])
+      '../npm': {
+        default: stub().returns(npm)
+      }
+    };
+
+    installedElement = {
+      element: 'my-el',
+      input: {
+        element: 'my-el',
+        value: '../path'
       },
-      './controllers': {
-        default: stub().returns({
-          install: stub().returns(Promise.resolve([]))
-        })
+      preInstall: {
+        local: true,
+        type: 'package',
+        hasModel: false
       },
-      './configure': {
-        default: stub().returns({
-          install: stub().returns(Promise.resolve([]))
-        })
+      npmInstall: {
+        moduleId: 'my-el-module-id',
+        dir: 'dir/.pie'
+      },
+      pie: {
+
       }
     }
 
-    config = {
-      dir: 'dir',
-      dependencies: {},
-      elements: [
-        { key: 'pie', value: 'pie' },
-        { key: 'local-file', value: './local-file' }
-      ],
-      models: stub().returns([
-        { id: '1', element: 'pie' },
-        { id: '2', element: 'local-file' }
-      ])
-    }
-
-    mod = proxyquire('../../../lib/install/index', deps);
-
-    installer = new mod.default(config);
+    buildInfo = [{
+      element: 'my-el',
+      main: {
+        tag: 'my-el-tag',
+        moduleId: 'my-el-moduleId'
+      },
+      controller: {
+        moduleId: 'my-el-controller'
+      },
+      configure: {
+        moduleId: 'my-el-configure'
+      }
+    }]
+    mod = proxyquire('../../../lib/install', deps);
   });
 
-  describe('install', () => {
-    let mappings;
+  describe('controllerTargets', () => {
 
+    it('returns a controller target', () => {
+
+      const out = mod.controllerTargets(buildInfo);
+
+      expect(out).to.eql([{
+        pie: buildInfo[0].element,
+        target: buildInfo[0].controller.moduleId
+      }]);
+    });
+  });
+
+  describe('pieToConfigureMap', () => {
+
+    it('returns a configure map', () => {
+      const out = mod.pieToConfigureMap(buildInfo);
+      expect(out).to.eql({ 'my-el': 'my-el-configure' });
+    });
+  });
+
+  describe('toDeclarations', () => {
+
+    it('creates declarations', () => {
+      const out = mod.toDeclarations(buildInfo);
+      expect(out).to.eql([new ElementDeclaration(buildInfo[0].main.tag, buildInfo[0].main.moduleId)]);
+    });
+  });
+
+
+  describe('findModuleId', () => {
+
+    it('returns the module id', () => {
+      const out = mod.findModuleId(
+        'my-el',
+        [{ moduleId: 'my-el', path: '../path/my-el/configure' }],
+        {
+          'my-el-configure': {
+            from: '../path/my-el/configure'
+          }
+        }
+      );
+      expect(out).to.eql('my-el-configure');
+    });
+  });
+
+  describe('Install', () => {
+    let install, config
     beforeEach(() => {
 
-      installer.npm = {
-        install: stub().returns(Promise.resolve({}))
-      }
-      installer.controllers = {
-        install: stub().returns(Promise.resolve([{ pie: 'pie', target: 'pie' }]))
-      }
-      installer.configure = {
-        install: stub().returns(Promise.resolve([]))
-      }
-      return installer.install().then(m => mappings = m);
+      config = {};
+      install = new mod.default('dir', config);
     });
 
-    it('calls npm.install', () => {
-      assert.calledWith(installer.npm.install, 'pie-root-install', {}, {}, false);
+    it('constructs', () => {
+      expect(install).not.to.be.undefined;
     });
 
-    it('calls configure.install', () => {
-      assert.calledWith(installer.configure.install, [{ key: 'pie' }], false);
-    });
+    describe('install', () => {
+      let result;
 
-    it('calls controllers.install', () => {
-      assert.calledWith(installer.controllers.install, [{ key: 'pie' }], false);
-    });
+      beforeEach(() => {
 
-    it('returns the mappings', () => {
-      expect(mappings).to.eql({
-        configure: [], controllers: [
-          { pie: 'pie', target: 'pie' },
-          { pie: 'local-file', target: 'pie-controller/lib/passthrough' }
-        ]
+        install.elementInstaller.install = stub().returns(Promise.resolve([installedElement]));
+        install.installControllers = stub().returns(Promise.resolve([]));
+        install.installConfigure = stub().returns(Promise.resolve([]));
+
+        return install.install(false)
+          .then(r => result = r);
+      });
+
+
+      it('returns buildInfo', () => {
+        expect(result[0]).to.eql({
+          element: 'my-el',
+          isLocal: true,
+          isPackage: true,
+          main: {
+            dir: 'dir/.pie',
+            moduleId: 'my-el-module-id',
+            tag: 'my-el'
+          },
+          src: '../path'
+        });
       });
     });
-  });
 
-  describe('get installedPies', () => {
+    describe('installPieSubPackage', () => {
+      beforeEach(() => {
 
+        npm.installIfNeeded.returns(Promise.resolve({
+          'my-el-controller': {
+            from: '.pie/node_modules/my-el-module-id/controller'
+          }
+        }));
+        return install.installPieSubPackage([installedElement], 'controller', 'dir');
+      });
 
-    it('calls getInstalledPies', () => {
-      installer.installedPies;
-      assert.calledWith(deps['../question/config'].getInstalledPies, p`dir/.pie/node_modules`, ['pie', 'local-file']);
-    })
+      it('adds pie controller dir', () => {
+        expect(installedElement.pie.controller.dir).to.eql('dir');
+      });
+
+      it('adds pie controller moduleId', () => {
+        expect(installedElement.pie.controller.moduleId).to.eql('my-el-controller');
+      });
+    });
   });
 });

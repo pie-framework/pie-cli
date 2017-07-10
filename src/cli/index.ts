@@ -43,6 +43,7 @@ export default function (opts) {
       }
     })
     .catch((err) => {
+      logger.error(err.stack);
       report.failure(err.message);
       process.exit(1);
     });

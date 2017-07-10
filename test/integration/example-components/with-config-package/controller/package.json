@@ -1,0 +1,7 @@
+{
+  "name": "with-config-package-controller",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {}
+}

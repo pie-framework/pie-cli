@@ -36,7 +36,7 @@ export default class InfoApp implements App, Servable {
 
     return loadSupport(config)
       .then((s) => {
-        return new InfoApp(args, dir, config, s);
+        return new InfoApp(dir, config, s);
       });
   }
 
@@ -46,14 +46,13 @@ export default class InfoApp implements App, Servable {
   private template: any;
   private installer: Install;
 
-  constructor(private args: any,
-    private pieRoot: string,
+  constructor(private pieRoot: string,
     readonly config: JsonConfig,
     private support: SupportConfig) {
 
     this.template = pug.compileFile(templatePath);
 
-    this.installer = new Install(config);
+    this.installer = new Install(config.dir, config.raw);
   }
 
   /**
@@ -68,18 +67,15 @@ export default class InfoApp implements App, Servable {
 
   public async server(opts: ServeOpts): Promise<ServeResult> {
     logger.silly('[server] opts:', opts);
-    const mappings = await this.installer.install(opts.forceInstall);
+    const buildInfo = await this.installer.install(opts.forceInstall);
 
-    const js = entryJs(
-      this.config.declarations,
-      mappings,
-      AppServer.SOCK_PREFIX);
+    const js = entryJs(buildInfo, AppServer.SOCK_PREFIX);
 
     await writeEntryJs(join(this.installer.dir, InfoApp.ENTRY), js);
 
     const config = webpackConfig(this.installer, this.support, InfoApp.ENTRY, InfoApp.BUNDLE);
 
-    const cssRule = config.module.rules.find((r) => {
+    const cssRule = config.module.rules.find(r => {
       const match = r.test.source === '\\.css$';
       return match;
     });
@@ -114,8 +110,8 @@ export default class InfoApp implements App, Servable {
     };
 
     return {
+      buildInfo,
       dirs: this.installer.dirs,
-      mappings,
       reload,
       server: server.httpServer,
     };
