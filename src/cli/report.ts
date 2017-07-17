@@ -3,6 +3,10 @@ import * as ora from 'ora';
 import { blue, green, red, yellow } from 'chalk';
 import { error, info, success, warning } from 'log-symbols';
 
+import { buildLogger } from 'log-factory';
+
+const logger = buildLogger();
+
 type WritableStream = NodeJS.WritableStream;
 
 export interface Instance {
@@ -79,6 +83,7 @@ export class Report {
         return result;
       })
       .catch(e => {
+        logger.error(e.stack);
         id.finish(e);
         return e;
       });

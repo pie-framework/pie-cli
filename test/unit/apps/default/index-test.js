@@ -33,6 +33,9 @@ describe('index', () => {
       },
       '../src-snippets': {
         targetsToElements: stub().returns('')
+      },
+      '../../install': {
+        configureDeclarations: stub().returns([])
       }
     };
 
@@ -64,7 +67,7 @@ describe('index', () => {
   describe('build', () => {
     beforeEach(() => {
       instance.installer = {
-        install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
+        install: stub().returns(Promise.resolve([]))
       }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
@@ -94,7 +97,7 @@ describe('index', () => {
     beforeEach(() => {
       instance = new DefaultApp(jsonConfig, supportConfig);
       instance.installer = {
-        install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
+        install: stub().returns(Promise.resolve([]))
       }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
@@ -116,7 +119,7 @@ describe('index', () => {
     beforeEach(() => {
       instance = new DefaultApp(jsonConfig, supportConfig);
       instance.installer = {
-        install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
+        install: stub().returns(Promise.resolve([]))
       }
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       return instance.build({ addPlayerAndControlPanel: true });
@@ -163,7 +166,7 @@ describe('index', () => {
 
     let result;
     beforeEach(() => {
-      return instance.buildClient()
+      return instance.buildClient([])
         .then(r => result = r);
     });
 
@@ -186,13 +189,15 @@ describe('index', () => {
 
   describe('buildConfigure', () => {
 
-    let mappings = { configure: [{ pie: 'my-pie', target: 'my-pie-target' }] };
+    let buildInfo = [{ configure: { pie: 'my-pie', moduleId: 'my-pie-target' } }];
 
-    beforeEach(() => instance.buildConfigure(mappings));
+    beforeEach(() => instance.buildConfigure(buildInfo));
 
 
-    it('calls targetsToElements', () => {
-      assert.calledWith(deps['../src-snippets'].targetsToElements, mappings.configure);
+    it('calls configureDeclarations', () => {
+      assert.calledWith(deps['../../install'].configureDeclarations, [{
+        configure: { moduleId: 'my-pie-target', pie: 'my-pie' }
+      }]);
     });
 
     it('calls writeFileSync', () => {

@@ -1,8 +1,8 @@
 import { assert, match, spy, stub } from 'sinon';
 
 import { expect } from 'chai';
-import proxyquire from 'proxyquire';
 import { path as p } from '../../../../lib/string-utils';
+import proxyquire from 'proxyquire';
 
 describe('catalog', () => {
 
@@ -71,7 +71,7 @@ describe('catalog', () => {
   describe('build', () => {
     let result;
     beforeEach(() => {
-      catalog.installer.install = stub().returns(Promise.resolve({ controllers: [], configure: [] }));
+      catalog.installer.install = stub().returns(Promise.resolve([]));
       catalog.support = {
         rules: []
       }
@@ -95,7 +95,7 @@ describe('catalog', () => {
     xit('assert webpack config object', () => { });
 
     it('returns mappings', () => {
-      expect(result).to.eql({ controllers: [], configure: [] });
+      expect(result).to.eql([]);
     });
 
   });
@@ -114,12 +114,13 @@ describe('catalog', () => {
           addExtras = ae;
           return Promise.resolve(name);
         });
-      catalog.createArchive({
-        controllers: [], configure: [{
-          pie: 'my-pie',
-          target: 'my-pie-configure'
-        }]
-      });
+      catalog.createArchive([{
+        element: 'my-pie',
+        configure: {
+          tag: 'my-pie-configure',
+          moduleId: 'my-pie-configure'
+        }
+      }]);
       addExtras(archive);
       done();
 

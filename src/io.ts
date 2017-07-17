@@ -11,7 +11,7 @@ export function spawnPromise(
   args: string[],
   ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
 
-  logger.debug('[_spawnPromise] args: ', args);
+  logger.debug('[_spawnPromise] args: ', `${cmd} ${args.join(' ')}`);
 
   const p: Promise<{ stdout: string }> = new Promise((resolve, reject) => {
 

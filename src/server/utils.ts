@@ -1,7 +1,6 @@
-import * as _ from 'lodash';
 import * as http from 'http';
 
-import { Compiler, Stats, Watching } from 'webpack';
+import { Compiler, Stats } from 'webpack';
 
 import { Instance } from './../cli/report';
 import { ReloadOrError } from './types';
@@ -25,7 +24,6 @@ export let startServer = (port: number, server: http.Server) => new Promise((res
   server.listen(port);
 });
 
-
 export function linkCompilerToServer(name: string,
   compiler: Compiler,
   handlers: ReloadOrError) {
@@ -37,7 +35,7 @@ export function linkCompilerToServer(name: string,
     logger.info('The compiler is starting to compile...');
     reporter = report.instance('compiling webpack');
   };
-  
+
   const onDone = (stats: Stats) => {
     logger.info('>> [compiler] done');
     process.nextTick(() => {

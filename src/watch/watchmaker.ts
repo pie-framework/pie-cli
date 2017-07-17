@@ -1,8 +1,7 @@
 import * as _ from 'lodash';
 
-import { Dirs, Mappings } from '../install';
+import { Dirs, PieBuildInfo } from '../install';
 import { FileWatch, PackageWatch, PieWatch, Watch } from './watchers';
-import { LocalFile, LocalPackage, PiePackage } from '../question/config/elements';
 
 import { JsonConfig } from '../question/config';
 import { buildLogger } from 'log-factory';
@@ -10,14 +9,13 @@ import { join } from 'path';
 
 const logger = buildLogger();
 
-
 type ReloadFn = (n: string) => void;
 
 export function init(
   config: JsonConfig,
   reloadFn: ReloadFn,
   extraFilesToWatch: string[],
-  mappings: Mappings,
+  buildInfo: PieBuildInfo[],
   dirs: Dirs): {
     dependencies: Watch[],
     files: FileWatch[]
@@ -25,33 +23,28 @@ export function init(
 
   logger.debug('[init] questionConfig: ', config.elements);
 
-  const watchers: Watch[] = _(config.elements).map((e: LocalFile | PiePackage | LocalPackage) => {
-
-    if (e instanceof PiePackage) {
-      logger.silly('create PieWatch', e.key, e.value);
-      const targets = {
-        configure: (mappings.configure.find(m => m.pie === e.key) || { target: null }).target,
-        controller: (mappings.controllers.find(m => m.pie === e.key) || { target: null }).target
-      };
-
+  const watchers: Watch[] = _(buildInfo).filter(bi => bi.isLocal).map(bi => {
+    if (bi.controller) {
       return new PieWatch(
-        e.key,
+        bi.main.moduleId,
         config.dir,
-        e.value,
+        bi.src,
         dirs,
-        targets);
+        {
+          configure: bi.configure ? bi.configure.moduleId : undefined,
+          controller: bi.controller.moduleId
+        }
+      );
+    } else if (bi.isPackage) {
+      return new PackageWatch(
+        bi.element,
+        bi.main.moduleId,
+        config.dir
+      );
+    } else {
+      return new FileWatch(join(config.dir, bi.main.moduleId), reloadFn);
     }
-
-    if (e instanceof LocalFile) {
-      logger.silly('create FileWatch', e.value);
-      return new FileWatch(join(config.dir, e.value), reloadFn);
-    }
-
-    if (e instanceof LocalPackage) {
-      logger.silly('create PackageWatch', e.key, e.value);
-      return new PackageWatch(e.key, e.value, config.dir);
-    }
-  }).compact().value();
+  }).value();
 
   logger.silly('watchers: ', watchers);
 
