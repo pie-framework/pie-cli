@@ -19,9 +19,9 @@ export function spawnPromise(
 
     let out = '';
 
-    s.on('error', () => {
+    s.on('error', (e) => {
       logger.error('npm install command failed - is npm installed?');
-      reject();
+      reject(e);
     });
 
     readline.createInterface({
@@ -48,7 +48,7 @@ export function spawnPromise(
     s.on('close', (code) => {
       if (code !== 0 && !ignoreExitCode) {
         logger.error(args + ' failed. code: ' + code);
-        reject();
+        reject(new Error(`cmd: '${cmd} ${args.join(' ')}', error code: ${code}`));
       } else {
         resolve({ stdout: out });
       }
