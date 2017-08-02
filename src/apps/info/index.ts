@@ -73,7 +73,7 @@ export default class InfoApp implements App, Servable {
 
     await writeEntryJs(join(this.installer.dir, InfoApp.ENTRY), js);
 
-    const config = webpackConfig(this.installer, this.support, InfoApp.ENTRY, InfoApp.BUNDLE);
+    const config = webpackConfig(this.installer, this.support, InfoApp.ENTRY, InfoApp.BUNDLE, null, opts.sourceMaps);
 
     const cssRule = config.module.rules.find(r => {
       const match = r.test.source === '\\.css$';
