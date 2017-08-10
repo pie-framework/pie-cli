@@ -166,8 +166,19 @@ export default class Install {
 
     logger.info('[install] result:', result);
 
-    await report.promise('installing controllers', this.installControllers(result));
-    await report.promise('installing configure', this.installConfigure(result));
+    const controllerResult: any = await report.promise('installing controllers', this.installControllers(result));
+
+    if (controllerResult instanceof Error) {
+      throw controllerResult;
+    }
+
+    const configureResult = await report.promise('installing configure', this.installConfigure(result));
+
+    if (configureResult instanceof Error) {
+      throw configureResult;
+    }
+
+    logger.silly('configureResult: ', configureResult, configureResult instanceof Error, typeof configureResult);
     logger.silly('updated result: ', JSON.stringify(result, null, ' '));
 
     return _.map(result, r => toPieBuildInfo(this.dirs.root, r));
@@ -178,14 +189,14 @@ export default class Install {
     return await this.installPieSubPackage(pies, 'configure', this.dirs.configure);
   }
 
-  private async installControllers(result: InstalledElement[]): Promise<void> {
+  private async installControllers(result: InstalledElement[]): Promise<any> {
     const pies = result.filter(r => r.pie !== undefined);
     return await this.installPieSubPackage(pies, 'controller', this.dirs.controllers);
   }
 
   private async installPieSubPackage(pies: InstalledElement[],
     packageName: 'controller' | 'configure',
-    installDir: string): Promise<void> {
+    installDir: string): Promise<any> {
 
     logger.silly('[installPieSubPackage] pies: ', pies);
 
@@ -218,5 +229,6 @@ export default class Install {
       }
     });
     logger.silly('[installPieSubPackage]: ', JSON.stringify(installResult, null, '  '));
+    return installResult;
   }
 }
