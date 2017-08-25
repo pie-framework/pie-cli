@@ -17,8 +17,7 @@ html
       window.demo.config = !{demo.config ? JSON.stringify(demo.config) : '{}'};
       window.demo.markup = '!{demo.markup ? demo.markup : ''}'; 
     
-    each j in js 
-      script(src=j, type='text/javascript')
-    
     body
-      catalog-demo
+      catalog-demo    
+      each j in js 
+        script(src=j, type='text/javascript')
