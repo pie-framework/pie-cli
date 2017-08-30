@@ -5,6 +5,7 @@ import { existsSync, readJsonSync, remove, writeJson } from 'fs-extra';
 
 import { buildLogger } from 'log-factory';
 import { moduleIdForPath } from './module-identifier';
+import { parseJson } from './output';
 import { spawnPromise as sp } from '../io';
 
 export type KeyMap = { [key: string]: string };
@@ -94,7 +95,8 @@ export default class Npm {
         ...moduleIds,
         '--json'
       ]);
-      return JSON.parse(raw.stdout);
+      logger.debug(this.rootDir, 'stdout: ', raw.stdout);
+      return parseJson(raw.stdout);
     }
   }
 
@@ -124,8 +126,8 @@ export default class Npm {
       '--save',
       '--json'
     ]);
-
-    return JSON.parse(stdout);
+    logger.debug(this.rootDir, 'stdout: ', stdout);
+    return parseJson(stdout);
   }
 
   private resolveModuleIds(raw: string[]): { moduleId?: string, dir?: string, value: string }[] {
