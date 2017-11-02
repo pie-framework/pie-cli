@@ -103,6 +103,20 @@ export default class CatalogApp
 
     logger.info('config: ', config);
 
+    config.module.rules = [
+      {
+        test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2|otf)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 10000
+            }
+          }
+        ]
+      }
+    ].concat(config.module.rules);
+
     await report.promise('building webpack', buildWebpack(config, CatalogApp.WEBPACK_CONFIG));
 
     return buildInfo;

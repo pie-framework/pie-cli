@@ -10,7 +10,7 @@ export default (root): any => {
             {
               loader: 'css-loader',
               options: {
-                modules: true
+                modules: false
               }
             }]
         }

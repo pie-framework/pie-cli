@@ -90,6 +90,17 @@ export default class InfoApp implements App, Servable {
       use: [
         'raw-loader',
       ],
+    },
+    {
+      test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2|otf)$/,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            limit: 10000
+          }
+        }
+      ]
     }].concat(config.module.rules);
 
     writeConfig(join(this.installer.dirs.root, 'info.webpack.config.js'), config);
