@@ -1,9 +1,16 @@
 import * as readline from 'readline';
 
 import { buildLogger } from 'log-factory';
-import { spawn } from 'child_process';
+import * as child_process from 'child_process';
 
 const logger = buildLogger();
+
+const windowsSpawn = (executable, args, options) => {
+  logger.debug('>>>> running windows cmd');
+  return child_process.spawn(process.env.comspec || "cmd.exe", ["/c", executable].concat(args), options);
+};
+
+const spawn = (process.platform === "win32") ? windowsSpawn : child_process.spawn;
 
 export function spawnPromise(
   cmd: string,

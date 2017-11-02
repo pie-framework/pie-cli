@@ -86,7 +86,7 @@ export default class InfoApp implements App, Servable {
 
     // load in raw css for markdown element
     config.module.rules = [{
-      test: /.*\/highlight\.js\/styles\/default\.css$/,
+      test: /.*highlight\.js.*default\.css$/,
       use: [
         'raw-loader',
       ],
