@@ -70,6 +70,19 @@ export default class ItemApp implements App, Servable {
       this.config.dir,
       opts.sourceMaps);
 
+    config.module.rules = [
+      {
+        test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2|otf)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 10000
+            }
+          }
+        ]
+      }].concat(config.module.rules);
+
     writeConfig(join(this.installer.dirs.root, 'item.webpack.config.js'), config);
 
     const compiler = webpack(config);
