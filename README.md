@@ -43,6 +43,8 @@ To debug typescript you'll need to generate the sourcemaps. `gulp-typescript` do
 * run `npm run source-maps`
 * run `node --debug-brk --inspect $(which pie) ....`
 
+> Windows debugging: `node.exe --debug-brk --inspect  "C:\Users\Edward Eustace\AppData\Roaming\npm\node_modules\pie\bin\pie" --version`
+
 Node is now running in debug mode on `5858` so boot up a debugger. Visual Studio Code has nice typescript debugging support. In VS: 
 
 * add a breakpoint to the ts src file you want to debug.
