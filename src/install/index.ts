@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 
 import ElementInstaller, { InstalledElement, PackageType } from './element-installer';
-import { join, relative, } from 'path';
+import { join, relative, resolve } from 'path';
 
 import { ElementDeclaration } from '../code-gen';
 import Npm from '../npm';
@@ -148,8 +148,8 @@ export default class Install {
 
   get dirs(): Dirs {
     return {
-      configure: join(this.dir, '.configure'),
-      controllers: join(this.dir, '.controllers'),
+      configure: resolve(join(this.dir, '.configure')),
+      controllers: resolve(join(this.dir, '.controllers')),
       root: this.dir
     };
   }

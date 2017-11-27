@@ -19,6 +19,17 @@ describe('module-identifier', () => {
     mod = proxyquire('../../../lib/npm/module-identifier', deps);
   });
 
+
+  describe('normalizePath', () => {
+    it('normalizes windows paths', () => {
+      expect(mod.normalizePath(`C:\\\\Dir\\Path`)).to.eql('C:/Dir/Path');
+    });
+
+    it('normalizes paths with file:', () => {
+      expect(mod.normalizePath('file:/apple')).to.eql('/apple');
+    });
+  });
+
   describe('moduleIdForPath', () => {
 
     let moduleIdForPath;
