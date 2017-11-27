@@ -2,15 +2,22 @@ import * as _ from 'lodash';
 import * as hostedGitInfo from 'hosted-git-info';
 import * as semver from 'semver';
 
+import { normalize, resolve } from 'path';
+
 import { buildLogger } from 'log-factory';
-import { resolve } from 'path';
 
 const logger = buildLogger();
+
+const trimFilePath = (f: string): string => (
+  f.replace('/private', '')
+    .replace('file:///', '/')
+    .replace('file://', '')
+);
 
 const filePathMatches = (dir: string, path: string, value: string) => {
   const resolvedPath = resolve(dir, path);
   logger.silly('[moduleIdForPath] resolvedPath: ', resolvedPath, 'value: ', value);
-  const out = value.replace('/private', '') === `file://${resolvedPath}`;
+  const out = trimFilePath(value) === trimFilePath(resolvedPath);
   logger.silly('[moduleIdForPath] v matches resolvedPath?', out);
   return out;
 };
@@ -63,7 +70,20 @@ export const normalizeValue = (value: string): { name: string, semver: string } 
 };
 
 /**
- * value used to install the dependency eg: 
+ * Normalize file paths to be a/b/c
+ * @param p
+ */
+export const normalizePath = (p: string): string => {
+  if (typeof p !== 'string') {
+    throw new TypeError('expected a string');
+  }
+  return normalize(p)
+    .replace(/[\\\/]+/g, '/')
+    .replace('file:', '');
+};
+
+/**
+ * value used to install the dependency eg:
  * - x
  * - x@latest
  * - x@1.2.3
@@ -83,7 +103,7 @@ export function matchInstallDataToRequest(
   return _.find(zipped, ({ data, moduleId }) => {
     if (_.startsWith(data.resolved, 'file:')) {
       // it's a local file resolution
-      return requested.replace('file:', '') === data.from.replace('file:', '');
+      return normalizePath(requested) === normalizePath(data.from);
     } else if (_.startsWith(data.resolved, 'git')) {
       // it's a git repo resolution
       const requestedGit = hostedGitInfo.fromUrl(requested);
