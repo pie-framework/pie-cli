@@ -16,15 +16,24 @@ describe('types', () => {
     };
 
     raw = proxyquire('../../../../lib/question/config/types', {
-      'fs-extra': fsExtra
+      'fs-extra': fsExtra,
+      'p.js': {}
     });
   });
 
   describe('fromPath', () => {
-    it('calls readJsonSync', () => {
-      raw.fromPath('p');
-      assert.calledWith(fsExtra.readJsonSync, 'p');
+
+    it('calls readJsonSync if the file ends with .json', () => {
+      raw.fromPath('p.json');
+      assert.calledWith(fsExtra.readJsonSync, 'p.json');
     });
+
+    it('calls require if the file ends with .js', () => {
+      raw.loadObjectFromJsFile = stub();
+      raw.fromPath('p.js');
+      assert.calledWith(raw.loadObjectFromJsFile, 'p.js');
+    });
+
   });
 
 });

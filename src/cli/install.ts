@@ -22,8 +22,8 @@ class Cmd extends CliCommand {
     logger.info('dir: ', dir);
     const names = FileNames.build(args);
 
-    logger.info('names.json: ', names.json);
-    const config = await fromPath(join(dir, names.json));
+    logger.info('names.json: ', names.config);
+    const config = await fromPath(join(dir, names.config));
 
     logger.info('config', config);
     const installer = new Installer(dir, config);
