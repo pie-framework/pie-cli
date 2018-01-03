@@ -51,7 +51,7 @@ export function init(
   _.forEach(watchers, (w) => w.start());
 
   const allFiles = [
-    join(config.dir, config.filenames.json),
+    join(config.dir, config.filenames.config),
     join(config.dir, config.filenames.markup)
   ].concat(extraFilesToWatch || []);
 

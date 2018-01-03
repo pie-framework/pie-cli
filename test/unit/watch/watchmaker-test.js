@@ -24,7 +24,7 @@ describe('watchmaker', () => {
       return {
         dir: 'dir',
         filenames: {
-          json: 'config.json',
+          config: 'config.json',
           markup: 'index.html'
         }
       }

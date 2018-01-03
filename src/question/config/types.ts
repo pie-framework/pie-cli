@@ -18,8 +18,17 @@ export interface RawConfig {
   langs: string[];
 }
 
+export const loadObjectFromJsFile = (p: string): any => {
+  delete require.cache[require.resolve(p)];
+  return require(p);
+};
+
 export let fromPath = (p: string): RawConfig => {
-  return readJsonSync(p) as RawConfig;
+  if (p.endsWith('.js')) {
+    return loadObjectFromJsFile(p) as RawConfig;
+  } else if (p.endsWith('.json')) {
+    return readJsonSync(p) as RawConfig;
+  }
 };
 
 export let fromJson = (json: {}): RawConfig => {
