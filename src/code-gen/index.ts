@@ -6,10 +6,11 @@ import { utimes, writeFile } from 'fs-extra';
 import { pascalCase } from 'change-case';
 import { writeConfig } from './webpack-write-config';
 
-export { buildWebpack, writeConfig }
-export { BuildResult }
+export { buildWebpack, writeConfig };
+export { BuildResult };
 
-export { webpack }
+export { webpack };
+
 export interface Declaration {
   key: string;
   js: string;
@@ -58,11 +59,11 @@ function adjustUTimes(path: string, ageInSeconds: number) {
 }
 
 /**
- * Write the entry js - backdate the file's mtime to avoid the following issue:  
+ * Write the entry js - backdate the file's mtime to avoid the following issue:
  * https://github.com/webpack/watchpack/issues/25
- * 
- * @param path 
- * @param js 
+ *
+ * @param path
+ * @param js
  */
 export function writeEntryJs(path: string, js: string): Promise<{}> {
   return writeFilePromise(path, js)

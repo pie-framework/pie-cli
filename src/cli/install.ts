@@ -1,9 +1,11 @@
-import * as _ from 'lodash';
-
-import { FileNames, JsonConfig } from '../question/config';
-
 import CliCommand from './cli-command';
-import Install from '../install';
+import { FileNames } from '../question/config';
+import Installer from '../install';
+import { buildLogger } from 'log-factory';
+import { fromPath } from '../question/config/types';
+import { join } from 'path';
+
+const logger = buildLogger();
 
 class Cmd extends CliCommand {
 
@@ -17,12 +19,18 @@ class Cmd extends CliCommand {
   public async run(args) {
 
     const dir = args.dir || args.d || process.cwd();
-    const config = new JsonConfig(dir, FileNames.build(args));
+    logger.info('dir: ', dir);
+    const names = FileNames.build(args);
 
-    const i: Install = new Install(config);
+    logger.info('names.json: ', names.json);
+    const config = await fromPath(join(dir, names.json));
 
-    return i.install(args.force === 'true' || args.force === true)
-      .then(() => ({ msg: 'installed' }));
+    logger.info('config', config);
+    const installer = new Installer(dir, config);
+
+    const buildInfo = await installer.install();
+    logger.silly('buildInfo: ', JSON.stringify(buildInfo));
+    return buildInfo;
   }
 }
 

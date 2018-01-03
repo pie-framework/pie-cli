@@ -61,6 +61,10 @@ describe('info app', () => {
       '../../code-gen': {
         writeConfig: stub(),
         writeEntryJs: stub().returns(Promise.resolve())
+      },
+      '../../install': {
+        '@noCallThru': true,
+        default: stub()
       }
     }
 
@@ -83,7 +87,8 @@ describe('info app', () => {
       }
     };
 
-    instance = new InfoApp(args, 'pie-root', config, supportConfig);
+    instance = new InfoApp('pie-root', config, supportConfig);
+
   });
 
   describe('constructor', () => {
@@ -106,7 +111,7 @@ describe('info app', () => {
           configure: '.configure',
           controllers: './controllers'
         },
-        install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
+        install: stub().returns(Promise.resolve([]))
       }
       return instance.server({});
     });

@@ -15,6 +15,7 @@ describe('clean', () => {
 
     deps = {
       './load-app': {
+        '@noCallThru': true,
         allApps: stub().returns([])
       },
       './common': {

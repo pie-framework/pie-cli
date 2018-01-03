@@ -27,15 +27,15 @@ export async function loadSupportConfig(config: JsonConfig): Promise<SupportConf
 
   const support = _.compact([less, react, corespringLegacy]);
   return new MultiConfig(...support);
-};
+}
 
 export function allApps(): any[] {
   return _.values(appMap);
-};
+}
 
 export function loadApp(args: any): Promise<App> {
   const appKey = args.app || args.a || 'default';
   const clazz = appMap[appKey];
   const buildFn = buildWebpack.bind(null, args.logFile);
   return clazz.build(args, loadSupportConfig, buildFn);
-};
+}

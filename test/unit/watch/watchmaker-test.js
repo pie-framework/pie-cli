@@ -2,8 +2,8 @@ import { assert, match, stub } from 'sinon';
 
 import _ from 'lodash';
 import { expect } from 'chai';
-import proxyquire from 'proxyquire'
 import { path as p } from '../../../lib/string-utils';
+import proxyquire from 'proxyquire'
 
 describe('watchmaker', () => {
 
@@ -19,16 +19,9 @@ describe('watchmaker', () => {
     mappings;
 
   beforeEach(() => {
-    elements = require('../../../lib/question/config/elements');
-    elements.StubPiePackage = class StubPiePackage extends elements.PiePackage {
-      constructor() {
-        super('stub', '../..');
-      }
-    }
 
-    questionConfig = (elements) => {
+    questionConfig = () => {
       return {
-        elements: elements,
         dir: 'dir',
         filenames: {
           json: 'config.json',
@@ -36,8 +29,7 @@ describe('watchmaker', () => {
         }
       }
     }
-
-  })
+  });
 
   beforeEach(() => {
 
@@ -103,10 +95,19 @@ describe('watchmaker', () => {
       beforeEach(() => {
         dep = stub();
         watchers = watchmaker.init(
-          questionConfig([new elements.StubPiePackage()]),
+          questionConfig(),
           stub(),
           [],
-          mappings,
+          [{
+            isLocal: true,
+            main: {
+              moduleId: 'main'
+            },
+            src: '../main',
+            controller: {
+              moduleId: 'controller'
+            }
+          }],
           dirs);
       });
 
@@ -115,7 +116,7 @@ describe('watchmaker', () => {
       });
 
       it('calls constructor', () => {
-        assert.calledWith(pieWatchConstructor, 'stub', 'dir', '../..', dirs, { controller: 'stub-controller', configure: 'stub-configure' });
+        assert.calledWith(pieWatchConstructor, 'main', 'dir', '../main', dirs, { controller: 'controller', configure: undefined });
       });
 
       it('calls start', () => {

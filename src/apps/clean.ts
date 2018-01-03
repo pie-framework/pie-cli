@@ -6,4 +6,3 @@ export async function clean(dir: string): Promise<string[]> {
   const allFiles = ['.pie'].concat(files);
   return removeFiles(dir, allFiles);
 }
-

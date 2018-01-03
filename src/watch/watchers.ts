@@ -17,7 +17,6 @@ interface Roots {
   targetRoot: string;
 }
 
-
 /**
  * Note: There appears to be a bug in the new webpack where simply copying a file that sits in a
  * dependency graph won't push the changes through. Adding a `touch` to force it through.
@@ -57,7 +56,7 @@ export class BaseWatch implements Roots, Watch {
   public getDestination(path) {
     const relativePath = relative(this.srcRoot, path);
     const destination = join(this.targetRoot, relativePath);
-    logger.silly(`[BaseWatch] [getDestination], path: ${path}, 
+    logger.silly(`[BaseWatch] [getDestination], path: ${path},
       relativePath: ${relativePath}, destination: ${destination}`);
     return destination;
   }
@@ -83,7 +82,6 @@ export class BaseWatch implements Roots, Watch {
       ]),
       persistent: true
     });
-
 
     const onAdd = (path) => {
       logger.debug(`File added: ${path} - copy`);

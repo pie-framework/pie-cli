@@ -61,6 +61,10 @@ describe('item app', () => {
       '../../code-gen': {
         writeConfig: stub(),
         writeEntryJs: stub().returns(Promise.resolve())
+      },
+      '../../install': {
+        '@noCallThru': true,
+        default: stub()
       }
     }
 
@@ -83,7 +87,7 @@ describe('item app', () => {
       }
     };
 
-    instance = new ItemApp(args, config, supportConfig);
+    instance = new ItemApp(config, supportConfig);
   });
 
   describe('constructor', () => {
@@ -106,7 +110,7 @@ describe('item app', () => {
           configure: '.configure',
           controllers: './controllers'
         },
-        install: stub().returns(Promise.resolve({ controllers: [], configure: [] }))
+        install: stub().returns(Promise.resolve([]))
       }
       return instance.server({});
     });

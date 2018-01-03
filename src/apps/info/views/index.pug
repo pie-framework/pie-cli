@@ -19,12 +19,12 @@ html
       window.element = !{element ? JSON.stringify(element) : '{}'};
       window.orgRepo = !{orgRepo ? JSON.stringify(orgRepo) : '{}'};
     
-    each j in js 
-      script(src=j, type='text/javascript')
     
     body
       catalog-container
         span(slot="header") 
           | pie info
         catalog-entry
-          catalog-demo
+          catalog-demo    
+      each j in js 
+        script(src=j, type='text/javascript')

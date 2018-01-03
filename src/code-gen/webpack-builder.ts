@@ -1,4 +1,3 @@
-import * as _ from 'lodash';
 import * as webpack from 'webpack';
 
 import { buildLogger } from 'log-factory';
@@ -9,7 +8,6 @@ import { writeConfig } from './webpack-write-config';
 const stripAnsi = require('strip-ansi');
 
 const logger = buildLogger();
-
 
 export type BuildResult = { stats: webpack.compiler.Stats, duration: number };
 

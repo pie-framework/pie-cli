@@ -6,10 +6,12 @@ let args = minimist(process.argv.slice(2));
 let logFactory = require('log-factory');
 let defaultLogConfig = require('../lib/log-config').default;
 let { removeSync, writeFile } = require('fs-extra');
+let logToConsole = args.logToConsole || args['log-to-console'];
+let file = logToConsole ? null : (args.logFile || args['log-file']);
 
 let logOpts = {
-  file: args.logFile || args['log-file'],
-  console: false,
+  file,
+  console: logToConsole,
   log: args.logLevel || args['log-level'] || defaultLogConfig
 }
 
@@ -17,6 +19,12 @@ if (logOpts.file) {
   writeFile(logOpts.file, '');
   //In case of errors - let the error print the name of the log file.
 }
+
+process.on('unhandledRejection', e => {
+  console.log(e.stack);
+  console.error(e);
+  process.exit(1);
+});
 
 logFactory.init(logOpts);
 

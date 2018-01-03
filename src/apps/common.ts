@@ -25,12 +25,12 @@ export class Tag {
 }
 
 export function removeFiles(dir, files: string[]): Promise<string[]> {
-  const p: Promise<string>[] = _.map(files, (f) => new Promise((resolve, reject) => {
+  const p: Promise<string>[] = _.map(files, (f) => new Promise((res, reject) => {
     remove(join(dir, f), (err) => {
       if (err) {
         reject(err);
       } else {
-        resolve(f);
+        res(f);
       }
     });
   }));
@@ -93,7 +93,7 @@ export function webpackConfig(
   }
 
   return out;
-};
+}
 
 export const clientDependencies = (args: any) => args.configuration.app.dependencies;
 

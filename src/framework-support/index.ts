@@ -7,7 +7,7 @@ import { buildLogger } from 'log-factory';
 import { existsSync } from 'fs-extra';
 import { join } from 'path';
 
-export { Rule }
+export { Rule };
 
 const logger = buildLogger();
 
@@ -50,11 +50,15 @@ export function findModuleRoot(moduleName: string) {
  * A support module will consist of a package.json, node_modules dir and a main script.
  * The main script is expected to contain: `rules` and `externals`.
  */
-export function load(config: JsonConfig, path: string, moduleRequire: (string) => any = require): Promise<SupportConfig> {
+export function load(
+  config: JsonConfig,
+  path: string,
+  moduleRequire: (id: string) => any = require): Promise<SupportConfig> {
+
   logger.debug('[load] path: ', path);
   const mod = moduleRequire(path);
 
-  if (_.isFunction(mod.support) && !mod.support(config.dependencies)) {
+  if (_.isFunction(mod.support) && !mod.support(config.elements)) {
     return Promise.resolve(null);
   } else {
     const moduleRoot = findModuleRoot(path);
@@ -66,19 +70,19 @@ export function load(config: JsonConfig, path: string, moduleRequire: (string) =
 
     const modules = moduleRoot ? modulesIfExists() : [];
     const out = {
+      extensions: mod.extensions || [],
       externals: {
         css: mod.externals ? mod.externals.css : [],
         js: mod.externals ? mod.externals.js : []
       },
       modules,
-      rules: mod.rules || [],
-      extensions: mod.extensions || []
+      rules: mod.rules || []
     };
 
     logger.silly('[load] out: ', out);
     return Promise.resolve(out);
   }
-};
+}
 
 export class MultiConfig implements SupportConfig {
 

@@ -43,6 +43,8 @@ To debug typescript you'll need to generate the sourcemaps. `gulp-typescript` do
 * run `npm run source-maps`
 * run `node --debug-brk --inspect $(which pie) ....`
 
+> Windows debugging: `node.exe --debug-brk --inspect  "C:\Users\Edward Eustace\AppData\Roaming\npm\node_modules\pie\bin\pie" --version`
+
 Node is now running in debug mode on `5858` so boot up a debugger. Visual Studio Code has nice typescript debugging support. In VS: 
 
 * add a breakpoint to the ts src file you want to debug.
@@ -85,6 +87,12 @@ You'll probably want to run the 1 at a time like so:
 
 ```shell
 mocha --require test/init test/integration/framework-support/support-module-test.js
+```
+
+or to run an individual test: 
+
+```shell
+./node_modules/.bin/mocha  --require test/init.js  test/integration/init.js test/integration/cli/install-test.js
 ```
 
 > `--require test/init` - inits babel and the logger.
@@ -148,3 +156,4 @@ The support package is a standard npm package and we hope to enable the inclusio
 ##### Credits
 
 > Special thanks to Ken Pratt @kenpratt for the `pie` npm package name
+

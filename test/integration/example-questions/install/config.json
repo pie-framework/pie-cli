@@ -1,0 +1,6 @@
+{
+  "elements": {
+    "my-el": "../../example-components/hello-world"
+  },
+  "models": []
+}

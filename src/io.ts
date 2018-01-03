@@ -1,9 +1,16 @@
 import * as readline from 'readline';
 
 import { buildLogger } from 'log-factory';
-import { spawn } from 'child_process';
+import * as child_process from 'child_process';
 
 const logger = buildLogger();
+
+const windowsSpawn = (executable, args, options) => {
+  logger.debug('>>>> running windows cmd');
+  return child_process.spawn(process.env.comspec || "cmd.exe", ["/c", executable].concat(args), options);
+};
+
+const spawn = (process.platform === "win32") ? windowsSpawn : child_process.spawn;
 
 export function spawnPromise(
   cmd: string,
@@ -11,7 +18,7 @@ export function spawnPromise(
   args: string[],
   ignoreExitCode: boolean = false): Promise<{ stdout: string }> {
 
-  logger.debug('[_spawnPromise] args: ', args);
+  logger.debug('[_spawnPromise] args: ', `${cmd} ${args.join(' ')}`);
 
   const p: Promise<{ stdout: string }> = new Promise((resolve, reject) => {
 
@@ -19,9 +26,9 @@ export function spawnPromise(
 
     let out = '';
 
-    s.on('error', () => {
+    s.on('error', (e) => {
       logger.error('npm install command failed - is npm installed?');
-      reject();
+      reject(e);
     });
 
     readline.createInterface({
@@ -48,7 +55,7 @@ export function spawnPromise(
     s.on('close', (code) => {
       if (code !== 0 && !ignoreExitCode) {
         logger.error(args + ' failed. code: ' + code);
-        reject();
+        reject(new Error(`cmd: '${cmd} ${args.join(' ')}', error code: ${code}`));
       } else {
         resolve({ stdout: out });
       }
