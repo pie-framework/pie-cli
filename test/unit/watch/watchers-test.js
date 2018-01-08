@@ -42,7 +42,7 @@ describe('watchers', () => {
     }
 
     watchers = proxyquire('../../../lib/watch/watchers', {
-      chokidar: chokidar,
+      chokidar,
       'fs-extra': fs
     });
   });

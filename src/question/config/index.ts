@@ -22,7 +22,7 @@ export class FileNames {
   }
 
   constructor(
-    readonly json = 'config.json',
+    readonly config = 'config.json',
     readonly markup = 'index.html'
   ) { }
 }
@@ -82,7 +82,7 @@ export class JsonConfig implements Config {
   }
 
   private _readRaw(): RawConfig {
-    const p = join(this.dir, this.filenames.json);
+    const p = join(this.dir, this.filenames.config);
     const out = fromPath(p);
     logger.debug('this._raw: ', out);
     return out;

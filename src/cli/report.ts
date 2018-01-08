@@ -1,6 +1,7 @@
 import * as ora from 'ora';
 
-import { blue, green, red, yellow } from 'chalk';
+import * as chalk from 'chalk';
+
 import { error, info, success, warning } from 'log-symbols';
 
 import { buildLogger } from 'log-factory';
@@ -46,6 +47,7 @@ class DefaultHandler implements Handler {
   }
 }
 
+// TODO: strip (chalk as any) below
 export class Report {
 
   private handler: Handler;
@@ -56,22 +58,22 @@ export class Report {
 
   public info(s: string): void {
     this.stream.write(info);
-    this.stream.write(blue(` ${s}\n`));
+    this.stream.write((chalk as any).blue(` ${s}\n`));
   }
 
   public success(s: string): void {
     this.stream.write(success);
-    this.stream.write(green(` ${s}\n`));
+    this.stream.write((chalk as any).green(` ${s}\n`));
   }
 
   public failure(s: string): void {
     this.stream.write(error);
-    this.stream.write(red(` ${s}\n`));
+    this.stream.write((chalk as any).red(` ${s}\n`));
   }
 
   public warning(s: string): void {
     this.stream.write(warning);
-    this.stream.write(yellow(`${s}\n`));
+    this.stream.write((chalk as any).yellow(`${s}\n`));
   }
 
   public promise<A>(label: string, p: Promise<A>): Promise<A> {

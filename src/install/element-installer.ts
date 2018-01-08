@@ -73,7 +73,8 @@ export default class DefaultInstaller implements ElementInstaller {
     const requests: PreInstallRequest[] = this.createInstallRequests(keyValues, models);
     const results: NpmInstall[] = await this.runNpmInstall(requests);
 
-    const data: InstalledElement[] = _.zipWith(keyValues, requests, results, (kv, req, res) => {
+    // TODO: strip any here
+    const data: InstalledElement[] = _.zipWith(keyValues, requests, (results as any), (kv, req, res) => {
       const out: any = {
         element: kv.element,
         input: kv,
