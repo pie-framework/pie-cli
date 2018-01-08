@@ -112,7 +112,7 @@ export function isManifestable(a: any): a is MakeManifest {
   return _.isFunction(a.manifest);
 }
 
-export function isBuildable<T, BO>(a: any): a is Buildable<T, BO> {
+export function isBuildable<T, BO extends BuildOpts>(a: any): a is Buildable<T, BO> {
   return _.isFunction(a.build);
 }
 
