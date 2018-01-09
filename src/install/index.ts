@@ -1,15 +1,15 @@
 import * as _ from 'lodash';
 
-import ElementInstaller, { InstalledElement, PackageType } from './element-installer';
-import { join, relative, resolve } from 'path';
-
+import { install, InstalledElement, PackageType, Dirs } from '@pie-cli-libs/installer';
 import { ElementDeclaration } from '../code-gen';
-import Npm from '../npm';
 import { PieTarget } from './common';
 import { RawConfig } from '../question/config';
 import { buildLogger } from 'log-factory';
-import { ensureDir } from 'fs-extra';
 import report from '../cli/report';
+
+export {
+  Dirs
+};
 
 const logger = buildLogger();
 
@@ -18,12 +18,6 @@ export { PieTarget };
 export type Mappings = {
   controllers: PieTarget[],
   configure: PieTarget[]
-};
-
-export type Dirs = {
-  configure: string,
-  controllers: string,
-  root: string
 };
 
 export type Controller = {
@@ -85,8 +79,8 @@ const toPieBuildInfo = (rootDir: string, ie: InstalledElement): PieBuildInfo => 
     isLocal: ie.preInstall.local,
     isPackage,
     main: {
-      dir: isPackage && ie.npmInstall ? ie.npmInstall.dir : rootDir,
-      moduleId: isPackage && ie.npmInstall ? ie.npmInstall.moduleId : ie.preInstall.value,
+      dir: isPackage && ie.postInstall ? ie.postInstall.dir : rootDir,
+      moduleId: isPackage && ie.postInstall ? ie.postInstall.moduleId : ie.preInstall.value,
       tag: ie.element
     },
     src: ie.input.value,
@@ -123,112 +117,24 @@ const toPieBuildInfo = (rootDir: string, ie: InstalledElement): PieBuildInfo => 
   return out;
 };
 
-export const findModuleId = (
-  parentId: string,
-  rd: { moduleId: string, path: string }[],
-  deps: { [key: string]: any }) => {
-  logger.silly('[findModuleId]:', parentId);
-  const path = _.find(rd, d => d.moduleId === parentId).path;
-  const zipped = _.map(deps, (o, moduleId) => ({ data: o, moduleId }));
-  const out = _.find(zipped, ({ data, moduleId }) => {
-    const eql = data.from === path;
-    logger.silly('[findModuleId]:', parentId, 'data:', JSON.stringify(data));
-    logger.silly('[findModuleId]:', parentId, 'path:', path, 'data:', data.from, 'eql:', eql);
-    return eql;
-  });
-  logger.silly('[findModuleId]: out: ', out);
-  return out.moduleId;
+export type InstallResult = {
+  dirs: Dirs,
+  buildInfo: PieBuildInfo[]
 };
 
 export default class Install {
 
-  // tslint:disable-next-line:member-access
-  readonly dir: string;
-  private elementInstaller: ElementInstaller;
+  constructor(private rootDir: string, private config: RawConfig) { }
 
-  get dirs(): Dirs {
+  public async install(force: boolean = false): Promise<InstallResult> {
+    const result: { dirs: Dirs, installed: InstalledElement[] } =
+      await install(this.rootDir, this.config.elements, this.config.models, report);
+    const buildInfo = _.map(result.installed, r => toPieBuildInfo(this.rootDir, r));
+
     return {
-      configure: resolve(join(this.dir, '.configure')),
-      controllers: resolve(join(this.dir, '.controllers')),
-      root: this.dir
+      buildInfo,
+      dirs: result.dirs
     };
   }
 
-  constructor(private rootDir: string, private config: RawConfig) {
-    this.elementInstaller = new ElementInstaller(this.rootDir);
-    this.dir = this.elementInstaller.installationDir;
-  }
-
-  public async install(force: boolean = false): Promise<PieBuildInfo[]> {
-    const result = await report.promise(
-      'installing root package',
-      this.elementInstaller.install(this.config.elements, this.config.models));
-
-    logger.info('[install] result:', result);
-
-    const controllerResult: any = await report.promise('installing controllers', this.installControllers(result));
-
-    if (controllerResult instanceof Error) {
-      throw controllerResult;
-    }
-
-    const configureResult = await report.promise('installing configure', this.installConfigure(result));
-
-    if (configureResult instanceof Error) {
-      throw configureResult;
-    }
-
-    logger.silly('configureResult: ', configureResult, configureResult instanceof Error, typeof configureResult);
-    logger.silly('updated result: ', JSON.stringify(result, null, ' '));
-
-    return _.map(result, r => toPieBuildInfo(this.dirs.root, r));
-  }
-
-  private async installConfigure(result: InstalledElement[]): Promise<any> {
-    const pies = result.filter(r => r.pie !== undefined && r.pie.hasConfigurePackage);
-    return this.installPieSubPackage(pies, 'configure', this.dirs.configure);
-  }
-
-  private async installControllers(result: InstalledElement[]): Promise<any> {
-    const pies = result.filter(r => r.pie !== undefined);
-    return this.installPieSubPackage(pies, 'controller', this.dirs.controllers);
-  }
-
-  private async installPieSubPackage(pies: InstalledElement[],
-    packageName: 'controller' | 'configure',
-    installDir: string): Promise<any> {
-
-    logger.silly('[installPieSubPackage] pies: ', pies);
-
-    if (!pies || pies.length === 0) {
-      return;
-    }
-
-    const relativeDependencies = pies.map(p => {
-      if (!p.npmInstall) {
-        throw new Error('we expect an npm install object for a pie');
-      }
-      const postInstall = p.npmInstall;
-      const installPath = join(postInstall.dir, 'node_modules', postInstall.moduleId, packageName);
-      return { moduleId: postInstall.moduleId, path: relative(installDir, installPath) };
-    });
-
-    await ensureDir(installDir);
-
-    const npm = new Npm(installDir);
-
-    const installResult = await npm.installIfNeeded(relativeDependencies.map(r => r.path));
-
-    logger.silly('[installPieSubPackage] installResult', installResult);
-    pies.forEach(p => {
-      if (p.pie) {
-        p.pie[packageName] = {
-          dir: installDir,
-          moduleId: findModuleId(p.npmInstall.moduleId, relativeDependencies, installResult)
-        };
-      }
-    });
-    logger.silly('[installPieSubPackage]: ', JSON.stringify(installResult, null, '  '));
-    return installResult;
-  }
 }
