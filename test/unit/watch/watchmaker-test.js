@@ -1,4 +1,4 @@
-import { assert, match, stub } from 'sinon';
+import { assert, match, stub, spy } from 'sinon';
 
 import _ from 'lodash';
 import { expect } from 'chai';
@@ -25,7 +25,8 @@ describe('watchmaker', () => {
         dir: 'dir',
         filenames: {
           config: 'config.json',
-          markup: 'index.html'
+          markup: 'index.html',
+          resolveConfig: spy(function (dir) { return `${dir}/config.json` })
         }
       }
     }
@@ -90,12 +91,13 @@ describe('watchmaker', () => {
     });
 
     describe('with 1 local dependency', () => {
-      let watchers, dep;
+      let watchers, dep, questionCfg;
 
       beforeEach(() => {
         dep = stub();
+        questionCfg = questionConfig();
         watchers = watchmaker.init(
-          questionConfig(),
+          questionCfg,
           stub(),
           [],
           [{
@@ -125,6 +127,10 @@ describe('watchmaker', () => {
 
       it('calls file watch constructor for index.html', () => {
         assert.calledWith(fileWatchConstructor, p`dir/index.html`, match.func);
+      });
+
+      it('calls resolveConfig', () => {
+        assert.calledWith(questionCfg.filenames.resolveConfig, 'dir');
       });
 
       it('calls file watch constructor for config.json', () => {
