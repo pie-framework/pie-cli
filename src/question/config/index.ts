@@ -5,7 +5,7 @@ import { Manifest, Model, RawConfig, ScoringType, WEIGHTED, Weight, fromPath } f
 
 import { buildLogger } from 'log-factory';
 import { join } from 'path';
-import { readFileSync } from 'fs-extra';
+import { readFileSync, existsSync } from 'fs-extra';
 import { validateConfig } from './validator';
 
 export {
@@ -22,9 +22,18 @@ export class FileNames {
   }
 
   constructor(
-    readonly config = 'config.json',
+    readonly config = 'config',
     readonly markup = 'index.html'
   ) { }
+
+  public resolveConfig(dir: string): string {
+
+    if (this.config.endsWith('.js') || this.config.endsWith('.json')) {
+      return join(dir, this.config);
+    }
+    const jsPath = join(dir, `${this.config}.js`);
+    return existsSync(jsPath) ? jsPath : join(dir, `${this.config}.json`);
+  }
 }
 
 export interface Config {
@@ -72,7 +81,7 @@ export class JsonConfig implements Config {
    * Reload the raw config from file.
    */
   public reload() {
-    this._raw = this._readRaw();
+    this._raw = this.readRawConfig();
 
     const result = validateConfig(this._raw);
 
@@ -81,8 +90,8 @@ export class JsonConfig implements Config {
     }
   }
 
-  private _readRaw(): RawConfig {
-    const p = join(this.dir, this.filenames.config);
+  private readRawConfig(): RawConfig {
+    const p = this.filenames.resolveConfig(this.dir);
     const out = fromPath(p);
     logger.debug('this._raw: ', out);
     return out;
