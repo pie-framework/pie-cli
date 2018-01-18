@@ -3,6 +3,10 @@ import { assert, match, spy, stub } from 'sinon';
 import { expect } from 'chai';
 import { path as p } from '../../../../lib/string-utils';
 import proxyquire from 'proxyquire';
+import { setDefaultLevel, buildLogger } from 'log-factory';
+
+const logger = buildLogger();
+setDefaultLevel('silly');
 
 describe('catalog', () => {
 
@@ -11,12 +15,20 @@ describe('catalog', () => {
   beforeEach(() => {
 
     deps = {
+      './info-builder': {
+        gitInfo: stub().returns(Promise.resolve({})),
+        npmInfo: stub().returns(Promise.resolve({})),
+        gitTag: stub().returns(Promise.resolve('1.0.0')),
+        gitHash: stub().returns(Promise.resolve('HASH'))
+      },
       '../base': {
         BaseApp: stub()
       },
       'fs-extra': {
         existsSync: stub().returns(true),
-        writeFileSync: stub()
+        writeFileSync: stub(),
+        readJsonSync: stub(),
+        readFileSync: stub().returns('file')
       },
       '../create-archive': {
         createArchive: stub().returns(Promise.resolve('archive.tar.gz')),
@@ -102,68 +114,55 @@ describe('catalog', () => {
 
   describe('createArchive', () => {
     let addExtras, archive;
-    let init = (exists, done) => {
-      archive = {
-        file: stub(),
-        directory: stub(),
-        append: stub()
-      }
+    let init = (exists) => {
+
       deps['fs-extra'].existsSync.returns(exists);
-      deps['../create-archive'].createArchive = spy(
-        function (name, dir, ignores, ae) {
-          addExtras = ae;
-          return Promise.resolve(name);
-        });
-      catalog.createArchive([{
+      deps['fs-extra'].readJsonSync.returns({});
+
+      addExtras = stub();
+      mod.addExtras = stub().returns(addExtras);
+
+      deps['../create-archive'].createArchive = stub().returns(Promise.resolve({}));
+
+      return catalog.createArchive([{
         element: 'my-pie',
         configure: {
           tag: 'my-pie-configure',
           moduleId: 'my-pie-configure'
         }
       }]);
-      addExtras(archive);
-      done();
-
     }
 
-    beforeEach((done) => {
-      init(true, done);
+    beforeEach(() => {
+      archive = {
+        file: stub(),
+        directory: stub(),
+        append: stub()
+      }
+      return init(true);
     });
 
     it('calls createArchvive', () => {
       assert.calledWith(deps['../create-archive'].createArchive, match(/.*pie-item.tar.gz$/), 'dir', [], match.func);
     });
 
-    it('adds extras in addExtras', () => {
-      assert.calledWith(archive.file, match(/.*README.md$/), { name: 'pie-pkg/README.md' });
-    });
-
-    it('calls archive.file for package.json', () => {
-      assert.calledWith(archive.file, match(/.*package.json$/), { name: 'pie-pkg/package.json' });
-    });
-
-    it('calls archive.directory for package.json', () => {
-      assert.calledWith(archive.directory, match(/.*docs[\/|\\]schemas$/), 'schemas');
-    });
-
-    it('calls archive.append for externals.json', () => {
-      assert.calledWith(archive.append, JSON.stringify(support.externals), { name: 'pie-pkg/externals.json' });
-    });
-
-    it('calls archive.append for configure-map.json', () => {
-      assert.calledWith(archive.append, JSON.stringify({ 'my-pie': 'my-pie-configure' }), { name: 'pie-pkg/configure-map.json' });
-    });
-
     describe('when schemas does not exist', () => {
-      beforeEach((done) => {
-        init(false, done);
-      });
+      beforeEach(() => init(false));
 
       it('does not call archive.directory for package.json', () => {
         assert.notCalled(archive.directory)
       });
     });
+  });
 
+  describe('addExtras', () => {
+
+    it('works', () => {
+      const fn = mod.addExtras({}, 'markup', { externals: {} }, [], { version: '1.0.0' }, {}, '', {}, {}, []);
+      const archive = { append: stub() }
+      fn(archive);
+      assert.calledWith(archive.append, match.string, { name: 'pie-catalog-data.json' });
+    });
   });
 });
 
