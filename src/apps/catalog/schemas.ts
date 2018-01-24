@@ -9,7 +9,8 @@ export function buildSchemas(filePath: string): any[] {
 
     const mapped = files.map(f => {
       const p = join(filePath, f);
-      if (statSync(p).isFile()) {
+      const stat = statSync(p);
+      if (stat.isFile()) {
         return { name: f, json: readJsonSync(p) };
       }
     });
