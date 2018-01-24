@@ -17,6 +17,12 @@ before(function (done) {
   this.timeout(40000);
   init({ console: true, log: process.env.LOG_LEVEL || 'info' });
   let sampleDataPath = getSamplesPath();
+  const cwd = join(sampleDataPath, 'example-components/hello-world');
+  spawnSync('git', ['init'], { cwd });
+  spawnSync('git', ['add', '.'], { cwd });
+  spawnSync('git', ['commit', '.', '-m', '"msg"'], { cwd });
+  const hashResult = spawnSync('git', ['rev-parse', '--short', 'HEAD'], { cwd });
+  console.log(hashResult.stdout.toString());
 
   global.it = {
     sample: {
