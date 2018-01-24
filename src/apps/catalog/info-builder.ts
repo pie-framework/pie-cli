@@ -70,18 +70,15 @@ export function gitHash(dir: string, short: boolean = false): Promise<string> {
 
 export function gitTag(dir: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    try {
-      const repo = gitJs(dir);
+    const repo = gitJs(dir);
 
-      repo.tag(['--points-at', 'HEAD'], (err, result) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result.trim());
-        }
-      });
-    } catch (e) {
-      reject(e);
-    }
+    repo.tag(['--points-at', 'HEAD'], (err, result) => {
+      if (err) {
+        reject(err);
+        return;
+      } else {
+        resolve(result.trim());
+      }
+    });
   });
 }

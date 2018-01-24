@@ -20,7 +20,7 @@ const logger = buildLogger();
 
 /**
  * Builds a bundle that is compatible with the pie-catalog web app.
- * Used for publishing pie archives to the catalog.
+ * Used for publishing pie archives to the catalog. See PieLabs/pie-catalog@2.0.0 or higher.
  */
 export default class CatalogApp
   implements App, Archivable<PieBuildInfo[]>, Buildable<PieBuildInfo[], BuildOpts> {
@@ -142,41 +142,6 @@ export default class CatalogApp
       return Promise.reject(new Error('The package.json is missing `repository` and `name` fields'));
     }
 
-    // const addExtras = (archive) => {
-    //   /**
-    //    * It is important that the package.json is the first entry in the tar,
-    //    * so that the upload stream will consume this entry first.
-    //    */
-    //   const catalog = {
-    //     demo: {
-    //       config: this.config.raw,
-    //       configureMap: pieToConfigureMap(buildInfo),
-    //       externals: this.support.externals,
-    //       markup: this.config.markup
-    //     },
-    //     npm,
-    //     package: pkg,
-    //     readme: existsSync(root('README.md')) ? readFileSync(root('README.md'), 'utf8') : '',
-    //     repository,
-    //     schemas: buildSchemas(root('docs/schemas')),
-    //     version: {
-    //       git: {
-    //         hash,
-    //         short: shortHash,
-    //         tag
-    //       },
-    //       pkg: pkg.version,
-    //     }
-    //   };
-
-    //   const catalogString = JSON.stringify(catalog, null, '  ');
-
-    //   logger.silly('catalog json: ', catalogString);
-    //   logger.silly('archive: ', archive);
-
-    //   archive.append(catalogString, { name: 'pie-catalog-data.json' });
-    // };
-
     /* TODO: ignore config/markup? */
     const ignores = archiveIgnores(this.config.dir);
 
@@ -212,10 +177,7 @@ export const addExtras = (
   repository: any,
   git: any,
   schemas: any[]) => (archive: any): void => {
-    /**
-     * It is important that the package.json is the first entry in the tar,
-     * so that the upload stream will consume this entry first.
-     */
+
     const catalog = {
       demo: {
         config,
@@ -237,5 +199,9 @@ export const addExtras = (
     const catalogString = JSON.stringify(catalog, null, '  ');
     logger.silly('catalog json: ', catalogString);
     logger.silly('archive: ', archive);
+    /**
+     * It is important that the catalog json is the first entry in the tar,
+     * so that the upload stream will consume this entry first.
+     */
     archive.append(catalogString, { name: 'pie-catalog-data.json' });
   };
