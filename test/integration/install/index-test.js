@@ -4,8 +4,6 @@ import { expect } from 'chai';
 import { join } from 'path';
 import temp from 'temp';
 
-//todo - seems like I need to set up a new temp for this test run amongst the others.
-
 describe('install', () => {
 
   let mod,
