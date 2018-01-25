@@ -91,8 +91,7 @@ export class JsonConfig implements Config {
   }
 
   private readRawConfig(): RawConfig {
-    const p = this.filenames.resolveConfig(this.dir);
-    const out = fromPath(p);
+    const out = fromPath(this.dir, this.filenames);
     logger.debug('this._raw: ', out);
     return out;
   }
