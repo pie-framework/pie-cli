@@ -131,7 +131,6 @@ This creates a new github release from the `develop` branch:
 npm run release
 ```
 
-
 ## Architecture Notes 
 
 When you run any of the commands that generate/serve js you are running one or more webpack builds via an `App`. For example `pie info` uses the `InfoApp` which has a `serve` function. This method will run an `install` then run a server that will make use of `webpack-dev-middleware`.
