@@ -23,11 +23,9 @@ describe('install', () => {
       join(paths.tmp, 'intaller-test'),
       {
         elements: {
-          // 'plain-js-file': '../example-components/plain-js-file.js',
           'my-el': '../example-components/hello-world',
           'with-configure': '../example-components/with-config-package',
           'el-with-no-controller': '../example-components/no-controller',
-          // 'corespring-choice': 'github:pieelements/corespring-choice#feature/default-colors'
         }
       });
 
@@ -39,9 +37,6 @@ describe('install', () => {
   });
 
   describe('install', () => {
-    // it('installs', () => {
-    //   expect(result).to.eql({});
-    // });
 
     it('handles already installed packages', () => {
       const newInstaller = new Installer(join(paths.tmp, 'intaller-test'), {

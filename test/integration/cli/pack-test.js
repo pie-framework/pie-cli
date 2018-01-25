@@ -31,7 +31,6 @@ describe('pack', () => {
     });
 
     it('creates an archive in the demo dir', () => {
-      console.log('readdir:', readdirSync(paths.demo));
       let exists = existsSync(join(paths.demo, 'pie-item.tar.gz'));
       expect(exists).to.be.true;
     });
@@ -47,12 +46,9 @@ describe('pack', () => {
       expect(names.sort()).to.eql([
         'config.json',
         'index.html',
-        'pie-catalog.bundle.js',
-        'pie-pkg/README.md',
-        'pie-pkg/configure-map.json',
-        'pie-pkg/externals.json',
-        'pie-pkg/package.json',
-        'schemas/config.json']);
+        'pie-catalog-data.json',
+        'pie-catalog.bundle.js'
+      ]);
     });
   });
 

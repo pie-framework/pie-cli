@@ -186,12 +186,12 @@ export default class Install {
 
   private async installConfigure(result: InstalledElement[]): Promise<any> {
     const pies = result.filter(r => r.pie !== undefined && r.pie.hasConfigurePackage);
-    return await this.installPieSubPackage(pies, 'configure', this.dirs.configure);
+    return this.installPieSubPackage(pies, 'configure', this.dirs.configure);
   }
 
   private async installControllers(result: InstalledElement[]): Promise<any> {
     const pies = result.filter(r => r.pie !== undefined);
-    return await this.installPieSubPackage(pies, 'controller', this.dirs.controllers);
+    return this.installPieSubPackage(pies, 'controller', this.dirs.controllers);
   }
 
   private async installPieSubPackage(pies: InstalledElement[],

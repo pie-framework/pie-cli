@@ -3,7 +3,6 @@ import { FileNames } from '../question/config';
 import Installer from '../install';
 import { buildLogger } from 'log-factory';
 import { fromPath } from '../question/config/types';
-import { join } from 'path';
 
 const logger = buildLogger();
 
@@ -23,7 +22,7 @@ class Cmd extends CliCommand {
     const names = FileNames.build(args);
 
     logger.info('names.json: ', names.config);
-    const config = await fromPath(join(dir, names.config));
+    const config = await fromPath(dir, names);
 
     logger.info('config', config);
     const installer = new Installer(dir, config);
