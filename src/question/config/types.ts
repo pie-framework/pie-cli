@@ -1,5 +1,6 @@
 import { KeyMap } from '../../npm';
 import { readJsonSync } from 'fs-extra';
+import { FileNames } from './index';
 
 export type Model = {
   id: string
@@ -23,7 +24,8 @@ export const loadObjectFromJsFile = (p: string): any => {
   return require(p);
 };
 
-export let fromPath = (p: string): RawConfig => {
+export let fromPath = (dir, names: FileNames): RawConfig => {
+  const p = names.resolveConfig(dir);
   if (p.endsWith('.js')) {
     return loadObjectFromJsFile(p) as RawConfig;
   } else if (p.endsWith('.json')) {

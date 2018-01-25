@@ -8,6 +8,13 @@
 npm install -g pie
 ```
 
+## Node/Npm Versions
+
+The pie runtimes needs node v7.10.0 and npm ^4.x.x at the moment.
+
+We are going to be upgrading this requirement shortly.
+
+
 #### Developer install 
 
 ```bash

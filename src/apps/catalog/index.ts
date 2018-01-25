@@ -4,7 +4,7 @@ import { App, Archivable, BuildOpts, Buildable } from '../types';
 import Install, { PieBuildInfo, configureDeclarations, pieToConfigureMap, toDeclarations } from '../../install';
 import { Names, getNames, webpackConfig } from '../common';
 import { archiveIgnores, createArchive } from '../create-archive';
-import { existsSync, writeFileSync } from 'fs-extra';
+import { existsSync, writeFileSync, readFileSync, readJsonSync } from 'fs-extra';
 import { join, resolve } from 'path';
 
 import { JsonConfig } from '../../question/config';
@@ -13,12 +13,14 @@ import { buildLogger } from 'log-factory';
 import { buildWebpack } from '../../code-gen';
 import { controllerDependency } from '../src-snippets';
 import report from '../../cli/report';
+import { buildSchemas } from './schemas';
+import { gitInfo, npmInfo, gitTag, gitHash } from './info-builder';
 
 const logger = buildLogger();
 
 /**
  * Builds a bundle that is compatible with the pie-catalog web app.
- * Used for publishing pie archives to the catalog.
+ * Used for publishing pie archives to the catalog. See PieLabs/pie-catalog@2.0.0 or higher.
  */
 export default class CatalogApp
   implements App, Archivable<PieBuildInfo[]>, Buildable<PieBuildInfo[], BuildOpts> {
@@ -101,7 +103,7 @@ export default class CatalogApp
         externals: CatalogApp.EXTERNALS
       });
 
-    logger.info('config: ', config);
+    logger.silly('config: ', config);
 
     config.module.rules = [
       {
@@ -122,27 +124,40 @@ export default class CatalogApp
     return buildInfo;
   }
 
-  public createArchive(buildInfo: PieBuildInfo[]): Promise<string> {
+  public async createArchive(buildInfo: PieBuildInfo[]): Promise<string> {
     const root = (name) => resolve(join(this.pieRoot, name));
     const archivePath = resolve(join(this.config.dir, this.names.out.archive));
-    const addExtras = (archive) => {
-      archive.file(root('package.json'), { name: 'pie-pkg/package.json' });
-      archive.file(root('README.md'), { name: 'pie-pkg/README.md' });
+    const pkg = readJsonSync(root('package.json'));
 
-      if (existsSync(root('docs/schemas'))) {
-        archive.directory(root('docs/schemas'), 'schemas');
-      }
+    const repository = gitInfo(pkg);
+    const npm = npmInfo(pkg);
 
-      const externals = JSON.stringify(this.support.externals);
-      archive.append(externals, { name: 'pie-pkg/externals.json' });
+    const tag = await gitTag(root('.')).catch(e => '');
+    const hash = await gitHash(root('.')).catch(e => '');
+    const shortHash = await gitHash(root('.'), true).catch(e => '');
 
-      const configureMap = JSON.stringify(pieToConfigureMap(buildInfo));
-      archive.append(configureMap, { name: 'pie-pkg/configure-map.json' });
-    };
+    logger.silly('tag', tag, 'hash', hash, 'shorthash', shortHash);
 
+    if (!repository || !npm) {
+      return Promise.reject(new Error('The package.json is missing `repository` and `name` fields'));
+    }
+
+    /* TODO: ignore config/markup? */
     const ignores = archiveIgnores(this.config.dir);
 
-    return createArchive(archivePath, this.config.dir, ignores, addExtras)
+    logger.silly('call createArchive', archivePath, this.config.dir, ignores, addExtras);
+    const readme = existsSync(root('README.md')) ? readFileSync(root('README.md'), 'utf8') : '';
+
+    const git = {
+      hash,
+      short: shortHash,
+      tag
+    };
+    const schemas = buildSchemas(root('docs/schemas'));
+    logger.silly('callAddExtras...');
+    const ae = addExtras(this.config.raw, this.config.markup, this.support,
+      buildInfo, pkg, npm, readme, repository, git, schemas);
+    return createArchive(archivePath, this.config.dir, ignores, ae)
       .catch((e) => {
         const msg = `Error creating the archive: ${e.message}`;
         logger.error(msg);
@@ -150,3 +165,43 @@ export default class CatalogApp
       });
   }
 }
+
+export const addExtras = (
+  config: any,
+  markup: string,
+  support: SupportConfig,
+  buildInfo: PieBuildInfo[],
+  pkg: { version: string },
+  npm: any,
+  readme: string,
+  repository: any,
+  git: any,
+  schemas: any[]) => (archive: any): void => {
+
+    const catalog = {
+      demo: {
+        config,
+        configureMap: pieToConfigureMap(buildInfo),
+        externals: support.externals,
+        markup,
+      },
+      npm,
+      package: pkg,
+      readme,
+      repository,
+      schemas,
+      version: {
+        git,
+        pkg: pkg.version,
+      }
+    };
+
+    const catalogString = JSON.stringify(catalog, null, '  ');
+    logger.silly('catalog json: ', catalogString);
+    logger.silly('archive: ', archive);
+    /**
+     * It is important that the catalog json is the first entry in the tar,
+     * so that the upload stream will consume this entry first.
+     */
+    archive.append(catalogString, { name: 'pie-catalog-data.json' });
+  };

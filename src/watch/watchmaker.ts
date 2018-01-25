@@ -50,8 +50,9 @@ export function init(
 
   _.forEach(watchers, (w) => w.start());
 
+  config.filenames.resolveConfig(config.dir);
   const allFiles = [
-    join(config.dir, config.filenames.config),
+    config.filenames.resolveConfig(config.dir),
     join(config.dir, config.filenames.markup)
   ].concat(extraFilesToWatch || []);
 
