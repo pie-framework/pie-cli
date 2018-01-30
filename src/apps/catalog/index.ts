@@ -79,7 +79,7 @@ export default class CatalogApp
 
   public async build(opts: BuildOpts): Promise<PieBuildInfo[]> {
 
-    const buildInfo = await this.installer.install(opts.forceInstall);
+    const { dirs, buildInfo } = await this.installer.install(opts.forceInstall);
 
     const js = `
       //controllers
@@ -92,10 +92,10 @@ export default class CatalogApp
       ${configureDeclarations(buildInfo).map(e => e.js).join('\n')}
     `;
 
-    writeFileSync(join(this.installer.dir, CatalogApp.ENTRY), js, 'utf8');
+    writeFileSync(join(dirs.root, CatalogApp.ENTRY), js, 'utf8');
 
     const config = _.merge(webpackConfig(
-      this.installer,
+      dirs,
       this.support,
       CatalogApp.ENTRY,
       CatalogApp.BUNDLE,

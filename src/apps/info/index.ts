@@ -67,16 +67,16 @@ export default class InfoApp implements App, Servable {
 
   public async server(opts: ServeOpts): Promise<ServeResult> {
     logger.silly('[server] opts:', opts);
-    const buildInfo = await this.installer.install(opts.forceInstall);
+    const { dirs, buildInfo } = await this.installer.install(opts.forceInstall);
 
     const js = entryJs(buildInfo, AppServer.SOCK_PREFIX);
 
-    await writeEntryJs(join(this.installer.dir, InfoApp.ENTRY), js);
+    await writeEntryJs(join(dirs.root, InfoApp.ENTRY), js);
 
-    const config = webpackConfig(this.installer, this.support, InfoApp.ENTRY, InfoApp.BUNDLE, null, opts.sourceMaps);
+    const config = webpackConfig(dirs, this.support, InfoApp.ENTRY, InfoApp.BUNDLE, null, opts.sourceMaps);
 
-    const cssRule = config.module.rules.find(r => {
-      const match = r.test.source === '\\.css$';
+    const cssRule = config.module.rules.find(u => {
+      const match = u.test.source === '\\.css$';
       return match;
     });
 
@@ -103,7 +103,7 @@ export default class InfoApp implements App, Servable {
       ]
     }].concat(config.module.rules);
 
-    writeConfig(join(this.installer.dirs.root, 'info.webpack.config.js'), config);
+    writeConfig(join(dirs.root, 'info.webpack.config.js'), config);
 
     const compiler = webpack(config);
     const r = this.router(compiler);
@@ -122,7 +122,7 @@ export default class InfoApp implements App, Servable {
 
     return {
       buildInfo,
-      dirs: this.installer.dirs,
+      dirs,
       reload,
       server: server.httpServer,
     };

@@ -26,7 +26,6 @@ class Cmd extends CliCommand {
 
     logger.info('config', config);
     const installer = new Installer(dir, config);
-
     const buildInfo = await installer.install();
     logger.silly('buildInfo: ', JSON.stringify(buildInfo));
     return buildInfo;

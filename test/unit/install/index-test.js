@@ -6,9 +6,15 @@ import { path as p } from '../../../lib/string-utils';
 import proxyquire from 'proxyquire';
 
 describe('install', () => {
-  let mod, deps, buildInfo, installedElement, npm;
+  let mod, deps, buildInfo, installedElement, npm, dirs;
 
   beforeEach(() => {
+
+    dirs = {
+      root: 'root',
+      configure: 'configure',
+      controllers: 'controllers'
+    };
 
     npm = {
       installIfNeeded: stub().returns(Promise.resolve([]))
@@ -20,6 +26,9 @@ describe('install', () => {
       },
       '../npm': {
         default: stub().returns(npm)
+      },
+      '@pie-cli-libs/installer': {
+        install: stub().returns(Promise.resolve({ installed: [], dirs }))
       }
     };
 
@@ -34,7 +43,7 @@ describe('install', () => {
         type: 'package',
         hasModel: false
       },
-      npmInstall: {
+      postInstall: {
         moduleId: 'my-el-module-id',
         dir: 'dir/.pie'
       },
@@ -89,22 +98,6 @@ describe('install', () => {
   });
 
 
-  describe('findModuleId', () => {
-
-    it('returns the module id', () => {
-      const out = mod.findModuleId(
-        'my-el',
-        [{ moduleId: 'my-el', path: '../path/my-el/configure' }],
-        {
-          'my-el-configure': {
-            from: '../path/my-el/configure'
-          }
-        }
-      );
-      expect(out).to.eql('my-el-configure');
-    });
-  });
-
   describe('Install', () => {
     let install, config
     beforeEach(() => {
@@ -122,17 +115,19 @@ describe('install', () => {
 
       beforeEach(() => {
 
-        install.elementInstaller.install = stub().returns(Promise.resolve([installedElement]));
-        install.installControllers = stub().returns(Promise.resolve([]));
-        install.installConfigure = stub().returns(Promise.resolve([]));
+        deps['@pie-cli-libs/installer'].install = stub().returns(
+          Promise.resolve({ dirs, installed: [installedElement] })
+        );
 
         return install.install(false)
-          .then(r => result = r);
+          .then(r => {
+            result = r
+          });
       });
 
 
       it('returns buildInfo', () => {
-        expect(result[0]).to.eql({
+        expect(result.buildInfo[0]).to.eql({
           element: 'my-el',
           isLocal: true,
           isPackage: true,
@@ -146,24 +141,5 @@ describe('install', () => {
       });
     });
 
-    describe('installPieSubPackage', () => {
-      beforeEach(() => {
-
-        npm.installIfNeeded.returns(Promise.resolve({
-          'my-el-controller': {
-            from: '.pie/node_modules/my-el-module-id/controller'
-          }
-        }));
-        return install.installPieSubPackage([installedElement], 'controller', 'dir');
-      });
-
-      it('adds pie controller dir', () => {
-        expect(installedElement.pie.controller.dir).to.eql('dir');
-      });
-
-      it('adds pie controller moduleId', () => {
-        expect(installedElement.pie.controller.moduleId).to.eql('my-el-controller');
-      });
-    });
   });
 });

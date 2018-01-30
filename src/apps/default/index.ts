@@ -5,6 +5,7 @@ import * as pug from 'pug';
 import { App, Buildable, DefaultOpts, MakeManifest, ManifestOpts } from '../types';
 import { ElementDeclaration, buildWebpack, writeConfig } from '../../code-gen';
 import Install, {
+  Dirs,
   PieBuildInfo,
   configureDeclarations,
   controllerTargets,
@@ -62,12 +63,12 @@ export default class DefaultApp
   public async build(opts: DefaultOpts): Promise<string[]> {
     const forceInstall = opts ? opts.forceInstall : false;
 
-    const buildInfo = await this.installer.install(forceInstall);
-    const client = await report('building client', this.buildClient(buildInfo, opts.addPlayerAndControlPanel));
-    const controllers = await report('building controllers', this.buildControllers(opts.pieName, buildInfo));
-    const configure = await report('building configure', this.buildConfigure(buildInfo));
+    const { buildInfo, dirs } = await this.installer.install(forceInstall);
+    const client = await report('building client', this.buildClient(dirs, buildInfo, opts.addPlayerAndControlPanel));
+    const controllers = await report('building controllers', this.buildControllers(dirs, opts.pieName, buildInfo));
+    const configure = await report('building configure', this.buildConfigure(dirs, buildInfo));
     const allInOne = opts.includeComplete ?
-      await report('building all-in-one', this.buildAllInOne(opts.pieName, buildInfo)) : [];
+      await report('building all-in-one', this.buildAllInOne(dirs, opts.pieName, buildInfo)) : [];
     const example = opts.includeComplete ?
       await report('building example', this.buildExample()) : [];
 
@@ -78,13 +79,13 @@ export default class DefaultApp
     return Promise.reject(new Error('todo'));
   }
 
-  private async buildConfigure(buildInfo: PieBuildInfo[]): Promise<string[]> {
+  private async buildConfigure(dirs: Dirs, buildInfo: PieBuildInfo[]): Promise<string[]> {
 
     const js = configureDeclarations(buildInfo).map(e => e.js).join('\n');
 
-    writeFile(join(this.installer.dir, DefaultApp.CONFIGURE_ENTRY), js);
+    writeFile(join(dirs.root, DefaultApp.CONFIGURE_ENTRY), js);
 
-    const config = webpackConfig(this.installer,
+    const config = webpackConfig(dirs,
       this.support,
       DefaultApp.CONFIGURE_ENTRY,
       DefaultApp.CONFIGURE_BUNDLE,
@@ -94,29 +95,32 @@ export default class DefaultApp
     return [DefaultApp.CONFIGURE_BUNDLE];
   }
 
-  private async buildClient(buildInfo: PieBuildInfo[], addPlayerAndControlPanel: boolean): Promise<string[]> {
+  private async buildClient(
+    dirs: Dirs,
+    buildInfo: PieBuildInfo[],
+    addPlayerAndControlPanel: boolean): Promise<string[]> {
 
     const js = generators.client(toDeclarations(buildInfo).concat(addPlayerAndControlPanel ? [
       new ElementDeclaration('pie-player'),
       new ElementDeclaration('pie-control-panel')
     ] : []));
 
-    writeFile(join(this.installer.dir, 'client.entry.js'), js);
-    const config = webpackConfig(this.installer, this.support, 'client.entry.js', 'pie-view.js', this.config.dir);
+    writeFile(join(dirs.root, 'client.entry.js'), js);
+    const config = webpackConfig(dirs, this.support, 'client.entry.js', 'pie-view.js', this.config.dir);
 
-    writeConfig(join(this.installer.dirs.root, 'client.webpack.config.js'), config);
+    writeConfig(join(dirs.root, 'client.webpack.config.js'), config);
     await buildWebpack(config);
     return ['pie-view.js'];
   }
 
-  private async buildControllers(pieName: string, buildInfo: PieBuildInfo[]): Promise<string[]> {
+  private async buildControllers(dirs: Dirs, pieName: string, buildInfo: PieBuildInfo[]): Promise<string[]> {
 
     const controllers = controllerTargets(buildInfo);
 
     const js = generators.controllers(controllers);
-    writeFile(join(this.installer.dir, 'controllers.entry.js'), js);
+    writeFile(join(dirs.root, 'controllers.entry.js'), js);
     const config = webpackConfig(
-      this.installer,
+      dirs,
       this.support,
       'controllers.entry.js',
       'pie-controllers.js',
@@ -125,12 +129,12 @@ export default class DefaultApp
     config.output.library = `pie-controller-${pieName}`;
     config.output.libraryTarget = 'umd';
 
-    writeConfig(join(this.installer.dirs.root, 'controllers.webpack.config.js'), config);
+    writeConfig(join(dirs.root, 'controllers.webpack.config.js'), config);
     await buildWebpack(config);
     return ['pie-controllers.js'];
   }
 
-  private async buildAllInOne(pieName: string, buildInfo: PieBuildInfo[]): Promise<string[]> {
+  private async buildAllInOne(dirs: Dirs, pieName: string, buildInfo: PieBuildInfo[]): Promise<string[]> {
 
     if (!pieName) {
       throw new Error('You must specify a `pieName` in the args when using `--includeComplete`');
@@ -150,15 +154,15 @@ export default class DefaultApp
       this.config.langs
     );
 
-    writeFile(join(this.installer.dir, 'all-in-one.entry.js'), js);
+    writeFile(join(dirs.root, 'all-in-one.entry.js'), js);
     const config = webpackConfig(
-      this.installer,
+      dirs,
       this.support,
       'all-in-one.entry.js',
       'pie-item.js',
       this.config.dir);
 
-    writeConfig(join(this.installer.dirs.root, 'all-in-one.webpack.config.js'), config);
+    writeConfig(join(dirs.root, 'all-in-one.webpack.config.js'), config);
     await buildWebpack(config);
     return ['pie-item.js'];
   }

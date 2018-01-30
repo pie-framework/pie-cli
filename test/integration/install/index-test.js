@@ -3,6 +3,7 @@ import { assert, match, spy, stub } from 'sinon';
 import { expect } from 'chai';
 import { join } from 'path';
 import temp from 'temp';
+import { ensureDirSync } from 'fs-extra';
 
 describe('install', () => {
 
@@ -10,7 +11,8 @@ describe('install', () => {
     paths,
     Installer,
     installer,
-    result;
+    result,
+    testDir;
 
   before(function () {
 
@@ -19,8 +21,12 @@ describe('install', () => {
     Installer = mod.default;
 
     paths = global.it.sample;
+    testDir = join(paths.tmp, 'installer-test');
+
+    ensureDirSync(testDir);
+
     installer = new Installer(
-      join(paths.tmp, 'intaller-test'),
+      testDir,
       {
         elements: {
           'my-el': '../example-components/hello-world',
@@ -38,12 +44,14 @@ describe('install', () => {
 
   describe('install', () => {
 
-    it('handles already installed packages', () => {
-      const newInstaller = new Installer(join(paths.tmp, 'intaller-test'), {
-        elements: {
-          'my-el': '../example-components/hello-world'
-        }
-      });
+    it('handles already installed packages', function () {
+      this.timeout(30000);
+      const newInstaller = new Installer(
+        testDir, {
+          elements: {
+            'my-el': '../example-components/hello-world'
+          }
+        });
 
       return newInstaller.install()
         .then(() => {

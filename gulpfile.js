@@ -1,6 +1,5 @@
 const gulp = require('gulp'),
   mocha = require('gulp-mocha'),
-  releaseHelper = require('release-helper'),
   ts = require('gulp-typescript'),
   tsProject = ts.createProject('tsconfig.json'),
   fsExtra = require('fs-extra'),
@@ -8,9 +7,6 @@ const gulp = require('gulp'),
   path = require('path'),
   spawn = require('child_process').spawn,
   { join } = require('path');
-
-//Init custom release tasks
-releaseHelper.init(gulp);
 
 let glue = suffix => gulp.src(`src/**/*.${suffix}`).pipe(gulp.dest('lib'));
 
