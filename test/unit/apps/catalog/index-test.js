@@ -83,7 +83,13 @@ describe('catalog', () => {
   describe('build', () => {
     let result;
     beforeEach(() => {
-      catalog.installer.install = stub().returns(Promise.resolve([]));
+      catalog.installer.install = stub().returns(Promise.resolve({
+        dirs: {
+          root: 'root',
+          configure: 'configure',
+          controllers: 'controllers'
+        }, buildInfo: []
+      }));
       catalog.support = {
         rules: []
       }
@@ -97,7 +103,8 @@ describe('catalog', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/catalog.entry.js`);
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`root/catalog.entry.js`);
+
     });
 
     it('calls buildWebpack', () => {
