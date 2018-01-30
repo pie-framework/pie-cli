@@ -106,13 +106,14 @@ const toPieBuildInfo = (rootDir: string, ie: InstalledElement): PieBuildInfo => 
     };
   }
 
-  if (ie.pie && ie.pie.configure) {
+  if (ie.pie && ie.pie.hasConfigurePackage && ie.pie.configure) {
     out.configure = {
       dir: ie.pie.configure.dir,
       moduleId: ie.pie.configure.moduleId,
       tag: `${ie.element}-configure`,
     };
   }
+
   logger.silly('[toPieBuildInfo] out: ', ie.element, JSON.stringify(out, null, '  '));
   return out;
 };
