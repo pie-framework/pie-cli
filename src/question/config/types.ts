@@ -1,6 +1,9 @@
-import { KeyMap } from '../../npm';
 import { readJsonSync } from 'fs-extra';
 import { FileNames } from './index';
+
+export type KeyMap = {
+  [key: string]: any
+};
 
 export type Model = {
   id: string

@@ -3,7 +3,8 @@ import * as webpack from 'webpack';
 
 import { join, resolve } from "path";
 
-import Install from '../install';
+import { Dirs } from '@pie-cli-libs/installer';
+
 import { SupportConfig } from '../framework-support/index';
 import baseConfig from '../question/build/base-config';
 import { buildLogger } from 'log-factory';
@@ -38,17 +39,15 @@ export function removeFiles(dir, files: string[]): Promise<string[]> {
 }
 
 export function webpackConfig(
-  installer: Install,
+  dirs: Dirs,
   support: SupportConfig,
   entry: string,
   bundle: string,
   outpath?: string,
   sourceMaps: boolean = false) {
 
-  outpath = outpath || installer.dir;
+  outpath = outpath || dirs.root;
   const modules = (d: string) => resolve(join(d, 'node_modules'));
-
-  const dirs = installer.dirs;
 
   const base = baseConfig(dirs.root);
 

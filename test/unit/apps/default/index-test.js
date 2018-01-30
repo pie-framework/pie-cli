@@ -12,9 +12,16 @@ const ROOT = '../../../../lib';
 
 describe('index', () => {
 
-  let DefaultApp, instance, mod, deps, args, jsonConfig, supportConfig, result;
+  let DefaultApp, instance, mod, deps, args, jsonConfig, supportConfig, result, dirs;
 
   beforeEach(() => {
+
+    dirs = {
+      root: 'root',
+      configure: 'configure',
+      controllers: 'controllers'
+    };
+
     deps = {
       './src-generators': {
         client: stub().returns('//client js'),
@@ -67,7 +74,10 @@ describe('index', () => {
   describe('build', () => {
     beforeEach(() => {
       instance.installer = {
-        install: stub().returns(Promise.resolve([]))
+        install: stub().returns(Promise.resolve({
+          dirs,
+          buildInfo: []
+        }))
       }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
@@ -84,7 +94,7 @@ describe('index', () => {
     });
 
     it('calls buildControllers', () => {
-      assert.calledWith(instance.buildControllers, 'pie-item', []);
+      assert.calledWith(instance.buildControllers, dirs, 'pie-item', []);
     });
 
     it('returns the files', () => {
@@ -97,7 +107,7 @@ describe('index', () => {
     beforeEach(() => {
       instance = new DefaultApp(jsonConfig, supportConfig);
       instance.installer = {
-        install: stub().returns(Promise.resolve([]))
+        install: stub().returns(Promise.resolve({ buildInfo: [], dirs }))
       }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
@@ -107,7 +117,7 @@ describe('index', () => {
     });
 
     it('calls buildAllInOne', () => {
-      assert.calledWith(instance.buildAllInOne, 'pie-item', []);
+      assert.calledWith(instance.buildAllInOne, dirs, 'pie-item', []);
     });
 
     it('calls buildExample', () => {
@@ -119,7 +129,7 @@ describe('index', () => {
     beforeEach(() => {
       instance = new DefaultApp(jsonConfig, supportConfig);
       instance.installer = {
-        install: stub().returns(Promise.resolve([]))
+        install: stub().returns(Promise.resolve({ buildInfo: [], dirs }))
       }
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       return instance.build({ addPlayerAndControlPanel: true });
@@ -141,7 +151,7 @@ describe('index', () => {
   describe('buildControllers', () => {
     let result;
     beforeEach(() => {
-      return instance.buildControllers('pie-item', []).then(r => result = r)
+      return instance.buildControllers(dirs, 'pie-item', []).then(r => result = r)
         .then(r => result = r);
     });
 
@@ -150,7 +160,7 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/controllers.entry.js`);
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`root/controllers.entry.js`);
     });
 
     it('calls webpackConfig', () => {
@@ -166,7 +176,7 @@ describe('index', () => {
 
     let result;
     beforeEach(() => {
-      return instance.buildClient([])
+      return instance.buildClient(dirs, [])
         .then(r => result = r);
     });
 
@@ -175,7 +185,7 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/client.entry.js`);
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`${dirs.root}/client.entry.js`);
     });
 
     it('calls webpackConfig', () => {
@@ -191,7 +201,7 @@ describe('index', () => {
 
     let buildInfo = [{ configure: { pie: 'my-pie', moduleId: 'my-pie-target' } }];
 
-    beforeEach(() => instance.buildConfigure(buildInfo));
+    beforeEach(() => instance.buildConfigure(dirs, buildInfo));
 
 
     it('calls configureDeclarations', () => {
@@ -201,7 +211,7 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/${DefaultApp.CONFIGURE_ENTRY}`);
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`${dirs.root}/${DefaultApp.CONFIGURE_ENTRY}`);
     });
 
     it('calls webpackConfig', () => {
@@ -221,12 +231,9 @@ describe('index', () => {
     beforeEach(() => {
       instance.installer = {
         dir: 'dir/.pie',
-        dirs: {
-          root: 'dir/.pie'
-        },
         installedPies: []
       };
-      return instance.buildAllInOne('pie-item', [])
+      return instance.buildAllInOne(dirs, 'pie-item', [])
         .then(r => result = r);
     });
 
@@ -235,11 +242,13 @@ describe('index', () => {
     });
 
     it('calls generators.allInOne', () => {
-      assert.calledWith(deps['./src-generators'].allInOne, 'pie-item', [], [], match.string, [], [], []);
+      assert.calledWith(
+        deps['./src-generators'].allInOne, 'pie-item', [], [], match.string, [], [], []
+      );
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/.pie/all-in-one.entry.js`);
+      assert.calledWith(deps['fs-extra'].writeFileSync, p`${dirs.root}/all-in-one.entry.js`);
     });
 
     it('calls webpackConfig', () => {

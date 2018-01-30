@@ -54,16 +54,16 @@ export default class ItemApp implements App, Servable {
 
   public async server(opts: ServeOpts): Promise<ServeResult> {
     logger.silly('[server] opts:', opts);
-    const buildInfo = await this.installer.install(opts.forceInstall);
+    const { dirs, buildInfo } = await this.installer.install(opts.forceInstall);
 
     const js = entryJs(buildInfo, AppServer.SOCK_PREFIX);
 
-    await writeEntryJs(join(this.installer.dirs.root, ItemApp.ENTRY), js);
+    await writeEntryJs(join(dirs.root, ItemApp.ENTRY), js);
 
     logger.info('add sourceMaps? ', opts.sourceMaps);
 
     const config = webpackConfig(
-      this.installer,
+      dirs,
       this.support,
       ItemApp.ENTRY,
       ItemApp.BUNDLE,
@@ -83,7 +83,7 @@ export default class ItemApp implements App, Servable {
         ]
       }].concat(config.module.rules);
 
-    writeConfig(join(this.installer.dirs.root, 'item.webpack.config.js'), config);
+    writeConfig(join(dirs.root, 'item.webpack.config.js'), config);
 
     const compiler = webpack(config);
     const r = this.router(compiler);
@@ -102,7 +102,7 @@ export default class ItemApp implements App, Servable {
 
     return {
       buildInfo,
-      dirs: this.installer.dirs,
+      dirs,
       reload,
       server: server.httpServer
     };

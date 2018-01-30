@@ -7,7 +7,7 @@ import proxyquire from 'proxyquire';
 
 describe('common', () => {
 
-  let mod, deps, installer, support;
+  let mod, deps, installer, support, dirs;
 
   beforeEach(() => {
     deps = {
@@ -26,12 +26,13 @@ describe('common', () => {
       }
     }
 
+    dirs = {
+      root: 'root',
+      configure: 'configure',
+      controllers: 'controllers'
+    }
+
     installer = {
-      dirs: {
-        root: 'root',
-        configure: 'configure',
-        controllers: 'controllers'
-      }
     }
 
     support = {
@@ -46,7 +47,7 @@ describe('common', () => {
     let config;
 
     beforeEach(() => {
-      config = mod.webpackConfig(installer, support, 'entry.js', 'bundle.js');
+      config = mod.webpackConfig(dirs, support, 'entry.js', 'bundle.js');
     });
 
     it('adds the modules rules', () => {
@@ -79,12 +80,12 @@ describe('common', () => {
     });
 
     it('adds devtool: eval if sourceMaps is true', () => {
-      let config = mod.webpackConfig(installer, support, 'entry.js', 'bundle.js', null, true);
+      let config = mod.webpackConfig(dirs, support, 'entry.js', 'bundle.js', null, true);
       expect(config.devtool).to.eql('eval');
     });
 
     it('does not add devtool: eval if sourceMaps is false', () => {
-      let config = mod.webpackConfig(installer, support, 'entry.js', 'bundle.js', null, false);
+      let config = mod.webpackConfig(dirs, support, 'entry.js', 'bundle.js', null, false);
       expect(config.devtool).to.be.undefined;
     });
   });

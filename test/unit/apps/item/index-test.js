@@ -9,9 +9,15 @@ import proxyquire from 'proxyquire';
 const ROOT = '../../../../lib';
 
 describe('item app', () => {
-  let ItemApp, instance, mod, args, deps, config, supportConfig, middlewareInstance, routerInstance, express, compiler;
+  let ItemApp, instance, mod, args, deps, config, supportConfig, middlewareInstance, routerInstance, express, compiler, dirs;
 
   beforeEach(() => {
+
+    dirs = {
+      root: 'dir',
+      configure: '.configure',
+      controllers: './controllers'
+    };
 
     routerInstance = {
       use: stub(),
@@ -105,12 +111,7 @@ describe('item app', () => {
 
       instance.installer = {
         dir: '.pie',
-        dirs: {
-          root: 'dir',
-          configure: '.configure',
-          controllers: './controllers'
-        },
-        install: stub().returns(Promise.resolve([]))
+        install: stub().returns(Promise.resolve({ buildInfo: [], dirs }))
       }
       return instance.server({});
     });
@@ -120,7 +121,7 @@ describe('item app', () => {
     });
 
     it('calls writeEntryJs', () => {
-      assert.calledWith(deps['../../code-gen'].writeEntryJs, p`dir/item.entry.js`, match.string);
+      assert.calledWith(deps['../../code-gen'].writeEntryJs, p`${dirs.root}/item.entry.js`, match.string);
     });
 
     it('calls webpackConfig', () => {
