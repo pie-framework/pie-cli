@@ -19,9 +19,9 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@pie-cli-libs/installer@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@pie-cli-libs/installer/-/installer-0.2.0.tgz#b977e287318ba23af7c9da8ba6bf5a71c7989f06"
+"@pie-cli-libs/installer@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@pie-cli-libs/installer/-/installer-0.2.3.tgz#63f939a5efa72541108e765afee37093629b15f8"
   dependencies:
     "@yarnpkg/lockfile" "^1.0.0"
     cross-spawn "^6.0.3"
