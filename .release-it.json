@@ -1,5 +1,7 @@
 {
   "increment": "conventional:angular",
+  "changelogCommand": "conventional-changelog -p angular | tail -n +3",
+  "safeBump": false,
   "github": {
     "release": true,
     "tokenRef": "GITHUB_TOKEN"
