@@ -127,7 +127,6 @@ npm run build
 This creates a new github release from the `develop` branch:
 
 ```shell
-# check the version in package.json is ok (keep the `-prerelease` label - it'll be stripped automatically), then..
 npm run release
 ```
 
