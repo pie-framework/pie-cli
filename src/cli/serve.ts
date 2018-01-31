@@ -29,11 +29,11 @@ class Cmd extends CliCommand {
     }
 
     if (apps.isServable(a)) {
-      const { server, reload, buildInfo, dirs } = await a.server(opts);
+      const { server, reload, pkgs, dirs } = await a.server(opts);
       await report.promise('starting server', startServer(opts.port, server));
       const extraFilesToWatch = [];
       await report.promise('setting up file watching', new Promise(r => {
-        initWatch(a.config, reload, extraFilesToWatch, buildInfo, dirs);
+        initWatch(a.config, reload, extraFilesToWatch, pkgs, dirs);
         // TODO: add validateConfig on reload if config.json changed
         r();
       }));

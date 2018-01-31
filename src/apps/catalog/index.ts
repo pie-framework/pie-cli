@@ -1,12 +1,11 @@
 import * as _ from 'lodash';
 
 import { App, Archivable, BuildOpts, Buildable } from '../types';
-import Install, { PieBuildInfo, configureDeclarations, pieToConfigureMap, toDeclarations } from '../../install';
+import Install, { Pkg, configureDeclarations, pieToConfigureMap, toDeclarations } from '../../install';
 import { Names, getNames, webpackConfig } from '../common';
 import { archiveIgnores, createArchive } from '../create-archive';
 import { existsSync, writeFileSync, readFileSync, readJsonSync } from 'fs-extra';
 import { join, resolve } from 'path';
-
 import { JsonConfig } from '../../question/config';
 import { SupportConfig } from '../../framework-support';
 import { buildLogger } from 'log-factory';
@@ -23,7 +22,7 @@ const logger = buildLogger();
  * Used for publishing pie archives to the catalog. See PieLabs/pie-catalog@2.0.0 or higher.
  */
 export default class CatalogApp
-  implements App, Archivable<PieBuildInfo[]>, Buildable<PieBuildInfo[], BuildOpts> {
+  implements App, Archivable<Pkg[]>, Buildable<Pkg[], BuildOpts> {
 
   public static generatedFiles: string[] = ['pie-item.tar.gz', 'pie-catalog.bundle.js'];
 
@@ -77,19 +76,19 @@ export default class CatalogApp
     return BuildOpts.build(args);
   }
 
-  public async build(opts: BuildOpts): Promise<PieBuildInfo[]> {
+  public async build(opts: BuildOpts): Promise<Pkg[]> {
 
-    const { dirs, buildInfo } = await this.installer.install(opts.forceInstall);
+    const { dirs, pkgs } = await this.installer.install(opts.forceInstall);
 
     const js = `
       //controllers
       let controllers = window.controllers = {};
-      ${ buildInfo.map(bi => controllerDependency(bi.element, bi.controller.moduleId)).join('\n')}
+      ${ pkgs.map(bi => controllerDependency(bi.element.tag, bi.controller.moduleId)).join('\n')}
       //custom elements
-      ${toDeclarations(buildInfo).map((d) => d.js).join('\n')}
+      ${toDeclarations(pkgs).map((d) => d.js).join('\n')}
 
       //configure elements
-      ${configureDeclarations(buildInfo).map(e => e.js).join('\n')}
+      ${configureDeclarations(pkgs).map(e => e.js).join('\n')}
     `;
 
     writeFileSync(join(dirs.root, CatalogApp.ENTRY), js, 'utf8');
@@ -121,10 +120,10 @@ export default class CatalogApp
 
     await report.promise('building webpack', buildWebpack(config, CatalogApp.WEBPACK_CONFIG));
 
-    return buildInfo;
+    return pkgs;
   }
 
-  public async createArchive(buildInfo: PieBuildInfo[]): Promise<string> {
+  public async createArchive(buildInfo: Pkg[]): Promise<string> {
     const root = (name) => resolve(join(this.pieRoot, name));
     const archivePath = resolve(join(this.config.dir, this.names.out.archive));
     const pkg = readJsonSync(root('package.json'));
@@ -170,7 +169,7 @@ export const addExtras = (
   config: any,
   markup: string,
   support: SupportConfig,
-  buildInfo: PieBuildInfo[],
+  pkgs: Pkg[],
   pkg: { version: string },
   npm: any,
   readme: string,
@@ -181,7 +180,7 @@ export const addExtras = (
     const catalog = {
       demo: {
         config,
-        configureMap: pieToConfigureMap(buildInfo),
+        configureMap: pieToConfigureMap(pkgs),
         externals: support.externals,
         markup,
       },

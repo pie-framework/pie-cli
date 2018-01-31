@@ -72,10 +72,10 @@
     "sinon": "^2.0.0",
     "temp": "^0.8.3",
     "tslint": "^5.5.0",
-    "typescript": "^2.6.2"
+    "typescript": "^2.8.0-dev.20180213"
   },
   "dependencies": {
-    "@pie-cli-libs/installer": "^0.2.3",
+    "@pie-cli-libs/installer": "^1.0.1",
     "ajv": "^5.2.1",
     "archiver": "^2.0.0",
     "babel-core": "^6.24.0",
@@ -92,6 +92,7 @@
     "github": "^13.1.0",
     "glob": "^7.1.1",
     "hosted-git-info": "^2.5.0",
+    "invariant": "^2.2.2",
     "jsesc": "^2.4.0",
     "lodash": "^4.17.4",
     "log-factory": "^1.0.0",

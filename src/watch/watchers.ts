@@ -1,11 +1,12 @@
 import * as _ from 'lodash';
 import * as chokidar from 'chokidar';
 import * as touch from 'touch';
+import * as invariant from 'invariant';
 
 import { Stats, copy, existsSync, remove, statSync } from 'fs-extra';
 import { join, relative, resolve } from 'path';
 
-import { Dirs } from '../install';
+import { Dirs, PieController, PieConfigure, Element } from '../install';
 import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
@@ -184,36 +185,42 @@ export class PackageWatch extends BaseWatch {
   }
 }
 
-/**
- * TODO: These watches below should not be hard coding the expected name of the lib.
- */
-export class PieConfigureWatch extends BaseWatch {
-
-  constructor(private pkgDir: string, private targetDir: string, private moduleName: string) {
+class PWatch extends BaseWatch {
+  constructor(private pkgDir: string,
+    private dirs: Dirs,
+    private model: PieConfigure | PieController,
+    private mode: 'controller' | 'configure') {
     super([]);
+    invariant(model.isChild || model.isLocalPkg, 'Must be a child or local pkg');
   }
 
   get srcRoot() {
-    return resolve(join(this.pkgDir, 'configure'));
+    if (this.model.isChild) {
+      return resolve(join(this.pkgDir, this.mode));
+    } else {
+      return resolve(this.model.dir);
+    }
   }
 
   get targetRoot() {
-    return resolve(join(this.targetDir, `node_modules`, this.moduleName));
+    if (this.model.isChild) {
+      const dirname = (this.mode === 'controller') ? this.dirs.controllers : this.dirs.configure;
+      return resolve(join(dirname, `node_modules`, this.model.moduleId));
+    } else if (this.model.isLocalPkg) {
+      return resolve(join(this.dirs.root, 'node_modules', this.model.moduleId));
+    }
   }
 }
 
-export class PieControllerWatch extends BaseWatch {
-
-  constructor(private pkgDir: string, private targetDir: string, private moduleName: string) {
-    super([]);
+export class PieControllerWatch extends PWatch {
+  constructor(pkgDir: string, dirs: Dirs, model: PieController) {
+    super(pkgDir, dirs, model, 'controller');
   }
+}
 
-  get srcRoot() {
-    return resolve(join(this.pkgDir, 'controller'));
-  }
-
-  get targetRoot() {
-    return resolve(join(this.targetDir, `node_modules`, this.moduleName));
+export class PieConfigureWatch extends PWatch {
+  constructor(pkgDir: string, dirs: Dirs, model: PieConfigure) {
+    super(pkgDir, dirs, model, 'configure');
   }
 }
 
@@ -223,19 +230,31 @@ export class PieWatch {
   private controller;
   private configure;
   constructor(
+    element: Element,
     name: string,
     pieItemDir: string,
     relativePath: string,
     installDirs: Dirs,
-    targets: { controller: string, configure: string }) {
-    logger.debug('[PieWatch] constructor: ', name, relativePath, pieItemDir, installDirs, targets);
+    controller: PieController,
+    configure: PieConfigure) {
+    logger.debug('[PieWatch] constructor: ', name, relativePath, pieItemDir, installDirs);
     const pkgDir = resolve(join(pieItemDir, relativePath));
-    this.client = new PackageWatch(name, pkgDir, installDirs.root, [/.*controller.*/, /.*configure.*/]);
-    this.controller = new PieControllerWatch(pkgDir, installDirs.controllers, targets.controller);
+    const rootIgnores = [/.*controller.*/, /.*configure.*/]
 
-    if (targets.configure) {
-      this.configure = new PieConfigureWatch(pkgDir, installDirs.configure, targets.configure);
+    if (element.isRootPkg) {
+      this.client = new PackageWatch(name, pkgDir, installDirs.root, rootIgnores);
+    } else if (element.isLocalPkg) {
+      this.client = new PackageWatch(element.moduleId, element.dir, installDirs.root, rootIgnores);
     }
+
+    this.controller = controller &&
+      (controller.isLocalPkg || controller.isChild)
+      && new PieControllerWatch(pkgDir, installDirs, controller);
+
+    this.configure = configure &&
+      (configure.isLocalPkg || configure.isChild) &&
+      new PieConfigureWatch(pkgDir, installDirs, configure);
+
   }
 
   public start() {

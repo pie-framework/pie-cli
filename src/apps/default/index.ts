@@ -6,7 +6,7 @@ import { App, Buildable, DefaultOpts, MakeManifest, ManifestOpts } from '../type
 import { ElementDeclaration, buildWebpack, writeConfig } from '../../code-gen';
 import Install, {
   Dirs,
-  PieBuildInfo,
+  Pkg,
   configureDeclarations,
   controllerTargets,
   toDeclarations
@@ -63,12 +63,12 @@ export default class DefaultApp
   public async build(opts: DefaultOpts): Promise<string[]> {
     const forceInstall = opts ? opts.forceInstall : false;
 
-    const { buildInfo, dirs } = await this.installer.install(forceInstall);
-    const client = await report('building client', this.buildClient(dirs, buildInfo, opts.addPlayerAndControlPanel));
-    const controllers = await report('building controllers', this.buildControllers(dirs, opts.pieName, buildInfo));
-    const configure = await report('building configure', this.buildConfigure(dirs, buildInfo));
+    const { pkgs, dirs } = await this.installer.install(forceInstall);
+    const client = await report('building client', this.buildClient(dirs, pkgs, opts.addPlayerAndControlPanel));
+    const controllers = await report('building controllers', this.buildControllers(dirs, opts.pieName, pkgs));
+    const configure = await report('building configure', this.buildConfigure(dirs, pkgs));
     const allInOne = opts.includeComplete ?
-      await report('building all-in-one', this.buildAllInOne(dirs, opts.pieName, buildInfo)) : [];
+      await report('building all-in-one', this.buildAllInOne(dirs, opts.pieName, pkgs)) : [];
     const example = opts.includeComplete ?
       await report('building example', this.buildExample()) : [];
 
@@ -79,9 +79,9 @@ export default class DefaultApp
     return Promise.reject(new Error('todo'));
   }
 
-  private async buildConfigure(dirs: Dirs, buildInfo: PieBuildInfo[]): Promise<string[]> {
+  private async buildConfigure(dirs: Dirs, pkgs: Pkg[]): Promise<string[]> {
 
-    const js = configureDeclarations(buildInfo).map(e => e.js).join('\n');
+    const js = configureDeclarations(pkgs).map(e => e.js).join('\n');
 
     writeFile(join(dirs.root, DefaultApp.CONFIGURE_ENTRY), js);
 
@@ -97,10 +97,10 @@ export default class DefaultApp
 
   private async buildClient(
     dirs: Dirs,
-    buildInfo: PieBuildInfo[],
+    pkgs: Pkg[],
     addPlayerAndControlPanel: boolean): Promise<string[]> {
 
-    const js = generators.client(toDeclarations(buildInfo).concat(addPlayerAndControlPanel ? [
+    const js = generators.client(toDeclarations(pkgs).concat(addPlayerAndControlPanel ? [
       new ElementDeclaration('pie-player'),
       new ElementDeclaration('pie-control-panel')
     ] : []));
@@ -113,9 +113,9 @@ export default class DefaultApp
     return ['pie-view.js'];
   }
 
-  private async buildControllers(dirs: Dirs, pieName: string, buildInfo: PieBuildInfo[]): Promise<string[]> {
+  private async buildControllers(dirs: Dirs, pieName: string, pkgs: Pkg[]): Promise<string[]> {
 
-    const controllers = controllerTargets(buildInfo);
+    const controllers = controllerTargets(pkgs);
 
     const js = generators.controllers(controllers);
     writeFile(join(dirs.root, 'controllers.entry.js'), js);
@@ -134,19 +134,19 @@ export default class DefaultApp
     return ['pie-controllers.js'];
   }
 
-  private async buildAllInOne(dirs: Dirs, pieName: string, buildInfo: PieBuildInfo[]): Promise<string[]> {
+  private async buildAllInOne(dirs: Dirs, pieName: string, pkgs: Pkg[]): Promise<string[]> {
 
     if (!pieName) {
       throw new Error('You must specify a `pieName` in the args when using `--includeComplete`');
     }
 
-    const controllerMap = controllerTargets(buildInfo);
+    const controllerMap = controllerTargets(pkgs);
 
     const pieModels = this.config.models();
 
     const js = generators.allInOne(
       pieName,
-      toDeclarations(buildInfo),
+      toDeclarations(pkgs),
       controllerMap,
       this.config.markup,
       pieModels,

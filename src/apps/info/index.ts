@@ -67,9 +67,9 @@ export default class InfoApp implements App, Servable {
 
   public async server(opts: ServeOpts): Promise<ServeResult> {
     logger.silly('[server] opts:', opts);
-    const { dirs, buildInfo } = await this.installer.install(opts.forceInstall);
+    const { dirs, pkgs } = await this.installer.install(opts.forceInstall);
 
-    const js = entryJs(buildInfo, AppServer.SOCK_PREFIX);
+    const js = entryJs(pkgs, AppServer.SOCK_PREFIX);
 
     await writeEntryJs(join(dirs.root, InfoApp.ENTRY), js);
 
@@ -121,8 +121,8 @@ export default class InfoApp implements App, Servable {
     };
 
     return {
-      buildInfo,
       dirs,
+      pkgs,
       reload,
       server: server.httpServer,
     };
