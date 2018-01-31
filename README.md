@@ -127,6 +127,8 @@ npm run build
 This creates a new github release from the `develop` branch:
 
 ```shell
+git checkout master
+git merge develop
 npm run release
 ```
 
