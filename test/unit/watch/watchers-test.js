@@ -293,7 +293,8 @@ describe('watchers', () => {
 
   describe('PieWatch', () => {
 
-    let watch, dirs, targets;
+    let watch, dirs, controller, configure;
+
     beforeEach(() => {
       dirs = {
         root: '.pie',
@@ -301,12 +302,18 @@ describe('watchers', () => {
         configure: '.pie/.configure'
       }
 
-      targets = {
-        controller: 'my-pie-controller',
-        configure: 'my-pie-configure'
+
+      controller = {
+        moduleId: 'module-id',
+        key: 'controller'
       }
 
-      watch = new watchers.PieWatch('my-pie', '.', '../../my-pie', dirs, targets);
+      configure = {
+        moduleId: 'module-id',
+        tag: 'configure'
+      }
+
+      watch = new watchers.PieWatch('my-pie', 'my-pie', '.', '../../my-pie', dirs, controller, configure);
       watch.client = {
         start: stub()
       }

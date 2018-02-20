@@ -54,7 +54,11 @@ describe('watchmaker', () => {
     }
 
     pieWatch = new StubPieWatch()
-    pieWatchConstructor = stub().returns(pieWatch);
+    pieWatchConstructor = spy(function () {
+      // console.log('arguments: ', arguments);
+      return pieWatch;
+    });
+
     fileWatch = new StubFileWatch();
 
     fileWatchConstructor = stub().returns(fileWatch);
@@ -102,12 +106,19 @@ describe('watchmaker', () => {
           [],
           [{
             isLocal: true,
-            main: {
+            input: {
+              element: 'element',
+              value: 'input'
+            },
+            element: {
               moduleId: 'main'
             },
-            src: '../main',
+            rootModuleId: 'root-moduleId',
             controller: {
               moduleId: 'controller'
+            },
+            configure: {
+              moduleId: 'configure-module-id'
             }
           }],
           dirs);
@@ -118,7 +129,7 @@ describe('watchmaker', () => {
       });
 
       it('calls constructor', () => {
-        assert.calledWith(pieWatchConstructor, 'main', 'dir', '../main', dirs, { controller: 'controller', configure: undefined });
+        assert.calledWith(pieWatchConstructor, { moduleId: 'main' }, 'root-moduleId', 'dir', 'input', dirs, match.object, match.object);
       });
 
       it('calls start', () => {
