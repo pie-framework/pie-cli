@@ -222,11 +222,19 @@ describe('watchers', () => {
     });
   });
 
-  describe('PieControllerWatch', () => {
+  describe('PieControllerWatch - localPkg', () => {
     let watch;
 
     beforeEach(() => {
-      watch = new watchers.PieControllerWatch('../../my-pie', './.pie/.controllers', 'my-pie-controller');
+      watch = new watchers.PieControllerWatch('../../my-pie', {
+        controllers: './.pie/.controllers',
+        root: './.pie'
+      }, {
+          isLocalPkg: true,
+          moduleId: 'my-pie-controller',
+          tag: 'my-pie-controller',
+          dir: '../../my-pie-controller'
+        });
     });
 
     describe('constructor', () => {
@@ -237,22 +245,31 @@ describe('watchers', () => {
 
     describe('srcRoot', () => {
       it('points to the pie controller dir', () => {
-        expect(watch.srcRoot).to.eql(resolve('.', '../../my-pie/controller'));
+        expect(watch.srcRoot).to.eql(resolve('.', '../../my-pie-controller'));
       });
     });
 
     describe('targetRoot', () => {
       it('points to the target', () => {
-        expect(watch.targetRoot).to.eql(resolve('./.pie/.controllers/node_modules/my-pie-controller'));
+        expect(watch.targetRoot).to.eql(resolve('./.pie/node_modules/my-pie-controller'));
       });
     });
   });
 
-  describe('PieConfigureWatch', () => {
+  describe('PieConfigureWatch - localPkg', () => {
     let watch;
 
     beforeEach(() => {
-      watch = new watchers.PieConfigureWatch('../../my-pie', './.pie/.configure', 'my-pie-configure');
+      watch = new watchers.PieConfigureWatch(
+        '../../my-pie',
+        {
+          configure: './.pie/.configure',
+          root: './.pie'
+        }, {
+          moduleId: 'my-pie-configure',
+          isLocalPkg: true,
+          dir: '../../my-pie-configure'
+        });
     });
 
     describe('constructor', () => {
@@ -263,13 +280,13 @@ describe('watchers', () => {
 
     describe('srcRoot', () => {
       it('points to the pie controller dir', () => {
-        expect(watch.srcRoot).to.eql(resolve('.', '../../my-pie/configure'));
+        expect(watch.srcRoot).to.eql(resolve('.', '../../my-pie-configure'));
       });
     });
 
     describe('targetRoot', () => {
       it('points to the target', () => {
-        expect(watch.targetRoot).to.eql(resolve('./.pie/.configure/node_modules/my-pie-configure'));
+        expect(watch.targetRoot).to.eql(resolve('./.pie/node_modules/my-pie-configure'));
       });
     });
   });

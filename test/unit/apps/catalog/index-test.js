@@ -88,7 +88,7 @@ describe('catalog', () => {
           root: 'root',
           configure: 'configure',
           controllers: 'controllers'
-        }, buildInfo: []
+        }, pkgs: []
       }));
       catalog.support = {
         rules: []
