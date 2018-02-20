@@ -160,6 +160,7 @@ export default class CatalogApp
       .catch((e) => {
         const msg = `Error creating the archive: ${e.message}`;
         logger.error(msg);
+        logger.info(e.stack);
         throw new Error(msg);
       });
   }

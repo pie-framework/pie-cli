@@ -31,7 +31,13 @@ export const configureDeclarations = (pkgs: Pkg[]): ElementDeclaration[] => {
 };
 
 export const pieToConfigureMap = (pkgs: Pkg[] = []): { [key: string]: string } => {
-  return pkgs.reduce((acc, bi) => ({ ...acc, [bi.element.tag]: bi.configure.tag }), {});
+  return pkgs.reduce((acc, p) => {
+    if (p.configure) {
+      return { ...acc, [p.element.tag]: p.configure.tag };
+    } else {
+      return acc;
+    }
+  }, {});
 };
 
 export const toDeclarations = (pkgs: Pkg[]): ElementDeclaration[] => {
