@@ -111,7 +111,7 @@ describe('item app', () => {
 
       instance.installer = {
         dir: '.pie',
-        install: stub().returns(Promise.resolve({ buildInfo: [], dirs }))
+        install: stub().returns(Promise.resolve({ pkgs: [], dirs }))
       }
       return instance.server({});
     });

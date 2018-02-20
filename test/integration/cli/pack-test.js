@@ -5,6 +5,11 @@ import { expect } from 'chai';
 import { join } from 'path';
 import proxyquire from 'proxyquire';
 import { spawnSync } from 'child_process';
+import { buildLogger, setDefaultLevel } from 'log-factory';
+
+setDefaultLevel('silly');
+
+const logger = buildLogger();
 
 describe('pack', () => {
 
@@ -35,14 +40,14 @@ describe('pack', () => {
       expect(exists).to.be.true;
     });
 
-    it('contains all the files in the archive', () => {
+    it.only('contains all the files in the archive', () => {
       let tarList = spawnSync('tar', ['-zvtf', join(paths.demo, 'pie-item.tar.gz')], { encoding: 'utf8' });
 
       let names = tarList.stdout.split('\n').map(l => {
         let arr = l.trim().split(' ');
         return arr[arr.length - 1];
       }).filter(s => s !== '');
-
+      logger.info('names: ', names, tarList.stdout);
       expect(names.sort()).to.eql([
         'config.json',
         'index.html',

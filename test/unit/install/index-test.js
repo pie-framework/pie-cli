@@ -33,36 +33,20 @@ describe('install', () => {
     };
 
     installedElement = {
-      element: 'my-el',
-      input: {
-        element: 'my-el',
-        value: '../path'
-      },
-      preInstall: {
-        local: true,
-        type: 'package',
-        hasModel: false
-      },
-      postInstall: {
-        moduleId: 'my-el-module-id',
-        dir: 'dir/.pie'
-      },
-      pie: {
-
-      }
+      input: {}
     }
 
     buildInfo = [{
-      element: 'my-el',
-      main: {
-        tag: 'my-el-tag',
-        moduleId: 'my-el-moduleId'
+      element: {
+        tag: 'my-el',
+        moduleId: '@scope/my-el'
       },
       controller: {
         moduleId: 'my-el-controller'
       },
       configure: {
-        moduleId: 'my-el-configure'
+        moduleId: '@scope/my-el-configure',
+        tag: 'my-el-configure'
       }
     }]
     mod = proxyquire('../../../lib/install', deps);
@@ -75,7 +59,7 @@ describe('install', () => {
       const out = mod.controllerTargets(buildInfo);
 
       expect(out).to.eql([{
-        pie: buildInfo[0].element,
+        pie: buildInfo[0].element.tag,
         target: buildInfo[0].controller.moduleId
       }]);
     });
@@ -93,7 +77,9 @@ describe('install', () => {
 
     it('creates declarations', () => {
       const out = mod.toDeclarations(buildInfo);
-      expect(out).to.eql([new ElementDeclaration(buildInfo[0].main.tag, buildInfo[0].main.moduleId)]);
+      const decl = new ElementDeclaration(buildInfo[0].element.tag, buildInfo[0].element.moduleId);
+
+      expect(out).to.eql([decl]);
     });
   });
 
@@ -116,7 +102,7 @@ describe('install', () => {
       beforeEach(() => {
 
         deps['@pie-cli-libs/installer'].install = stub().returns(
-          Promise.resolve({ dirs, installed: [installedElement] })
+          Promise.resolve({ dirs, pkgs: [installedElement] })
         );
 
         return install.install(false)
@@ -127,17 +113,7 @@ describe('install', () => {
 
 
       it('returns buildInfo', () => {
-        expect(result.buildInfo[0]).to.eql({
-          element: 'my-el',
-          isLocal: true,
-          isPackage: true,
-          main: {
-            dir: 'dir/.pie',
-            moduleId: 'my-el-module-id',
-            tag: 'my-el'
-          },
-          src: '../path'
-        });
+        expect(result.pkgs[0]).to.eql(installedElement);
       });
     });
 

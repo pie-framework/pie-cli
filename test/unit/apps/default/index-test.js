@@ -12,15 +12,22 @@ const ROOT = '../../../../lib';
 
 describe('index', () => {
 
-  let DefaultApp, instance, mod, deps, args, jsonConfig, supportConfig, result, dirs;
+  let DefaultApp, instance, mod, deps, args, jsonConfig, supportConfig, result, dirs, installerInstance;
 
   beforeEach(() => {
+
 
     dirs = {
       root: 'root',
       configure: 'configure',
       controllers: 'controllers'
     };
+
+    installerInstance = {
+      install: stub().returns(Promise.resolve({
+        dirs, pkgs: []
+      }))
+    }
 
     deps = {
       './src-generators': {
@@ -42,6 +49,7 @@ describe('index', () => {
         targetsToElements: stub().returns('')
       },
       '../../install': {
+        default: stub().returns(installerInstance),
         configureDeclarations: stub().returns([])
       }
     };
@@ -73,12 +81,6 @@ describe('index', () => {
 
   describe('build', () => {
     beforeEach(() => {
-      instance.installer = {
-        install: stub().returns(Promise.resolve({
-          dirs,
-          buildInfo: []
-        }))
-      }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       instance.buildConfigure = stub().returns(Promise.resolve(['configure.js']));
@@ -106,9 +108,6 @@ describe('index', () => {
   describe('build with include complete', () => {
     beforeEach(() => {
       instance = new DefaultApp(jsonConfig, supportConfig);
-      instance.installer = {
-        install: stub().returns(Promise.resolve({ buildInfo: [], dirs }))
-      }
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       instance.buildAllInOne = stub().returns(Promise.resolve(['all-in-one.js']));
@@ -128,9 +127,6 @@ describe('index', () => {
   describe('build with addPlayerAndControlPanel', () => {
     beforeEach(() => {
       instance = new DefaultApp(jsonConfig, supportConfig);
-      instance.installer = {
-        install: stub().returns(Promise.resolve({ buildInfo: [], dirs }))
-      }
       instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
       return instance.build({ addPlayerAndControlPanel: true });
     });
