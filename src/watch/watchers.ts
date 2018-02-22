@@ -79,7 +79,8 @@ export class BaseWatch implements Roots, Watch {
         /.*\.log$/,
         /tsconfig\.json/,
         /jsconfig\.json/,
-        /\/test\//
+        /\/test\//,
+        /__test__/
       ]),
       persistent: true
     });
@@ -239,7 +240,7 @@ export class PieWatch {
     configure: PieConfigure) {
     logger.debug('[PieWatch] constructor: ', name, relativePath, pieItemDir, installDirs);
     const pkgDir = resolve(join(pieItemDir, relativePath));
-    const rootIgnores = [/.*controller.*/, /.*configure.*/]
+    const rootIgnores = [/.*controller.*/, /.*configure.*/];
 
     if (element.isRootPkg) {
       this.client = new PackageWatch(name, pkgDir, installDirs.root, rootIgnores);
@@ -258,8 +259,12 @@ export class PieWatch {
   }
 
   public start() {
-    this.client.start();
-    this.controller.start();
+    if (this.client) {
+      this.client.start();
+    }
+    if (this.controller) {
+      this.controller.start();
+    }
     if (this.configure) {
       this.configure.start();
     }
