@@ -70,6 +70,8 @@ export class BaseWatch implements Roots, Watch {
       ignoreInitial: true,
       ignored: _.concat(this.ignores, [
         /package\.json/,
+        /package-lock\.json/,
+        /yarn\.lock/,
         /[\/\\]\./,
         /.*node_modules.*/,
         /\.git.*/,
