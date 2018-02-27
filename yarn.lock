@@ -19,9 +19,9 @@
     normalize-path "^2.0.1"
     through2 "^2.0.3"
 
-"@pie-cli-libs/installer@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@pie-cli-libs/installer/-/installer-1.1.1.tgz#f0b0f81727fccf5e6058dc7df6b21f74e9288ee3"
+"@pie-cli-libs/installer@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@pie-cli-libs/installer/-/installer-1.1.2.tgz#d0033f3dc594f2321d3abc41c75f958c5a5b90fd"
   dependencies:
     "@yarnpkg/lockfile" "^1.0.0"
     cross-spawn "^6.0.3"
@@ -9687,9 +9687,9 @@ yargs@~3.15.0:
     decamelize "^1.0.0"
     window-size "^0.1.1"
 
-yarn@PieLabs/yarn-custom-build:
+"yarn@github:pielabs/yarn-custom-build":
   version "1.4.1"
-  resolved "https://codeload.github.com/PieLabs/yarn-custom-build/tar.gz/48589852c4f66c1b0032c77b1f4f36a0905b36ab"
+  resolved "https://codeload.github.com/pielabs/yarn-custom-build/tar.gz/48589852c4f66c1b0032c77b1f4f36a0905b36ab"
 
 zip-stream@^1.2.0:
   version "1.2.0"
