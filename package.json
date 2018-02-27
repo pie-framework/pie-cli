@@ -75,7 +75,7 @@
     "typescript": "^2.7.2"
   },
   "dependencies": {
-    "@pie-cli-libs/installer": "1.1.1",
+    "@pie-cli-libs/installer": "1.1.2",
     "ajv": "^5.2.1",
     "archiver": "^2.0.0",
     "babel-core": "^6.24.0",
