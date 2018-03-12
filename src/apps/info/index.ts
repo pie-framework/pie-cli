@@ -16,6 +16,7 @@ import { SupportConfig } from './../../framework-support';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
 import { webpackConfig } from '../common';
+import { Session } from '../../question/session';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
@@ -33,11 +34,10 @@ export default class InfoApp implements App, Servable {
     }
 
     const config = JsonConfig.build(join(dir, 'docs/demo'), args);
+    const session = Session.build(join(dir, 'docs/demo'), args);
 
     return loadSupport(config)
-      .then((s) => {
-        return new InfoApp(dir, config, s);
-      });
+      .then(support => new InfoApp(dir, config, support, session));
   }
 
   private static BUNDLE = 'info.bundle.js';
@@ -48,7 +48,8 @@ export default class InfoApp implements App, Servable {
 
   constructor(private pieRoot: string,
     readonly config: JsonConfig,
-    private support: SupportConfig) {
+    private support: SupportConfig,
+    readonly session: Session) {
 
     this.template = pug.compileFile(templatePath);
 
@@ -117,6 +118,7 @@ export default class InfoApp implements App, Servable {
     const reload = (name) => {
       logger.info('File Changed: ', name);
       this.config.reload();
+      this.session.reload();
       server.reload(name);
     };
 
@@ -157,6 +159,7 @@ export default class InfoApp implements App, Servable {
             models: this.config.models()
           },
           markup: jsesc(this.config.markup),
+          session: this.session.array
         },
         element: {
           github: {},

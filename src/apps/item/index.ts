@@ -15,6 +15,7 @@ import { SupportConfig } from '../../framework-support';
 import { buildLogger } from 'log-factory';
 import entryJs from './entry';
 import { webpackConfig } from '../common';
+import { Session } from '../../question/session';
 
 const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
@@ -27,10 +28,11 @@ export default class ItemApp implements App, Servable {
 
     const dir = resolve(args.dir || process.cwd());
     const config = JsonConfig.build(dir, args);
+    const session = Session.build(dir, args);
 
     return loadSupport(config)
-      .then((s) => {
-        return new ItemApp(config, s);
+      .then(support => {
+        return new ItemApp(config, support, session);
       });
   }
 
@@ -40,8 +42,10 @@ export default class ItemApp implements App, Servable {
   private template: any;
   private installer: Install;
 
-  constructor(readonly config: JsonConfig,
-    private support: SupportConfig) {
+  constructor(
+    readonly config: JsonConfig,
+    private support: SupportConfig,
+    readonly session?: Session) {
 
     this.installer = new Install(config.dir, config.raw);
 
@@ -97,6 +101,7 @@ export default class ItemApp implements App, Servable {
     const reload = (name) => {
       logger.info('File Changed: ', name);
       this.config.reload();
+      this.session.reload();
       server.reload(name);
     };
 
@@ -134,6 +139,7 @@ export default class ItemApp implements App, Servable {
             models: this.config.models()
           },
           markup: jsesc(this.config.markup),
+          session: this.session.array
         },
         js: this.support.externals.js.concat([
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',

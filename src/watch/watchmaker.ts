@@ -52,7 +52,8 @@ export function init(
 
   const allFiles = [
     config.filenames.resolveConfig(config.dir),
-    join(config.dir, config.filenames.markup)
+    join(config.dir, config.filenames.markup),
+    config.filenames.resolveSession(config.dir)
   ].concat(extraFilesToWatch || []);
 
   const fileWatches = allFiles.map((p) => {

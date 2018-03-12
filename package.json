@@ -99,7 +99,7 @@
     "marked-terminal": "^2.0.0",
     "minimist": "^1.2.0",
     "ora": "^1.2.0",
-    "pie-catalog-client": "PieLabs/pie-catalog-client#v1.5.0",
+    "pie-catalog-client": "^2.1.0",
     "pie-control-panel": "^1.3.0",
     "pie-controller": "^3.3.0",
     "pie-player": "^3.4.0",

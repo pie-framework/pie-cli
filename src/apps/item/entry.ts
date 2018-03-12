@@ -29,7 +29,7 @@ customElements.define('item-preview', ItemPreview);
 import ControlPanel from 'pie-catalog-client/src/catalog-demo/control-panel';
 customElements.define('control-panel', ControlPanel);
 
-require('pie-catalog-client/src/common.less');
+require('pie-catalog-client/src/bootstrap/common.less');
 require('material-elements/src/select-field');
 
 let initSock = ${sockJs()}
@@ -46,6 +46,7 @@ let init = () => {
       demo.config = window.demo.config;
       demo.controllers = controllers;
       demo.markup = window.demo.markup;
+      demo.session = window.demo.session;
     });
 
     initSock('${sockPath}');
