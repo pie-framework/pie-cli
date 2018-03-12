@@ -23,9 +23,8 @@ const appMap = {
 export async function loadSupportConfig(config: JsonConfig): Promise<SupportConfig> {
   const less: SupportConfig = await loadSupportModule(config, 'pie-support-less');
   const react: SupportConfig = await loadSupportModule(config, 'pie-support-react');
-  const corespringLegacy: SupportConfig = await loadSupportModule(config, 'pie-support-corespring-legacy');
 
-  const support = _.compact([less, react, corespringLegacy]);
+  const support = _.compact([less, react]);
   return new MultiConfig(...support);
 }
 
