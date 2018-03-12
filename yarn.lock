@@ -313,6 +313,10 @@ ajv-keywords@^2.0.0:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-2.1.1.tgz#617997fc5f60576894c435f940d819e135b80762"
 
+ajv-keywords@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-3.1.0.tgz#ac2b27939c543e95d2c06e7f7f5c27be4aa543be"
+
 ajv@^4.9.1:
   version "4.11.8"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-4.11.8.tgz#82ffb02b29e662ae53bdc20af15947706739c536"
@@ -325,6 +329,14 @@ ajv@^5.1.0, ajv@^5.1.5, ajv@^5.2.1:
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-5.5.2.tgz#73b5eeca3fab653e3d3f9422b341ad42205dc965"
   dependencies:
     co "^4.6.0"
+    fast-deep-equal "^1.0.0"
+    fast-json-stable-stringify "^2.0.0"
+    json-schema-traverse "^0.3.0"
+
+ajv@^6.1.0:
+  version "6.2.1"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-6.2.1.tgz#28a6abc493a2abe0fb4c8507acaedb43fa550671"
+  dependencies:
     fast-deep-equal "^1.0.0"
     fast-json-stable-stringify "^2.0.0"
     json-schema-traverse "^0.3.0"
@@ -1772,7 +1784,7 @@ chain-function@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/chain-function/-/chain-function-1.0.0.tgz#0d4ab37e7e18ead0bdc47b920764118ce58733dc"
 
-chalk@*, chalk@2.3.0, chalk@^2.0.0, chalk@^2.0.1, chalk@^2.3.0:
+chalk@2.3.0, chalk@^2.0.0, chalk@^2.0.1, chalk@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.3.0.tgz#b5ea48efc9c1793dccc9b4767c93914d3f2d52ba"
   dependencies:
@@ -2315,7 +2327,7 @@ conventional-changelog-writer@^3.0.0:
     split "^1.0.0"
     through2 "^2.0.0"
 
-conventional-changelog@^1.1.0, conventional-changelog@^1.1.10:
+conventional-changelog@^1.1.10:
   version "1.1.10"
   resolved "https://registry.yarnpkg.com/conventional-changelog/-/conventional-changelog-1.1.10.tgz#d9bb3aad9086152d283e4707fb45a5b7a28e9e98"
   dependencies:
@@ -2348,22 +2360,6 @@ conventional-commits-parser@^2.1.0:
     split2 "^2.0.0"
     through2 "^2.0.0"
     trim-off-newlines "^1.0.0"
-
-conventional-github-releaser@^1.1.3:
-  version "1.1.13"
-  resolved "https://registry.yarnpkg.com/conventional-github-releaser/-/conventional-github-releaser-1.1.13.tgz#0be7b3a7c7867e888be526475a590ff59303517c"
-  dependencies:
-    conventional-changelog "^1.1.0"
-    dateformat "^1.0.11"
-    git-semver-tags "^1.0.0"
-    github "^0.2.4"
-    lodash.merge "^4.0.2"
-    meow "^3.3.0"
-    object-assign "^4.0.1"
-    q "^1.4.1"
-    semver "^5.0.1"
-    semver-regex "^1.0.0"
-    through2 "^2.0.0"
 
 conventional-recommended-bump@1.1.0:
   version "1.1.0"
@@ -2530,14 +2526,6 @@ css-color-names@0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/css-color-names/-/css-color-names-0.0.4.tgz#808adc2e79cf84738069b646cb20ec27beb629e0"
 
-css-loader@0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/css-loader/-/css-loader-0.9.0.tgz#079849c253c0a6a9fc8cdeea7d41eab12195a7a8"
-  dependencies:
-    csso "1.3.x"
-    loader-utils "~0.2.2"
-    source-map "~0.1.38"
-
 css-loader@^0.26.2:
   version "0.26.4"
   resolved "https://registry.yarnpkg.com/css-loader/-/css-loader-0.26.4.tgz#b61e9e30db94303e6ffc892f10ecd09ad025a1fd"
@@ -2612,10 +2600,6 @@ cssesc@^0.1.0:
     postcss-unique-selectors "^2.0.2"
     postcss-value-parser "^3.2.3"
     postcss-zindex "^2.0.1"
-
-csso@1.3.x:
-  version "1.3.12"
-  resolved "https://registry.yarnpkg.com/csso/-/csso-1.3.12.tgz#fc628694a2d38938aaac4996753218fd311cdb9e"
 
 csso@~2.3.1:
   version "2.3.2"
@@ -3320,11 +3304,12 @@ figures@^2.0.0:
   dependencies:
     escape-string-regexp "^1.0.5"
 
-file-loader@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/file-loader/-/file-loader-0.9.0.tgz#1d2daddd424ce6d1b07cfe3f79731bed3617ab42"
+file-loader@^1.1.11:
+  version "1.1.11"
+  resolved "https://registry.yarnpkg.com/file-loader/-/file-loader-1.1.11.tgz#6fe886449b0f2a936e43cabaac0cdbfb369506f8"
   dependencies:
-    loader-utils "~0.2.5"
+    loader-utils "^1.0.2"
+    schema-utils "^0.4.5"
 
 filename-regex@^2.0.0:
   version "2.0.1"
@@ -3509,14 +3494,6 @@ from2@^2.1.1:
     inherits "^2.0.1"
     readable-stream "^2.0.0"
 
-fs-extra@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-1.0.0.tgz#cd3ce5f7e7cb6145883fcae3191e9877f8587950"
-  dependencies:
-    graceful-fs "^4.1.2"
-    jsonfile "^2.1.0"
-    klaw "^1.0.0"
-
 fs-extra@^2.0.0:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-2.1.2.tgz#046c70163cef9aad46b0e4a7fa467fb22d71de35"
@@ -3700,7 +3677,7 @@ git-remote-origin-url@^2.0.0:
     gitconfiglocal "^1.0.0"
     pify "^2.3.0"
 
-git-semver-tags@^1.0.0, git-semver-tags@^1.2.3, git-semver-tags@^1.3.0:
+git-semver-tags@^1.2.3, git-semver-tags@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/git-semver-tags/-/git-semver-tags-1.3.0.tgz#b154833a6ab5c360c0ad3b1aa9b8f12ea06de919"
   dependencies:
@@ -3724,12 +3701,6 @@ github@13.1.0, github@^13.1.0:
     lodash "^4.17.4"
     proxy-from-env "^1.0.0"
     url-template "^2.0.8"
-
-github@^0.2.4:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/github/-/github-0.2.4.tgz#24fa7f0e13fa11b946af91134c51982a91ce538b"
-  dependencies:
-    mime "^1.2.11"
 
 glob-base@^0.3.0:
   version "0.3.0"
@@ -3979,7 +3950,7 @@ got@^6.7.1:
     unzip-response "^2.0.1"
     url-parse-lax "^1.0.0"
 
-graceful-fs@4.X, graceful-fs@^4.0.0, graceful-fs@^4.1.0, graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6, graceful-fs@^4.1.9, graceful-fs@~4.1.9:
+graceful-fs@4.X, graceful-fs@^4.0.0, graceful-fs@^4.1.0, graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.4, graceful-fs@^4.1.6, graceful-fs@~4.1.9:
   version "4.1.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
 
@@ -4006,15 +3977,6 @@ graphlib@^2.1.1:
 growl@1.9.2:
   version "1.9.2"
   resolved "https://registry.yarnpkg.com/growl/-/growl-1.9.2.tgz#0ea7743715db8d8de2c5ede1775e1b45ac85c02f"
-
-gulp-git@^1.12.0:
-  version "1.15.1"
-  resolved "https://registry.yarnpkg.com/gulp-git/-/gulp-git-1.15.1.tgz#cdd9d354fc41d8dcb52cef47256dfba366785979"
-  dependencies:
-    any-shell-escape "^0.1.1"
-    gulp-util "^3.0.6"
-    require-dir "^0.1.0"
-    through2 "^0.6.5"
 
 gulp-git@^2.1.0:
   version "2.5.1"
@@ -4075,7 +4037,7 @@ gulp-typescript@^3.1.6:
     through2 "~2.0.1"
     vinyl-fs "~2.4.3"
 
-gulp-util@*, gulp-util@^3.0.0, gulp-util@^3.0.6, gulp-util@^3.0.7, gulp-util@^3.0.8, gulp-util@~3.0.7:
+gulp-util@^3.0.0, gulp-util@^3.0.8, gulp-util@~3.0.7:
   version "3.0.8"
   resolved "https://registry.yarnpkg.com/gulp-util/-/gulp-util-3.0.8.tgz#0054e1e744502e27c04c187c3ecc505dd54bbb4f"
   dependencies:
@@ -5060,12 +5022,6 @@ kind-of@^6.0.0, kind-of@^6.0.2:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-6.0.2.tgz#01146b36a6218e64e58f3a8d66de5d7fc6f6d051"
 
-klaw@^1.0.0:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/klaw/-/klaw-1.3.1.tgz#4088433b46b3b1ba259d78785d8e96f73ba02439"
-  optionalDependencies:
-    graceful-fs "^4.1.9"
-
 latest-version@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/latest-version/-/latest-version-1.0.1.tgz#72cfc46e3e8d1be651e1ebb54ea9f6ea96f374bb"
@@ -5165,7 +5121,7 @@ loader-runner@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/loader-runner/-/loader-runner-2.3.0.tgz#f482aea82d543e07921700d5a46ef26fdac6b8a2"
 
-loader-utils@^0.2.5, loader-utils@~0.2.2, loader-utils@~0.2.5:
+loader-utils@^0.2.5:
   version "0.2.17"
   resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-0.2.17.tgz#f86e6374d43205a6e6c60e9196f17c0299bfb348"
   dependencies:
@@ -5309,7 +5265,7 @@ lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
 
-lodash.merge@^4.0.2, lodash.merge@^4.6.0:
+lodash.merge@^4.6.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.0.tgz#69884ba144ac33fe699737a6086deffadd0f89c5"
 
@@ -5375,7 +5331,7 @@ lodash.without@~4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/lodash.without/-/lodash.without-4.4.0.tgz#3cd4574a00b67bae373a94b748772640507b7aac"
 
-lodash@4.17.4, lodash@^4.0.0, lodash@^4.1.0, lodash@^4.14.0, lodash@^4.17.2, lodash@^4.17.4, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0, lodash@~4.17.2:
+lodash@4.17.4, lodash@^4.0.0, lodash@^4.1.0, lodash@^4.14.0, lodash@^4.17.4, lodash@^4.2.1, lodash@^4.3.0, lodash@^4.8.0, lodash@~4.17.2:
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
@@ -6059,7 +6015,7 @@ npm-install-checks@~3.0.0:
     hosted-git-info "^2.1.5"
     semver "^5.1.0"
 
-"npm-package-arg@^3.0.0 || ^4.0.0 || ^5.0.0", "npm-package-arg@^4.0.0 || ^5.0.0":
+"npm-package-arg@^4.0.0 || ^5.0.0":
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/npm-package-arg/-/npm-package-arg-5.1.2.tgz#fb18d17bb61e60900d6312619919bd753755ab37"
   dependencies:
@@ -6067,23 +6023,6 @@ npm-install-checks@~3.0.0:
     osenv "^0.1.4"
     semver "^5.1.0"
     validate-npm-package-name "^3.0.0"
-
-npm-registry-client@^8.4.0:
-  version "8.5.0"
-  resolved "https://registry.yarnpkg.com/npm-registry-client/-/npm-registry-client-8.5.0.tgz#4878fb6fa1f18a5dc08ae83acf94d0d0112d7ed0"
-  dependencies:
-    concat-stream "^1.5.2"
-    graceful-fs "^4.1.6"
-    normalize-package-data "~1.0.1 || ^2.0.0"
-    npm-package-arg "^3.0.0 || ^4.0.0 || ^5.0.0"
-    once "^1.3.3"
-    request "^2.74.0"
-    retry "^0.10.0"
-    semver "2 >=2.2.1 || 3.x || 4 || 5"
-    slide "^1.1.3"
-    ssri "^4.1.2"
-  optionalDependencies:
-    npmlog "2 || ^3.1.0 || ^4.0.0"
 
 npm-registry-client@~7.2.1:
   version "7.2.1"
@@ -6203,7 +6142,7 @@ npmi@^2.0.1:
     gauge "~2.6.0"
     set-blocking "~2.0.0"
 
-"npmlog@2 || ^3.1.0 || ^4.0.0", npmlog@^4.0.2:
+npmlog@^4.0.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/npmlog/-/npmlog-4.1.2.tgz#08a7f2a8bf734604779a9efa4ad5cc717abb954b"
   dependencies:
@@ -6703,26 +6642,18 @@ pie-player@^3.4.0:
   dependencies:
     lodash "~4.17.2"
 
-"pie-support-corespring-legacy@github:pielabs/pie-support-corespring-legacy#master":
+pie-support-less@PieLabs/pie-support-less#master:
   version "0.0.1"
-  resolved "https://codeload.github.com/pielabs/pie-support-corespring-legacy/tar.gz/e837c27a7e86868d49b8150b37e249db0697c526"
-  dependencies:
-    css-loader "0.9.0"
-    file-loader "^0.9.0"
-    less-loader "^2.2.3"
-
-"pie-support-less@github:pielabs/pie-support-less#master":
-  version "0.0.1"
-  resolved "https://codeload.github.com/pielabs/pie-support-less/tar.gz/5e158a1aa6ca176bd810afb403f460053e26b488"
+  resolved "https://codeload.github.com/PieLabs/pie-support-less/tar.gz/5e158a1aa6ca176bd810afb403f460053e26b488"
   dependencies:
     css-loader "^0.26.2"
     less "^2.7.2"
     less-loader "^2.2.3"
     style-loader "^0.13.2"
 
-"pie-support-react@github:pielabs/pie-support-react#master":
+pie-support-react@PieLabs/pie-support-react#master:
   version "0.0.1"
-  resolved "https://codeload.github.com/pielabs/pie-support-react/tar.gz/1b6562ea1919710c988cf35dc4b257dd4be2705a"
+  resolved "https://codeload.github.com/PieLabs/pie-support-react/tar.gz/1b6562ea1919710c988cf35dc4b257dd4be2705a"
   dependencies:
     babel-preset-env "^1.6.1"
     babel-preset-react "~6.16.0"
@@ -7669,19 +7600,6 @@ regjsparser@^0.1.4:
   dependencies:
     jsesc "~0.5.0"
 
-release-helper@PieLabs/release-helper#v1.3.0:
-  version "1.3.0"
-  resolved "https://codeload.github.com/PieLabs/release-helper/tar.gz/6e3df1e9381624a409681f396871d471a21ea102"
-  dependencies:
-    conventional-github-releaser "^1.1.3"
-    fs-extra "^1.0.0"
-    gulp-git "^1.12.0"
-    gulp-util "^3.0.7"
-    lodash "^4.17.2"
-    request "^2.78.0"
-    run-sequence "^1.2.2"
-    semver "^5.3.0"
-
 release-it@^6.1.1:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/release-it/-/release-it-6.1.1.tgz#5004644b20e1fc9b6946ba6e084d3358d9a7b1ee"
@@ -7745,7 +7663,7 @@ replace-ext@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-1.0.0.tgz#de63128373fcbf7c3ccfa4de5a480c45a67958eb"
 
-request@2, request@^2.74.0, request@^2.78.0:
+request@2, request@^2.74.0:
   version "2.83.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.83.0.tgz#ca0b65da02ed62935887808e6f510381034e3356"
   dependencies:
@@ -7824,10 +7742,6 @@ request@~2.75.0:
     stringstream "~0.0.4"
     tough-cookie "~2.3.0"
     tunnel-agent "~0.4.1"
-
-require-dir@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/require-dir/-/require-dir-0.1.0.tgz#81e01e299faf5b74c34b6594f8e5add5985ddec5"
 
 require-dir@^0.3.2:
   version "0.3.2"
@@ -7925,13 +7839,6 @@ run-async@^2.2.0:
   dependencies:
     is-promise "^2.1.0"
 
-run-sequence@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/run-sequence/-/run-sequence-1.2.2.tgz#5095a0bebe98733b0140bd08dd80ec030ddacdeb"
-  dependencies:
-    chalk "*"
-    gulp-util "*"
-
 run-sequence@^2.0.0:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/run-sequence/-/run-sequence-2.2.1.tgz#1ce643da36fd8c7ea7e1a9329da33fc2b8898495"
@@ -7962,15 +7869,18 @@ sax@>=0.6.0, sax@^1.2.4, sax@~1.2.1:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
 
+schema-utils@^0.4.5:
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-0.4.5.tgz#21836f0608aac17b78f9e3e24daff14a5ca13a3e"
+  dependencies:
+    ajv "^6.1.0"
+    ajv-keywords "^3.1.0"
+
 semver-diff@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/semver-diff/-/semver-diff-2.1.0.tgz#4bbb8437c8d37e4b0cf1a68fd726ec6d645d6d36"
   dependencies:
     semver "^5.0.3"
-
-semver-regex@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/semver-regex/-/semver-regex-1.0.0.tgz#92a4969065f9c70c694753d55248fc68f8f652c9"
 
 semver-utils@^1.1.1:
   version "1.1.1"
@@ -8426,7 +8336,7 @@ source-map@0.4.x, source-map@^0.4.4:
   dependencies:
     amdefine ">=0.0.4"
 
-source-map@^0.1.38, source-map@~0.1.38:
+source-map@^0.1.38:
   version "0.1.43"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.1.43.tgz#c24bc146ca517c1471f5dacbe2571b2b7f9e3346"
   dependencies:
@@ -8497,12 +8407,6 @@ sshpk@^1.7.0:
     ecc-jsbn "~0.1.1"
     jsbn "~0.1.0"
     tweetnacl "~0.14.0"
-
-ssri@^4.1.2:
-  version "4.1.6"
-  resolved "https://registry.yarnpkg.com/ssri/-/ssri-4.1.6.tgz#0cb49b6ac84457e7bdd466cb730c3cb623e9a25b"
-  dependencies:
-    safe-buffer "^5.1.0"
 
 stack-trace@0.0.9:
   version "0.0.9"
@@ -8805,7 +8709,7 @@ through2@2.X, through2@^2.0.0, through2@^2.0.1, through2@^2.0.2, through2@^2.0.3
     readable-stream "^2.1.5"
     xtend "~4.0.1"
 
-through2@^0.6.0, through2@^0.6.1, through2@^0.6.5:
+through2@^0.6.0, through2@^0.6.1:
   version "0.6.5"
   resolved "https://registry.yarnpkg.com/through2/-/through2-0.6.5.tgz#41ab9c67b29d57209071410e1d7a7a968cd3ad48"
   dependencies:
@@ -9687,9 +9591,9 @@ yargs@~3.15.0:
     decamelize "^1.0.0"
     window-size "^0.1.1"
 
-"yarn@github:pielabs/yarn-custom-build":
+yarn@PieLabs/yarn-custom-build:
   version "1.4.1"
-  resolved "https://codeload.github.com/pielabs/yarn-custom-build/tar.gz/48589852c4f66c1b0032c77b1f4f36a0905b36ab"
+  resolved "https://codeload.github.com/PieLabs/yarn-custom-build/tar.gz/48589852c4f66c1b0032c77b1f4f36a0905b36ab"
 
 zip-stream@^1.2.0:
   version "1.2.0"
