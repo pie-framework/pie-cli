@@ -1,5 +1,6 @@
 import { readJsonSync } from 'fs-extra';
 import { FileNames } from './index';
+import { SessionArray } from '../session';
 
 export type KeyMap = {
   [key: string]: any
@@ -27,13 +28,20 @@ export const loadObjectFromJsFile = (p: string): any => {
   return require(p);
 };
 
-export let fromPath = (dir, names: FileNames): RawConfig => {
-  const p = names.resolveConfig(dir);
-  if (p.endsWith('.js')) {
-    return loadObjectFromJsFile(p) as RawConfig;
-  } else if (p.endsWith('.json')) {
-    return readJsonSync(p) as RawConfig;
+export function fromPath<T>(filepath: string): T {
+  if (filepath.endsWith('.js')) {
+    return loadObjectFromJsFile(filepath) as T;
+  } else if (filepath.endsWith('.json')) {
+    return readJsonSync(filepath) as T;
   }
+}
+
+export const sessionFromPath = (dir, names: FileNames): SessionArray => {
+  return fromPath<SessionArray>(names.resolveSession(dir));
+};
+
+export let configFromPath = (dir, names: FileNames): RawConfig => {
+  return fromPath<RawConfig>(names.resolveConfig(dir));
 };
 
 export let fromJson = (json: {}): RawConfig => {

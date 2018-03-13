@@ -1,6 +1,6 @@
 # pie-cli 
 
-[![Build Status](https://travis-ci.org/PieLabs/pie-cli.svg?branch=develop)](https://travis-ci.org/PieLabs/pie-cli)
+[![Build Status](https://travis-ci.org/pie-framework/pie-cli.svg?branch=master)](https://travis-ci.org/pie-framework/pie-cli)
 
 ## Install
 
@@ -8,17 +8,10 @@
 npm install -g pie
 ```
 
-## Node/Npm Versions
-
-The pie runtimes needs node v7.10.0 and npm ^4.x.x at the moment.
-
-We are going to be upgrading this requirement shortly.
-
-
 #### Developer install 
 
 ```bash
-git clone git@github.com:PieLabs/pie-cli.git 
+git clone git@github.com:pie-framework/pie-cli.git 
 cd pie-cli 
 npm install 
 npm run build

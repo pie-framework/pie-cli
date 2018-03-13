@@ -9,7 +9,7 @@ import proxyquire from 'proxyquire';
 const ROOT = '../../../../lib';
 
 describe('info app', () => {
-  let InfoApp, instance, mod, args, deps, config, supportConfig, middlewareInstance, routerInstance, express, compiler, dirs;
+  let InfoApp, instance, mod, args, deps, config, supportConfig, middlewareInstance, routerInstance, express, compiler, dirs, session;
 
   beforeEach(() => {
 
@@ -93,7 +93,11 @@ describe('info app', () => {
       }
     };
 
-    instance = new InfoApp('pie-root', config, supportConfig);
+    session = {
+      array: []
+    }
+
+    instance = new InfoApp('pie-root', config, supportConfig, session);
 
   });
 

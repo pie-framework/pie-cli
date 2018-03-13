@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 
 import { Declaration, ElementDeclaration } from '../../code-gen';
 import { Manifest, Model, RawConfig, ScoringType, WEIGHTED, Weight, fromPath } from './types';
-
 import { buildLogger } from 'log-factory';
 import { join } from 'path';
 import { readFileSync, existsSync } from 'fs-extra';
@@ -18,21 +17,31 @@ const logger = buildLogger();
 export class FileNames {
 
   public static build(args: any = {}) {
-    return new FileNames(args.questionConfigFile, args.questionMarkupFile);
+    return new FileNames(args.questionConfigFile, args.questionMarkupFile, args.questionSessionFile);
   }
 
   constructor(
     readonly config = 'config',
-    readonly markup = 'index.html'
+    readonly markup = 'index.html',
+    readonly session = 'session'
   ) { }
 
   public resolveConfig(dir: string): string {
+    return this.resolve(dir, this.config);
+  }
 
-    if (this.config.endsWith('.js') || this.config.endsWith('.json')) {
-      return join(dir, this.config);
+  public resolveSession(dir: string): string {
+    return this.resolve(dir, this.session);
+  }
+
+  private resolve(dir: string, key: string): string {
+    logger.silly('[resolve]: dir: ', dir, ' key: ', key);
+    if (key.endsWith('.js') || key.endsWith('.json')) {
+      return join(dir, key);
     }
-    const jsPath = join(dir, `${this.config}.js`);
-    return existsSync(jsPath) ? jsPath : join(dir, `${this.config}.json`);
+    const jsPath = join(dir, `${key}.js`);
+    logger.silly('[resolve]: jsPath: ', jsPath);
+    return existsSync(jsPath) ? jsPath : join(dir, `${key}.json`);
   }
 }
 
@@ -91,7 +100,7 @@ export class JsonConfig implements Config {
   }
 
   private readRawConfig(): RawConfig {
-    const out = fromPath(this.dir, this.filenames);
+    const out = fromPath<RawConfig>(this.filenames.resolveConfig(this.dir));
     logger.debug('this._raw: ', out);
     return out;
   }

@@ -35,13 +35,13 @@ ${configDeclarations.map(e => e.js).join('\n')}
 ${declarations.map((e) => e.js).join('\n')}
 
 // the catalog ui
-import { elementsDefined } from 'pie-catalog-client/src/bootstrap/repo';
+import { defineRepoElements } from 'pie-catalog-client';
 
 let initSock = ${sockJs()}
 
 let init = () => {
 
-  elementsDefined
+  defineRepoElements() 
     .then(() => {
       let entry = document.querySelector('catalog-entry');
       entry.element = window.element;
@@ -56,6 +56,7 @@ let init = () => {
       demo.config = window.demo.config;
       demo.controllers = controllers;
       demo.markup = window.demo.markup;
+      demo.session = window.demo.session;
 
       setTimeout(() => {
         let c = document.querySelector('catalog-container');

@@ -1,5 +1,5 @@
 import CliCommand from './cli-command';
-import { FileNames } from '../question/config';
+import { FileNames, RawConfig } from '../question/config';
 import Installer from '../install';
 import { buildLogger } from 'log-factory';
 import { fromPath } from '../question/config/types';
@@ -22,7 +22,7 @@ class Cmd extends CliCommand {
     const names = FileNames.build(args);
 
     logger.info('names.json: ', names.config);
-    const config = await fromPath(dir, names);
+    const config = await fromPath<RawConfig>(names.resolveConfig(dir));
 
     logger.info('config', config);
     const installer = new Installer(dir, config);

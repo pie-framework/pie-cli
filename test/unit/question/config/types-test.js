@@ -24,14 +24,14 @@ describe('types', () => {
   describe('fromPath', () => {
 
     it('calls readJsonSync if the file ends with .json', () => {
-      raw.fromPath('dir', { resolveConfig: stub().returns('resolved.json') });
-      assert.calledWith(fsExtra.readJsonSync, 'resolved.json');
+      raw.fromPath('dir/resolved.json');
+      assert.calledWith(fsExtra.readJsonSync, 'dir/resolved.json');
     });
 
     it('calls require if the file ends with .js', () => {
       raw.loadObjectFromJsFile = stub();
-      raw.fromPath('dir', { resolveConfig: stub().returns('p.js') });
-      assert.calledWith(raw.loadObjectFromJsFile, 'p.js');
+      raw.fromPath('dir/p.js');
+      assert.calledWith(raw.loadObjectFromJsFile, 'dir/p.js');
     });
 
   });

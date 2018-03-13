@@ -26,7 +26,8 @@ describe('watchmaker', () => {
         filenames: {
           config: 'config.json',
           markup: 'index.html',
-          resolveConfig: spy(function (dir) { return `${dir}/config.json` })
+          resolveConfig: spy(function (dir) { return `${dir}/config.json` }),
+          resolveSession: spy(function (dir) { return `${dir}/session.json` })
         }
       }
     }
@@ -148,6 +149,13 @@ describe('watchmaker', () => {
         assert.calledWith(fileWatchConstructor, p`dir/config.json`, match.func);
       });
 
+      it('calls file watch constructor for index.html', () => {
+        assert.calledWith(fileWatchConstructor, p`dir/index.html`, match.func);
+      });
+
+      it('calls file watch constructor for session.json', () => {
+        assert.calledWith(fileWatchConstructor, p`dir/session.json`, match.func);
+      });
     });
   });
 });
