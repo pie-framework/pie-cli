@@ -13,6 +13,17 @@ export default (root): any => {
                 modules: false
               }
             }]
+        },
+        {
+          test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2|otf)$/,
+          use: [
+            {
+              loader: 'url-loader',
+              options: {
+                limit: 10000
+              }
+            }
+          ]
         }
       ]
     },
