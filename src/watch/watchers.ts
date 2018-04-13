@@ -97,7 +97,7 @@ export class BaseWatch implements Roots, Watch {
     const onChange = path => {
       logger.debug(`File changed: ${path} - copy`);
       const isSymlink = this.isTargetSymLink();
-      logger.info(`${path} - isSymlink? ${isSymlink}`);
+      logger.debug(`${path} - isSymlink? ${isSymlink}`);
       if (!isSymlink) {
         copyThenTouch(path, this.getDestination(path));
       }
@@ -129,7 +129,7 @@ export class BaseWatch implements Roots, Watch {
     try {
       const lstat = lstatSync(this.targetRoot);
       const out = lstat.isSymbolicLink();
-      logger.debug(
+      logger.silly(
         '[isDestinationSymLink] targetRoot: ',
         this.targetRoot,
         'isSymLink?',
