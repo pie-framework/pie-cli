@@ -1,13 +1,13 @@
-import * as _ from "lodash";
-import * as chokidar from "chokidar";
-import * as touch from "touch";
-import * as invariant from "invariant";
+import * as _ from 'lodash';
+import * as chokidar from 'chokidar';
+import * as touch from 'touch';
+import * as invariant from 'invariant';
 
-import { Stats, copy, existsSync, remove, statSync, lstatSync } from "fs-extra";
-import { join, relative, resolve } from "path";
+import { Stats, copy, existsSync, remove, statSync, lstatSync } from 'fs-extra';
+import { join, relative, resolve } from 'path';
 
-import { Dirs, PieController, PieConfigure, Element } from "../install";
-import { buildLogger } from "log-factory";
+import { Dirs, PieController, PieConfigure, Element } from '../install';
+import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 
@@ -63,7 +63,7 @@ export class BaseWatch implements Roots, Watch {
   }
 
   public start(): void {
-    logger.debug("[BaseWatch] [start] srcRoot: ", this.srcRoot);
+    logger.debug('[BaseWatch] [start] srcRoot: ', this.srcRoot);
 
     this.watcher = chokidar.watch(this.srcRoot, {
       followSymlinks: false,
@@ -111,28 +111,28 @@ export class BaseWatch implements Roots, Watch {
     const onError = e => logger.error(e);
     const onReady = () => {
       logger.info(`Watcher for ${this.srcRoot} - Ready`);
-      logger.silly("watched: \n", this.watcher.getWatched());
+      logger.silly('watched: \n', this.watcher.getWatched());
       this.copyOnceIfNeeded(this.watcher.getWatched());
     };
 
     this.watcher
-      .on("add", onAdd)
-      .on("change", onChange)
-      .on("unlink", onUnlink)
-      .on("error", onError)
-      .on("ready", onReady);
+      .on('add', onAdd)
+      .on('change', onChange)
+      .on('unlink', onUnlink)
+      .on('error', onError)
+      .on('ready', onReady);
   }
 
   protected isTargetSymLink(): boolean {
-    logger.debug("[isDestinationSymLink] targetRoot: ", this.targetRoot);
+    logger.debug('[isDestinationSymLink] targetRoot: ', this.targetRoot);
 
     try {
       const lstat = lstatSync(this.targetRoot);
       const out = lstat.isSymbolicLink();
       logger.debug(
-        "[isDestinationSymLink] targetRoot: ",
+        '[isDestinationSymLink] targetRoot: ',
         this.targetRoot,
-        "isSymLink?",
+        'isSymLink?',
         out
       );
       return out;
@@ -187,7 +187,7 @@ export class BaseWatch implements Roots, Watch {
       []
     );
 
-    logger.debug("files that need to be copied over: ", newFiles);
+    logger.debug('files that need to be copied over: ', newFiles);
 
     // we have to wait a short while before copying? webpack issue?
     setTimeout(() => {
@@ -211,7 +211,7 @@ export class PackageWatch extends BaseWatch {
   }
 
   get targetRoot() {
-    return resolve(join(this.targetDir, "node_modules", this.name));
+    return resolve(join(this.targetDir, 'node_modules', this.name));
   }
 }
 
@@ -220,12 +220,12 @@ class PWatch extends BaseWatch {
     private pkgDir: string,
     private dirs: Dirs,
     private model: PieConfigure | PieController,
-    private mode: "controller" | "configure"
+    private mode: 'controller' | 'configure'
   ) {
     super([]);
     invariant(
       model.isChild || model.isLocalPkg,
-      "Must be a child or local pkg"
+      'Must be a child or local pkg'
     );
   }
 
@@ -240,25 +240,25 @@ class PWatch extends BaseWatch {
   get targetRoot() {
     if (this.model.isChild) {
       const dirname =
-        this.mode === "controller"
+        this.mode === 'controller'
           ? this.dirs.controllers
           : this.dirs.configure;
       return resolve(join(dirname, `node_modules`, this.model.moduleId));
     } else if (this.model.isLocalPkg) {
-      return resolve(join(this.dirs.root, "node_modules", this.model.moduleId));
+      return resolve(join(this.dirs.root, 'node_modules', this.model.moduleId));
     }
   }
 }
 
 export class PieControllerWatch extends PWatch {
   constructor(pkgDir: string, dirs: Dirs, model: PieController) {
-    super(pkgDir, dirs, model, "controller");
+    super(pkgDir, dirs, model, 'controller');
   }
 }
 
 export class PieConfigureWatch extends PWatch {
   constructor(pkgDir: string, dirs: Dirs, model: PieConfigure) {
-    super(pkgDir, dirs, model, "configure");
+    super(pkgDir, dirs, model, 'configure');
   }
 }
 
@@ -276,7 +276,7 @@ export class PieWatch {
     configure: PieConfigure
   ) {
     logger.debug(
-      "[PieWatch] constructor: ",
+      '[PieWatch] constructor: ',
       name,
       relativePath,
       pieItemDir,
@@ -330,16 +330,16 @@ export class FileWatch implements Watch {
   constructor(readonly filepath, readonly onChange: (n: string) => void) {}
 
   public start() {
-    logger.silly("[FileWatch] filepath: ", this.filepath);
+    logger.silly('[FileWatch] filepath: ', this.filepath);
 
     this.watch = chokidar.watch(this.filepath, { ignoreInitial: true });
-    this.watch.on("change", () => {
-      logger.silly("[FileWatch] on change: ", this.filepath);
+    this.watch.on('change', () => {
+      logger.silly('[FileWatch] on change: ', this.filepath);
       this.onChange(this.filepath);
     });
 
-    this.watch.on("ready", () => {
-      logger.silly("[FileWatch] ready for path: ", this.filepath);
+    this.watch.on('ready', () => {
+      logger.silly('[FileWatch] ready for path: ', this.filepath);
     });
   }
 }
