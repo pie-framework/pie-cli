@@ -1,17 +1,17 @@
-import * as _ from 'lodash';
-import * as chokidar from 'chokidar';
-import * as touch from 'touch';
-import * as invariant from 'invariant';
+import * as _ from "lodash";
+import * as chokidar from "chokidar";
+import * as touch from "touch";
+import * as invariant from "invariant";
 
-import { Stats, copy, existsSync, remove, statSync } from 'fs-extra';
-import { join, relative, resolve } from 'path';
+import { Stats, copy, existsSync, remove, statSync, lstatSync } from "fs-extra";
+import { join, relative, resolve } from "path";
 
-import { Dirs, PieController, PieConfigure, Element } from '../install';
-import { buildLogger } from 'log-factory';
+import { Dirs, PieController, PieConfigure, Element } from "../install";
+import { buildLogger } from "log-factory";
 
 const logger = buildLogger();
 
-type Info = { path: string, stat: Stats };
+type Info = { path: string; stat: Stats };
 
 interface Roots {
   srcRoot: string;
@@ -28,7 +28,7 @@ interface Roots {
  */
 const copyThenTouch = (path, dest) => {
   logger.silly(`copy ${path} -> ${dest}`);
-  copy(path, dest, (e) => {
+  copy(path, dest, e => {
     if (!e) {
       logger.silly(`touch ${dest}`);
       setTimeout(() => {
@@ -49,11 +49,11 @@ export interface Watch {
 }
 
 export class BaseWatch implements Roots, Watch {
-
   public srcRoot: string;
   public targetRoot: string;
   private watcher;
-  constructor(private ignores) { }
+  constructor(private ignores) {}
+
   public getDestination(path) {
     const relativePath = relative(this.srcRoot, path);
     const destination = join(this.targetRoot, relativePath);
@@ -63,10 +63,10 @@ export class BaseWatch implements Roots, Watch {
   }
 
   public start(): void {
-
-    logger.debug('[BaseWatch] [start] srcRoot: ', this.srcRoot);
+    logger.debug("[BaseWatch] [start] srcRoot: ", this.srcRoot);
 
     this.watcher = chokidar.watch(this.srcRoot, {
+      followSymlinks: false,
       ignoreInitial: true,
       ignored: _.concat(this.ignores, [
         /package\.json/,
@@ -87,36 +87,58 @@ export class BaseWatch implements Roots, Watch {
       persistent: true
     });
 
-    const onAdd = (path) => {
+    const onAdd = path => {
       logger.debug(`File added: ${path} - copy`);
       const dest = this.getDestination(path);
       copyThenTouch(path, dest);
     };
 
     // TODO: Add file size change detection to prevent unnecessary updates
-    const onChange = (path) => {
+    const onChange = path => {
       logger.debug(`File changed: ${path} - copy`);
-      copyThenTouch(path, this.getDestination(path));
+      const isSymlink = this.isTargetSymLink();
+      logger.info(`${path} - isSymlink? ${isSymlink}`);
+      if (!isSymlink) {
+        copyThenTouch(path, this.getDestination(path));
+      }
     };
 
-    const onUnlink = (path) => {
+    const onUnlink = path => {
       logger.debug(`File unlinked: ${path} - delete`);
       remove(this.getDestination(path));
     };
 
-    const onError = (e) => logger.error(e);
+    const onError = e => logger.error(e);
     const onReady = () => {
       logger.info(`Watcher for ${this.srcRoot} - Ready`);
-      logger.silly('watched: \n', this.watcher.getWatched());
+      logger.silly("watched: \n", this.watcher.getWatched());
       this.copyOnceIfNeeded(this.watcher.getWatched());
     };
 
     this.watcher
-      .on('add', onAdd)
-      .on('change', onChange)
-      .on('unlink', onUnlink)
-      .on('error', onError)
-      .on('ready', onReady);
+      .on("add", onAdd)
+      .on("change", onChange)
+      .on("unlink", onUnlink)
+      .on("error", onError)
+      .on("ready", onReady);
+  }
+
+  protected isTargetSymLink(): boolean {
+    logger.debug("[isDestinationSymLink] targetRoot: ", this.targetRoot);
+
+    try {
+      const lstat = lstatSync(this.targetRoot);
+      const out = lstat.isSymbolicLink();
+      logger.debug(
+        "[isDestinationSymLink] targetRoot: ",
+        this.targetRoot,
+        "isSymLink?",
+        out
+      );
+      return out;
+    } catch (e) {
+      return false;
+    }
   }
 
   /**
@@ -130,14 +152,13 @@ export class BaseWatch implements Roots, Watch {
    * @param watched
    */
   private copyOnceIfNeeded(watched: chokidar.WatchedPaths): void {
-
     const slim = (src: Info, dest: Info) => {
       const destMtime = dest.stat ? dest.stat.mtime.getTime() : 0;
       const diff = src.stat.mtime.getTime() - destMtime;
       return {
         dest: dest.path,
         diff,
-        src: src.path,
+        src: src.path
       };
     };
 
@@ -146,23 +167,27 @@ export class BaseWatch implements Roots, Watch {
      * that needs to go across.
      */
     const AGE = 5000;
-    const newFiles = _.reduce(watched, (acc, arr, key) => {
-      const files = arr
-        .map(n => join(key, n))
-        .map(n => {
-          return { path: n, stat: statSync(n) };
-        })
-        .filter(o => o.stat.isFile())
-        .map(o => {
-          const path = this.getDestination(o.path);
-          const stat = existsSync(path) ? statSync(path) : null;
-          return slim(o, { path, stat });
-        })
-        .filter(({ diff }) => diff > AGE);
-      return acc.concat(files);
-    }, []);
+    const newFiles = _.reduce(
+      watched,
+      (acc, arr, key) => {
+        const files = arr
+          .map(n => join(key, n))
+          .map(n => {
+            return { path: n, stat: statSync(n) };
+          })
+          .filter(o => o.stat.isFile())
+          .map(o => {
+            const path = this.getDestination(o.path);
+            const stat = existsSync(path) ? statSync(path) : null;
+            return slim(o, { path, stat });
+          })
+          .filter(({ diff }) => diff > AGE);
+        return acc.concat(files);
+      },
+      []
+    );
 
-    logger.debug('files that need to be copied over: ', newFiles);
+    logger.debug("files that need to be copied over: ", newFiles);
 
     // we have to wait a short while before copying? webpack issue?
     setTimeout(() => {
@@ -172,10 +197,12 @@ export class BaseWatch implements Roots, Watch {
 }
 
 export class PackageWatch extends BaseWatch {
-  constructor(private name: string,
+  constructor(
+    private name: string,
     readonly pkgDir: string,
     readonly targetDir: string,
-    ignore: (string | RegExp)[] = []) {
+    ignore: (string | RegExp)[] = []
+  ) {
     super(ignore);
   }
 
@@ -184,17 +211,22 @@ export class PackageWatch extends BaseWatch {
   }
 
   get targetRoot() {
-    return resolve(join(this.targetDir, 'node_modules', this.name));
+    return resolve(join(this.targetDir, "node_modules", this.name));
   }
 }
 
 class PWatch extends BaseWatch {
-  constructor(private pkgDir: string,
+  constructor(
+    private pkgDir: string,
     private dirs: Dirs,
     private model: PieConfigure | PieController,
-    private mode: 'controller' | 'configure') {
+    private mode: "controller" | "configure"
+  ) {
     super([]);
-    invariant(model.isChild || model.isLocalPkg, 'Must be a child or local pkg');
+    invariant(
+      model.isChild || model.isLocalPkg,
+      "Must be a child or local pkg"
+    );
   }
 
   get srcRoot() {
@@ -207,28 +239,30 @@ class PWatch extends BaseWatch {
 
   get targetRoot() {
     if (this.model.isChild) {
-      const dirname = (this.mode === 'controller') ? this.dirs.controllers : this.dirs.configure;
+      const dirname =
+        this.mode === "controller"
+          ? this.dirs.controllers
+          : this.dirs.configure;
       return resolve(join(dirname, `node_modules`, this.model.moduleId));
     } else if (this.model.isLocalPkg) {
-      return resolve(join(this.dirs.root, 'node_modules', this.model.moduleId));
+      return resolve(join(this.dirs.root, "node_modules", this.model.moduleId));
     }
   }
 }
 
 export class PieControllerWatch extends PWatch {
   constructor(pkgDir: string, dirs: Dirs, model: PieController) {
-    super(pkgDir, dirs, model, 'controller');
+    super(pkgDir, dirs, model, "controller");
   }
 }
 
 export class PieConfigureWatch extends PWatch {
   constructor(pkgDir: string, dirs: Dirs, model: PieConfigure) {
-    super(pkgDir, dirs, model, 'configure');
+    super(pkgDir, dirs, model, "configure");
   }
 }
 
 export class PieWatch {
-
   private client;
   private controller;
   private configure;
@@ -239,25 +273,43 @@ export class PieWatch {
     relativePath: string,
     installDirs: Dirs,
     controller: PieController,
-    configure: PieConfigure) {
-    logger.debug('[PieWatch] constructor: ', name, relativePath, pieItemDir, installDirs);
+    configure: PieConfigure
+  ) {
+    logger.debug(
+      "[PieWatch] constructor: ",
+      name,
+      relativePath,
+      pieItemDir,
+      installDirs
+    );
     const pkgDir = resolve(join(pieItemDir, relativePath));
     const rootIgnores = [/.*controller.*/, /.*configure.*/];
 
     if (element.isRootPkg) {
-      this.client = new PackageWatch(name, pkgDir, installDirs.root, rootIgnores);
+      this.client = new PackageWatch(
+        name,
+        pkgDir,
+        installDirs.root,
+        rootIgnores
+      );
     } else if (element.isLocalPkg) {
-      this.client = new PackageWatch(element.moduleId, element.dir, installDirs.root, rootIgnores);
+      this.client = new PackageWatch(
+        element.moduleId,
+        element.dir,
+        installDirs.root,
+        rootIgnores
+      );
     }
 
-    this.controller = controller &&
-      (controller.isLocalPkg || controller.isChild)
-      && new PieControllerWatch(pkgDir, installDirs, controller);
+    this.controller =
+      controller &&
+      (controller.isLocalPkg || controller.isChild) &&
+      new PieControllerWatch(pkgDir, installDirs, controller);
 
-    this.configure = configure &&
+    this.configure =
+      configure &&
       (configure.isLocalPkg || configure.isChild) &&
       new PieConfigureWatch(pkgDir, installDirs, configure);
-
   }
 
   public start() {
@@ -275,20 +327,19 @@ export class PieWatch {
 
 export class FileWatch implements Watch {
   private watch;
-  constructor(readonly filepath, readonly onChange: (n: string) => void) {
-  }
+  constructor(readonly filepath, readonly onChange: (n: string) => void) {}
 
   public start() {
-    logger.silly('[FileWatch] filepath: ', this.filepath);
+    logger.silly("[FileWatch] filepath: ", this.filepath);
 
     this.watch = chokidar.watch(this.filepath, { ignoreInitial: true });
-    this.watch.on('change', () => {
-      logger.silly('[FileWatch] on change: ', this.filepath);
+    this.watch.on("change", () => {
+      logger.silly("[FileWatch] on change: ", this.filepath);
       this.onChange(this.filepath);
     });
 
-    this.watch.on('ready', () => {
-      logger.silly('[FileWatch] ready for path: ', this.filepath);
+    this.watch.on("ready", () => {
+      logger.silly("[FileWatch] ready for path: ", this.filepath);
     });
   }
 }

@@ -1,7 +1,7 @@
-import * as Ajv from 'ajv';
+import * as Ajv from "ajv";
 
-import { RawConfig } from '../index';
-import schema from './config-schema';
+import { RawConfig } from "../index";
+import schema from "./config-schema";
 
 const ajv = new Ajv();
 
@@ -27,12 +27,12 @@ export function validateConfig(config: RawConfig): ValidationResult {
 
 /**
  * TODO: Integrate validation of pie models using the schemas they provide if present.
- * This can only happen once we have schemas available from installed pies. 
- * When: 
+ * This can only happen once we have schemas available from installed pies.
+ * When:
  * 1. once after installation
  * 2. if a model changes in the config.json after installation
- * @param models 
+ * @param models
  */
 export function validateModels(models: any[]): any[] {
-  throw new Error('todo..');
+  throw new Error("todo..");
 }
