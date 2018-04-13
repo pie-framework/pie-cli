@@ -1,7 +1,7 @@
-import * as Ajv from "ajv";
+import * as Ajv from 'ajv';
 
-import { RawConfig } from "../index";
-import schema from "./config-schema";
+import { RawConfig } from '../index';
+import schema from './config-schema';
 
 const ajv = new Ajv();
 
@@ -34,5 +34,5 @@ export function validateConfig(config: RawConfig): ValidationResult {
  * @param models
  */
 export function validateModels(models: any[]): any[] {
-  throw new Error("todo..");
+  throw new Error('todo..');
 }
