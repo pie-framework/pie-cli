@@ -6607,9 +6607,9 @@ performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
 
-pie-catalog-client@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/pie-catalog-client/-/pie-catalog-client-2.1.0.tgz#d89d8af179c9a1218067695e4ca50a8a3a38d415"
+pie-catalog-client@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/pie-catalog-client/-/pie-catalog-client-2.1.1.tgz#4e391fa50c3e1986c55bc83eada4491f70f9eae5"
   dependencies:
     "@pie-libs/pie-configure-events" "^1.1.0"
     "@webcomponents/shadycss" "github:webcomponents/shadycss#69704abae0214e3a6516d10ddad44aca878b1c71"
