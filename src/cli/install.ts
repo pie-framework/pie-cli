@@ -3,21 +3,17 @@ import { FileNames, RawConfig } from '../question/config';
 import Installer from '../install';
 import { buildLogger } from 'log-factory';
 import { fromPath } from '../question/config/types';
+import { resolve } from 'path';
 
 const logger = buildLogger();
 
 class Cmd extends CliCommand {
-
   constructor() {
-    super(
-      'install',
-      'install the dependencies'
-    );
+    super('install', 'install the dependencies');
   }
 
   public async run(args) {
-
-    const dir = args.dir || args.d || process.cwd();
+    const dir = resolve(args.dir || args.d || process.cwd());
     logger.info('dir: ', dir);
     const names = FileNames.build(args);
 
