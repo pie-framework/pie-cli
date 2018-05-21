@@ -5460,7 +5460,7 @@ marked@^0.3.6:
   version "0.3.12"
   resolved "https://registry.yarnpkg.com/marked/-/marked-0.3.12.tgz#7cf25ff2252632f3fe2406bde258e94eee927519"
 
-material-elements@PieLabs/material-elements#v0.1.0:
+"material-elements@github:PieLabs/material-elements#v0.1.0":
   version "0.1.0"
   resolved "https://codeload.github.com/PieLabs/material-elements/tar.gz/e6915c682d2359a777dbb7e71579324721e3541d"
 
@@ -6607,9 +6607,9 @@ performance-now@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz#6309f4e0e5fa913ec1c69307ae364b4b377c9e7b"
 
-pie-catalog-client@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/pie-catalog-client/-/pie-catalog-client-2.1.1.tgz#4e391fa50c3e1986c55bc83eada4491f70f9eae5"
+pie-catalog-client@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/pie-catalog-client/-/pie-catalog-client-2.2.0.tgz#e917721129e571c5e7c7bd7cb504cfb4e27621ed"
   dependencies:
     "@pie-libs/pie-configure-events" "^1.1.0"
     "@webcomponents/shadycss" "github:webcomponents/shadycss#69704abae0214e3a6516d10ddad44aca878b1c71"
