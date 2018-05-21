@@ -47,7 +47,7 @@ export const toDeclarations = (pkgs: Pkg[]): ElementDeclaration[] => {
 const toTargets = (key: 'controller' | 'configure', pkgs: Pkg[]): PieTarget[] => {
   return _(pkgs)
     .filter(bi => bi[key])
-    .map(bi => ({ pie: bi.element.tag, target: bi[key].moduleId }))
+    .map(bi => ({ pie: (bi as any).element.tag, target: bi[key].moduleId }))
     .value();
 };
 

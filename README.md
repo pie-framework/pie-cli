@@ -119,6 +119,8 @@ npm run build
 
 This creates a new github release from the `develop` branch:
 
+> Be sure to only use npm for install - if you use yarn you may get publishing errors like: `TypeError: log.gauge.isEnabled is not a function`.
+
 ```shell
 git checkout master
 git merge develop
