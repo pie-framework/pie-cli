@@ -1,5 +1,7 @@
 import * as _ from 'lodash';
 import { buildLogger } from 'log-factory';
+import { writeFileSync } from 'fs-extra';
+import { join } from 'path';
 
 import {
   install,
@@ -8,7 +10,8 @@ import {
   PieConfigure,
   PieController,
   PackageType,
-  Element
+  Element,
+  InstallResult
 } from '@pie-cli-libs/installer';
 import { ElementDeclaration } from '../code-gen';
 import { PieTarget } from './common';
@@ -63,9 +66,16 @@ const toTargets = (
     .value();
 };
 
-export type InstallResult = {
-  dirs: Dirs;
-  pkgs: Pkg[];
+const findResolution = (result: InstallResult, value: string): string => {
+  // const lockFile = result.lockFiles.root;
+  logger.info('[findResolution]...');
+  const out = result.lockFiles.root[value];
+  if (out === undefined) {
+    throw new Error(
+      `can't find dependency installation data for ${value}, check the .lock file`
+    );
+  }
+  return out.version;
 };
 
 export default class Install {
@@ -87,15 +97,22 @@ export default class Install {
     return new Promise((resolve, reject) => {
       logger.info('write out a manifest.', result);
 
-      result.pkgs.map(p => {
-        const resolvedVersion = findResolution(result.lock, p.rootModuleId);
-        const requestedVersion = p.input.version;
+      const info = result.pkgs.map(p => {
+        const resolved = findResolution(result, p.input.value);
+
         return {
           pie: p.rootModuleId,
-          resolved: resolvedVersion,
-          requested: requestedVersion
+          version: {
+            requested: p.input.version,
+            resolved
+          }
         };
       });
+
+      writeFileSync(
+        join(this.rootDir, 'pie.manifest.json'),
+        JSON.stringify(info, null, '  ')
+      );
       resolve(null);
     });
   }
