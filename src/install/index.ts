@@ -78,6 +78,17 @@ const findResolution = (result: InstallResult, value: string): string => {
   return out.version;
 };
 
+const hashCode = (str: string): string => {
+  let res = 0;
+  const len = str.length;
+  for (let i = 0; i < len; i++) {
+    res = res * 31 + str.charCodeAt(i);
+    // tslint:disable-next-line:no-bitwise
+    res = res & res;
+  }
+  return res.toString();
+};
+
 export default class Install {
   constructor(private rootDir: string, private config: RawConfig) {}
 
@@ -109,10 +120,21 @@ export default class Install {
         };
       });
 
+      const infoString = info
+        .map(i => `${i.pie}@${i.version.resolved}`)
+        .join(',');
+
+      const manifest = {
+        hash: hashCode(infoString),
+        hashString: infoString,
+        info
+      };
+
       writeFileSync(
         join(this.rootDir, 'pie.manifest.json'),
-        JSON.stringify(info, null, '  ')
+        JSON.stringify(manifest, null, '  ')
       );
+
       resolve(null);
     });
   }
