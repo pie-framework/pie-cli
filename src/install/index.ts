@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import { buildLogger } from 'log-factory';
 
 import {
   install,
@@ -17,6 +18,8 @@ import report from '../cli/report';
 export { Dirs, PackageType, Pkg, PieConfigure, PieController, Element };
 
 export { PieTarget };
+
+const logger = buildLogger();
 
 export type Mappings = {
   controllers: PieTarget[];
@@ -68,12 +71,32 @@ export type InstallResult = {
 export default class Install {
   constructor(private rootDir: string, private config: RawConfig) {}
 
-  public install(force: boolean = false): Promise<InstallResult> {
-    return install(
+  public async install(force: boolean = false): Promise<InstallResult> {
+    const result = await install(
       this.rootDir,
       this.config.elements,
       this.config.models,
       report
     );
+
+    await this.writeManifest(result);
+    return result;
+  }
+
+  private writeManifest(result: InstallResult): Promise<void> {
+    return new Promise((resolve, reject) => {
+      logger.info('write out a manifest.', result);
+
+      result.pkgs.map(p => {
+        const resolvedVersion = findResolution(result.lock, p.rootModuleId);
+        const requestedVersion = p.input.version;
+        return {
+          pie: p.rootModuleId,
+          resolved: resolvedVersion,
+          requested: requestedVersion
+        };
+      });
+      resolve(null);
+    });
   }
 }
