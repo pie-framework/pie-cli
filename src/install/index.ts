@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { buildLogger } from 'log-factory';
 import { writeFileSync } from 'fs-extra';
 import { join } from 'path';
-
+import { hash as mkHash } from '@pie-cli-libs/hash';
 import {
   install,
   Dirs,
@@ -66,27 +66,17 @@ const toTargets = (
     .value();
 };
 
-const findResolution = (result: InstallResult, value: string): string => {
+const findResolution = (
+  result: InstallResult,
+  value: string
+): string | undefined => {
   // const lockFile = result.lockFiles.root;
   logger.info('[findResolution]...');
   const out = result.lockFiles.root[value];
   if (out === undefined) {
-    throw new Error(
-      `can't find dependency installation data for ${value}, check the .lock file`
-    );
+    return;
   }
   return out.version;
-};
-
-const hashCode = (str: string): string => {
-  let res = 0;
-  const len = str.length;
-  for (let i = 0; i < len; i++) {
-    res = res * 31 + str.charCodeAt(i);
-    // tslint:disable-next-line:no-bitwise
-    res = res & res;
-  }
-  return res.toString();
 };
 
 export default class Install {
@@ -110,7 +100,6 @@ export default class Install {
 
       const info = result.pkgs.map(p => {
         const resolved = findResolution(result, p.input.value);
-
         return {
           pie: p.rootModuleId,
           version: {
@@ -120,13 +109,12 @@ export default class Install {
         };
       });
 
-      const infoString = info
-        .map(i => `${i.pie}@${i.version.resolved}`)
-        .join(',');
+      const hash = mkHash(
+        info.map(i => ({ name: i.pie, version: i.version.resolved }))
+      );
 
       const manifest = {
-        hash: hashCode(infoString),
-        hashString: infoString,
+        hash,
         info
       };
 

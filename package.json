@@ -73,6 +73,7 @@
     "typescript": "^2.7.2"
   },
   "dependencies": {
+    "@pie-cli-libs/hash": "^1.5.1",
     "@pie-cli-libs/installer": "^1.4.0",
     "ajv": "^5.2.1",
     "archiver": "^2.0.0",
