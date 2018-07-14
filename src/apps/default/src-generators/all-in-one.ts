@@ -10,8 +10,8 @@ export function allInOne(
   pieModels: Model[],
   weights: any,
   langs: any,
-  scoringType: string = 'weighted'): string {
-
+  scoringType: string = 'weighted'
+): string {
   return `
   import Controller from 'pie-controller';
 
@@ -19,11 +19,15 @@ export function allInOne(
 
   import PiePlayer from 'pie-player';
   customElements.define('pie-player', PiePlayer);
-  import ControlPanel from 'pie-control-panel';
+  import ControlPanel from 'pie-catalog-client/src/catalog-demo/control-panel';
   customElements.define('pie-control-panel', ControlPanel);
+  require('pie-catalog-client/src/bootstrap/common.less');
+  require('material-elements/src/select-field');
 
   const controllerMap = {};
-  ${controllerMap.map(t => `controllerMap['${t.pie}'] = require('${t.target}');`).join('\n')}
+  ${controllerMap
+    .map(t => `controllerMap['${t.pie}'] = require('${t.target}');`)
+    .join('\n')}
 
   export default class Bundled extends HTMLElement{
 
@@ -67,8 +71,8 @@ export function allInOne(
           console.error(e);
         });
 
-        panel.addEventListener('envChanged', function (event) {
-          const {env} = event.target;
+        panel.addEventListener('env-changed', function (event) {
+          const {env} = event.detail;
           player.env(env)
             .then(() => {
               if (env.mode === 'evaluate') {
@@ -95,7 +99,7 @@ export function allInOne(
           .control-panel-holder {
             display: flex;
             align-items: center;
-            background-color: rgba(0,0,0,0.1);
+            background-color: var(--catalog-header-bg, rgba(0, 50, 49, 0.9));
             padding: 0;
             margin: 0;
             padding-left: 10px;

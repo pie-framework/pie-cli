@@ -1,6 +1,6 @@
 {
   "name": "pie",
-  "version": "10.3.4",
+  "version": "10.4.0",
   "description": "The Portable Interaction Elements framework CLI",
   "preferGlobal": true,
   "bin": {
@@ -100,7 +100,6 @@
     "minimist": "^1.2.0",
     "ora": "^1.2.0",
     "pie-catalog-client": "^2.2.0",
-    "pie-control-panel": "^1.3.0",
     "pie-controller": "^3.3.0",
     "pie-player": "^3.4.0",
     "pie-support-less": "PieLabs/pie-support-less#master",
