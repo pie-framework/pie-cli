@@ -31,7 +31,7 @@ export class ElementDeclaration implements Declaration {
     if(typeof(${comp}) === 'function'){
 
       //This component needs to be bootstrapped...
-      comp()
+      ${comp}()
         .then( Component => {
           customElements.define('${this.tag}', Component);
         })
