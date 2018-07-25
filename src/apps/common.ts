@@ -75,11 +75,6 @@ export function webpackConfig(
     module: {
       rules: base.module.rules.concat(support.rules)
     },
-    optimization: {
-      splitChunks: {
-        chunks: 'all'
-      }
-    },
     output: {
       // `chunkFilename` provides a template for naming code-split bundles (optional)
       chunkFilename: '[name].bundle.js',
