@@ -1,10 +1,6 @@
-import {
-  types as apps,
-  clean,
-  loadApp,
-} from '../apps';
+import { types as apps, clean, loadApp } from '../apps';
 
-import { BuildOpts } from "../apps/types";
+import { BuildOpts } from '../apps/types';
 import CliCommand from './cli-command';
 import { buildLogger } from 'log-factory';
 import report from './report';
@@ -20,11 +16,17 @@ class PackCommand extends CliCommand {
     const a: apps.App = await loadApp(args);
 
     if (apps.isBuildable<T, BuildOpts>(a)) {
-
       const buildOpts = a.buildOpts(args);
 
       if (buildOpts.clean) {
         await report.promise('removing files', clean(a.config.dir));
+      }
+
+      if (buildOpts.createArchive && !apps.isArchivable(a)) {
+        report.failure(
+          'tried to create an archive but this isnt supported with this app'
+        );
+        return;
       }
 
       const result: T = await a.build(buildOpts);
@@ -33,10 +35,15 @@ class PackCommand extends CliCommand {
       if (buildOpts.createArchive) {
         if (apps.isArchivable(a)) {
           this.cliLogger.info('creating archive...');
-          const zip = await report.promise('creating archive', a.createArchive(result));
+          const zip = await report.promise(
+            'creating archive',
+            a.createArchive(result)
+          );
           this.cliLogger.info('archive: ', zip);
         } else {
-          logger.warn('tried to create an archive but this app type isnt archivable');
+          report.failure(
+            'tried to create an archive but this app type isnt archivable'
+          );
         }
       }
 
@@ -50,7 +57,6 @@ class PackCommand extends CliCommand {
       return {
         msg: 'pack complete'
       };
-
     } else {
       logger.warn('this app isnt buildable');
     }

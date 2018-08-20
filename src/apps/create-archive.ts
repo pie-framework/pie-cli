@@ -12,24 +12,25 @@ const logger = buildLogger();
 
 export function archiveIgnores(dir: string) {
   const gitIgnorePath = join(dir, '.gitignore');
-  const gitIgnores = existsSync(gitIgnorePath) ?
-    readFileSync(gitIgnorePath, 'utf8').split('\n').map(s => s.trim()) : [];
+  const gitIgnores = existsSync(gitIgnorePath)
+    ? readFileSync(gitIgnorePath, 'utf8')
+        .split('\n')
+        .map(s => s.trim())
+    : [];
 
-  return _(gitIgnores).concat([
-    '.pie',
-    '\.*',
-    'package.json',
-    '*.tar.gz'
-  ]).uniq().value();
+  return _(gitIgnores)
+    .concat(['.pie', '.*', 'package.json', '*.tar.gz'])
+    .uniq()
+    .value();
 }
 
 export function createArchive(
   name: string,
   cwd: string,
   ignore: string[],
-  addExtras: (a: any) => void): Promise<string> {
+  addExtras?: (a: any) => void
+): Promise<string> {
   return new Promise<string>((resolve, reject) => {
-
     const archiveName = name.endsWith('.tar.gz') ? name : `${name}.tar.gz`;
 
     const output = createWriteStream(archiveName);
@@ -40,7 +41,7 @@ export function createArchive(
       resolve(archiveName);
     });
 
-    archive.on('error', (err) => {
+    archive.on('error', err => {
       reject(err);
     });
 
@@ -48,7 +49,9 @@ export function createArchive(
 
     archive.glob('**', { cwd, ignore });
 
-    addExtras(archive);
+    if (addExtras) {
+      addExtras(archive);
+    }
 
     archive.finalize();
   });
