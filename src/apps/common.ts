@@ -39,6 +39,8 @@ export function removeFiles(dir, files: string[]): Promise<string[]> {
   return Promise.all(p);
 }
 
+export const toNodeModules = (d: string) => resolve(join(d, 'node_modules'));
+
 export function webpackConfig(
   resolveModules: string[],
   root: string,
@@ -49,7 +51,6 @@ export function webpackConfig(
   sourceMaps: boolean = false
 ) {
   outpath = outpath || root;
-  const modules = (d: string) => resolve(join(d, 'node_modules'));
 
   const base = baseConfig(root);
 
@@ -60,15 +61,9 @@ export function webpackConfig(
     resolve(join(__dirname, '../../node_modules'))
   ].concat(_.compact(support.modules));
 
-  // const resolveModules = [
-  //   modules(dirs.configure),
-  //   modules(dirs.controllers),
-  //   modules(dirs.root),
-  // ].concat(coreModules);
+  resolveModules = resolveModules.map(toNodeModules).concat(coreModules);
 
-  resolveModules = resolveModules.concat(coreModules);
-
-  const resolveLoaderModules = [modules(root)].concat(coreModules);
+  const resolveLoaderModules = [toNodeModules(root)].concat(coreModules);
 
   const out = _.extend(base, {
     context: root,
