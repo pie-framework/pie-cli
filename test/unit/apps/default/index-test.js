@@ -11,12 +11,18 @@ import proxyquire from 'proxyquire';
 const ROOT = '../../../../lib';
 
 describe('index', () => {
-
-  let DefaultApp, instance, mod, deps, args, jsonConfig, supportConfig, result, dirs, installerInstance;
+  let DefaultApp,
+    instance,
+    mod,
+    deps,
+    args,
+    jsonConfig,
+    supportConfig,
+    result,
+    dirs,
+    installerInstance;
 
   beforeEach(() => {
-
-
     dirs = {
       root: 'root',
       configure: 'configure',
@@ -24,10 +30,13 @@ describe('index', () => {
     };
 
     installerInstance = {
-      install: stub().returns(Promise.resolve({
-        dirs, pkgs: []
-      }))
-    }
+      install: stub().returns(
+        Promise.resolve({
+          dirs,
+          pkgs: []
+        })
+      )
+    };
 
     deps = {
       './src-generators': {
@@ -82,9 +91,13 @@ describe('index', () => {
   describe('build', () => {
     beforeEach(() => {
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
-      instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
-      instance.buildConfigure = stub().returns(Promise.resolve(['configure.js']));
-      return instance.build({ pieName: 'pie-item' }).then(r => result = r);
+      instance.buildControllers = stub().returns(
+        Promise.resolve(['controllers.js'])
+      );
+      instance.buildConfigure = stub().returns(
+        Promise.resolve(['configure.js'])
+      );
+      return instance.build({ pieName: 'pie-item' }).then(r => (result = r));
     });
 
     it('calls installer.install', () => {
@@ -102,15 +115,18 @@ describe('index', () => {
     it('returns the files', () => {
       expect(result).to.eql(['client.js', 'controllers.js', 'configure.js']);
     });
-
   });
 
   describe('build with include complete', () => {
     beforeEach(() => {
       instance = new DefaultApp(jsonConfig, supportConfig);
       instance.buildClient = stub().returns(Promise.resolve(['client.js']));
-      instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
-      instance.buildAllInOne = stub().returns(Promise.resolve(['all-in-one.js']));
+      instance.buildControllers = stub().returns(
+        Promise.resolve(['controllers.js'])
+      );
+      instance.buildAllInOne = stub().returns(
+        Promise.resolve(['all-in-one.js'])
+      );
       instance.buildExample = stub().returns(Promise.resolve(['example.html']));
       return instance.build({ includeComplete: true, pieName: 'pie-item' });
     });
@@ -127,7 +143,9 @@ describe('index', () => {
   describe('build with addPlayerAndControlPanel', () => {
     beforeEach(() => {
       instance = new DefaultApp(jsonConfig, supportConfig);
-      instance.buildControllers = stub().returns(Promise.resolve(['controllers.js']));
+      instance.buildControllers = stub().returns(
+        Promise.resolve(['controllers.js'])
+      );
       return instance.build({ addPlayerAndControlPanel: true });
     });
 
@@ -147,8 +165,10 @@ describe('index', () => {
   describe('buildControllers', () => {
     let result;
     beforeEach(() => {
-      return instance.buildControllers(dirs, 'pie-item', []).then(r => result = r)
-        .then(r => result = r);
+      return instance
+        .buildControllers(dirs, 'pie-item', [])
+        .then(r => (result = r))
+        .then(r => (result = r));
     });
 
     it('calls generators.controllers', () => {
@@ -156,11 +176,22 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`root/controllers.entry.js`);
+      assert.calledWith(
+        deps['fs-extra'].writeFileSync,
+        p`root/controllers.entry.js`
+      );
     });
 
     it('calls webpackConfig', () => {
-      assert.calledWith(deps['../common'].webpackConfig, match.object, match.object, 'controllers.entry.js', 'pie-controllers.js', match.string);
+      assert.calledWith(
+        deps['../common'].webpackConfig,
+        match.array,
+        dirs.root,
+        match.object,
+        'controllers.entry.js',
+        'pie-controllers.js',
+        match.string
+      );
     });
 
     it('returns the result', () => {
@@ -169,11 +200,9 @@ describe('index', () => {
   });
 
   describe('buildClient', () => {
-
     let result;
     beforeEach(() => {
-      return instance.buildClient(dirs, [])
-        .then(r => result = r);
+      return instance.buildClient(dirs, []).then(r => (result = r));
     });
 
     it('calls generators.client', () => {
@@ -181,11 +210,22 @@ describe('index', () => {
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`${dirs.root}/client.entry.js`);
+      assert.calledWith(
+        deps['fs-extra'].writeFileSync,
+        p`${dirs.root}/client.entry.js`
+      );
     });
 
     it('calls webpackConfig', () => {
-      assert.calledWith(deps['../common'].webpackConfig, match.object, match.object, 'client.entry.js', 'pie-view.js', match.string);
+      assert.calledWith(
+        deps['../common'].webpackConfig,
+        [dirs.root],
+        dirs.root,
+        match.object,
+        'client.entry.js',
+        'pie-view.js',
+        match.string
+      );
     });
 
     it('returns the result', () => {
@@ -194,43 +234,50 @@ describe('index', () => {
   });
 
   describe('buildConfigure', () => {
-
-    let buildInfo = [{ configure: { pie: 'my-pie', moduleId: 'my-pie-target' } }];
+    let buildInfo = [
+      { configure: { pie: 'my-pie', moduleId: 'my-pie-target' } }
+    ];
 
     beforeEach(() => instance.buildConfigure(dirs, buildInfo));
 
-
     it('calls configureDeclarations', () => {
-      assert.calledWith(deps['../../install'].configureDeclarations, [{
-        configure: { moduleId: 'my-pie-target', pie: 'my-pie' }
-      }]);
+      assert.calledWith(deps['../../install'].configureDeclarations, [
+        {
+          configure: { moduleId: 'my-pie-target', pie: 'my-pie' }
+        }
+      ]);
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`${dirs.root}/${DefaultApp.CONFIGURE_ENTRY}`);
+      assert.calledWith(
+        deps['fs-extra'].writeFileSync,
+        p`${dirs.root}/${DefaultApp.CONFIGURE_ENTRY}`
+      );
     });
 
     it('calls webpackConfig', () => {
-      assert.calledWith(deps['../common'].webpackConfig,
-        match.object,
+      assert.calledWith(
+        deps['../common'].webpackConfig,
+        [dirs.configure, dirs.root],
+        dirs.root,
         match.object,
         DefaultApp.CONFIGURE_ENTRY,
         DefaultApp.CONFIGURE_BUNDLE,
-        match.string);
+        match.string
+      );
     });
-
   });
 
   describe('buildAllInOne', () => {
-
     let result;
     beforeEach(() => {
       instance.installer = {
         dir: 'dir/.pie',
         installedPies: []
       };
-      return instance.buildAllInOne(dirs, 'pie-item', [])
-        .then(r => result = r);
+      return instance
+        .buildAllInOne(dirs, 'pie-item', [])
+        .then(r => (result = r));
     });
 
     it('calls JsonConfig.pieModels', () => {
@@ -239,16 +286,34 @@ describe('index', () => {
 
     it('calls generators.allInOne', () => {
       assert.calledWith(
-        deps['./src-generators'].allInOne, 'pie-item', [], [], match.string, [], [], []
+        deps['./src-generators'].allInOne,
+        'pie-item',
+        [],
+        [],
+        match.string,
+        [],
+        [],
+        []
       );
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`${dirs.root}/all-in-one.entry.js`);
+      assert.calledWith(
+        deps['fs-extra'].writeFileSync,
+        p`${dirs.root}/all-in-one.entry.js`
+      );
     });
 
     it('calls webpackConfig', () => {
-      assert.calledWith(deps['../common'].webpackConfig, match.object, match.object, 'all-in-one.entry.js', 'pie-item.js', match.string);
+      assert.calledWith(
+        deps['../common'].webpackConfig,
+        match.array,
+        dirs.root,
+        match.object,
+        'all-in-one.entry.js',
+        'pie-item.js',
+        match.string
+      );
     });
 
     it('returns the result', () => {
@@ -263,17 +328,31 @@ describe('index', () => {
     });
 
     it('calls template', () => {
-      assert.calledWith(instance.template, { js: ['./pie-item.js'], markup: '<pie-item></pie-item>' });
+      assert.calledWith(instance.template, {
+        js: ['./pie-item.js'],
+        markup: '<pie-item></pie-item>'
+      });
     });
 
     it('calls writeFileSync', () => {
-      assert.calledWith(deps['fs-extra'].writeFileSync, p`dir/example.html`, 'template', { encoding: 'utf8' });
+      assert.calledWith(
+        deps['fs-extra'].writeFileSync,
+        p`dir/example.html`,
+        'template',
+        { encoding: 'utf8' }
+      );
     });
   });
 
   describe('generatedFiles', () => {
     it('returns the files that can be possible generated', () => {
-      expect(DefaultApp.generatedFiles).to.eql(['pie-item.js', 'pie-view.js', 'pie-configure.js', 'pie-controllers.js', 'example.html']);
+      expect(DefaultApp.generatedFiles).to.eql([
+        'pie-item.js',
+        'pie-view.js',
+        'pie-configure.js',
+        'pie-controllers.js',
+        'example.html'
+      ]);
     });
   });
 });

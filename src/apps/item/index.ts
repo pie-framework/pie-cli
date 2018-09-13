@@ -21,19 +21,19 @@ const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
 export default class ItemApp implements App, Servable {
-
   public static generatedFiles: string[] = [];
 
-  public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
-
+  public static build(
+    args: any,
+    loadSupport: (JsonConfig) => Promise<SupportConfig>
+  ): Promise<App> {
     const dir = resolve(args.dir || process.cwd());
     const config = JsonConfig.build(dir, args);
     const session = Session.build(dir, args);
 
-    return loadSupport(config)
-      .then(support => {
-        return new ItemApp(config, support, session);
-      });
+    return loadSupport(config).then(support => {
+      return new ItemApp(config, support, session);
+    });
   }
 
   private static BUNDLE: string = 'item.bundle.js';
@@ -45,8 +45,8 @@ export default class ItemApp implements App, Servable {
   constructor(
     readonly config: JsonConfig,
     private support: SupportConfig,
-    readonly session?: Session) {
-
+    readonly session?: Session
+  ) {
     this.installer = new Install(config.dir, config.raw);
 
     this.template = pug.compileFile(templatePath);
@@ -67,12 +67,14 @@ export default class ItemApp implements App, Servable {
     logger.info('add sourceMaps? ', opts.sourceMaps);
 
     const config = webpackConfig(
-      dirs,
+      [dirs.root, dirs.controllers],
+      dirs.root,
       this.support,
       ItemApp.ENTRY,
       ItemApp.BUNDLE,
       this.config.dir,
-      opts.sourceMaps);
+      opts.sourceMaps
+    );
 
     writeConfig(join(dirs.root, 'item.webpack.config.js'), config);
 
@@ -85,7 +87,7 @@ export default class ItemApp implements App, Servable {
 
     linkCompilerToServer('main', compiler, server);
 
-    const reload = (name) => {
+    const reload = name => {
       logger.info('File Changed: ', name);
       this.config.reload();
       this.session.reload();
@@ -101,7 +103,6 @@ export default class ItemApp implements App, Servable {
   }
 
   private router(compiler: webpack.Compiler): express.Router {
-
     const router = express.Router();
 
     const middleware = webpackMiddleware(compiler, {
@@ -117,7 +118,6 @@ export default class ItemApp implements App, Servable {
     router.use(middleware);
 
     router.get('/', (req, res) => {
-
       const page = this.template({
         css: this.support.externals.css,
         demo: {
@@ -131,7 +131,7 @@ export default class ItemApp implements App, Servable {
         js: this.support.externals.js.concat([
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
           `/${ItemApp.BUNDLE}`
-        ]),
+        ])
       });
 
       res

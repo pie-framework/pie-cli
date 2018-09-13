@@ -6,17 +6,16 @@ import { path as p } from '../../../lib/string-utils';
 import proxyquire from 'proxyquire';
 
 describe('common', () => {
-
   let mod, deps, installer, support, dirs;
 
   beforeEach(() => {
     deps = {
       path: {
-        resolve: spy(function (p) {
+        resolve: spy(function(p) {
           return p;
         })
       },
-      'webpack': stub(),
+      webpack: stub(),
       '../question/build/base-config': {
         default: stub().returns({
           module: {
@@ -24,21 +23,20 @@ describe('common', () => {
           }
         })
       }
-    }
+    };
 
     dirs = {
       root: 'root',
       configure: 'configure',
       controllers: 'controllers'
-    }
+    };
 
-    installer = {
-    }
+    installer = {};
 
     support = {
       rules: [],
       extensions: ['.support-extension']
-    }
+    };
 
     mod = proxyquire('../../../lib/apps/common', deps);
   });
@@ -47,7 +45,13 @@ describe('common', () => {
     let config;
 
     beforeEach(() => {
-      config = mod.webpackConfig(dirs, support, 'entry.js', 'bundle.js');
+      config = mod.webpackConfig(
+        [],
+        dirs.root,
+        support,
+        'entry.js',
+        'bundle.js'
+      );
     });
 
     it('adds the modules rules', () => {
@@ -56,9 +60,6 @@ describe('common', () => {
 
     it('adds resolve.modules', () => {
       expect(config.resolve.modules).to.eql([
-        p`configure/node_modules`,
-        p`controllers/node_modules`,
-        p`root/node_modules`,
         p`node_modules`,
         resolve(join(__dirname, '../../../node_modules'))
       ]);
@@ -73,19 +74,32 @@ describe('common', () => {
     });
 
     it('adds extensions', () => {
-      expect(config.resolve.extensions).to.eql([
-        '.js',
-        '.support-extension'
-      ]);
+      expect(config.resolve.extensions).to.eql(['.js', '.support-extension']);
     });
 
     it('adds devtool: eval if sourceMaps is true', () => {
-      let config = mod.webpackConfig(dirs, support, 'entry.js', 'bundle.js', null, true);
+      let config = mod.webpackConfig(
+        [],
+        dirs.root,
+        support,
+        'entry.js',
+        'bundle.js',
+        null,
+        true
+      );
       expect(config.devtool).to.eql('eval');
     });
 
     it('does not add devtool: eval if sourceMaps is false', () => {
-      let config = mod.webpackConfig(dirs, support, 'entry.js', 'bundle.js', null, false);
+      let config = mod.webpackConfig(
+        [],
+        dirs.root,
+        support,
+        'entry.js',
+        'bundle.js',
+        null,
+        false
+      );
       expect(config.devtool).to.be.undefined;
     });
   });

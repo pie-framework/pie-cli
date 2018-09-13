@@ -147,7 +147,8 @@ export default class DefaultApp
     writeFile(join(dirs.root, DefaultApp.CONFIGURE_ENTRY), js);
 
     const config = webpackConfig(
-      dirs,
+      [dirs.configure, dirs.root],
+      dirs.root,
       this.support,
       DefaultApp.CONFIGURE_ENTRY,
       DefaultApp.CONFIGURE_BUNDLE,
@@ -176,7 +177,8 @@ export default class DefaultApp
 
     writeFile(join(dirs.root, 'client.entry.js'), js);
     const config = webpackConfig(
-      dirs,
+      [dirs.root],
+      dirs.root,
       this.support,
       'client.entry.js',
       'pie-view.js',
@@ -198,7 +200,8 @@ export default class DefaultApp
     const js = generators.controllers(controllers);
     writeFile(join(dirs.root, 'controllers.entry.js'), js);
     const config = webpackConfig(
-      dirs,
+      [dirs.controllers, dirs.root],
+      dirs.root,
       this.support,
       'controllers.entry.js',
       'pie-controllers.js',
@@ -240,7 +243,8 @@ export default class DefaultApp
 
     writeFile(join(dirs.root, 'all-in-one.entry.js'), js);
     const config = webpackConfig(
-      dirs,
+      [dirs.root, dirs.configure, dirs.controllers],
+      dirs.root,
       this.support,
       'all-in-one.entry.js',
       'pie-item.js',

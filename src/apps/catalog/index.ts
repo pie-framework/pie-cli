@@ -121,7 +121,8 @@ export default class CatalogApp
 
     const config = _.merge(
       webpackConfig(
-        dirs,
+        [dirs.root, dirs.configure, dirs.controllers],
+        dirs.root,
         this.support,
         CatalogApp.ENTRY,
         CatalogApp.BUNDLE,

@@ -1,9 +1,7 @@
 import * as _ from 'lodash';
 import * as webpack from 'webpack';
 
-import { join, resolve } from "path";
-
-import { Dirs } from '@pie-cli-libs/installer';
+import { join, resolve } from 'path';
 
 import { SupportConfig } from '../framework-support/index';
 import baseConfig from '../question/build/base-config';
@@ -15,7 +13,6 @@ const logger = buildLogger();
 export type Compiler = webpack.compiler.Compiler;
 
 export class Tag {
-
   constructor(readonly name: string, readonly path?: string) {
     this.path = this.path || `./${this.name}.js`;
   }
@@ -26,30 +23,35 @@ export class Tag {
 }
 
 export function removeFiles(dir, files: string[]): Promise<string[]> {
-  const p: Promise<string>[] = _.map(files, (f) => new Promise((res, reject) => {
-    remove(join(dir, f), (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        res(f);
-      }
-    });
-  }));
+  const p: Promise<string>[] = _.map(
+    files,
+    f =>
+      new Promise((res, reject) => {
+        remove(join(dir, f), err => {
+          if (err) {
+            reject(err);
+          } else {
+            res(f);
+          }
+        });
+      })
+  );
   return Promise.all(p);
 }
 
 export function webpackConfig(
-  dirs: Dirs,
+  resolveModules: string[],
+  root: string,
   support: SupportConfig,
   entry: string,
   bundle: string,
   outpath?: string,
-  sourceMaps: boolean = false) {
-
-  outpath = outpath || dirs.root;
+  sourceMaps: boolean = false
+) {
+  outpath = outpath || root;
   const modules = (d: string) => resolve(join(d, 'node_modules'));
 
-  const base = baseConfig(dirs.root);
+  const base = baseConfig(root);
 
   logger.debug('support modules: ', support.modules);
 
@@ -58,18 +60,18 @@ export function webpackConfig(
     resolve(join(__dirname, '../../node_modules'))
   ].concat(_.compact(support.modules));
 
-  const resolveModules = [
-    modules(dirs.configure),
-    modules(dirs.controllers),
-    modules(dirs.root),
-  ].concat(coreModules);
+  // const resolveModules = [
+  //   modules(dirs.configure),
+  //   modules(dirs.controllers),
+  //   modules(dirs.root),
+  // ].concat(coreModules);
 
-  const resolveLoaderModules = [
-    modules(dirs.root),
-  ].concat(coreModules);
+  resolveModules = resolveModules.concat(coreModules);
+
+  const resolveLoaderModules = [modules(root)].concat(coreModules);
 
   const out = _.extend(base, {
-    context: dirs.root,
+    context: root,
     entry: `./${entry}`,
     module: {
       rules: base.module.rules.concat(support.rules)
@@ -80,7 +82,7 @@ export function webpackConfig(
     },
     resolve: {
       extensions: _.uniq(['.js'].concat(support.extensions)),
-      modules: resolveModules,
+      modules: resolveModules
     },
     resolveLoader: {
       modules: resolveLoaderModules
@@ -94,10 +96,10 @@ export function webpackConfig(
   return out;
 }
 
-export const clientDependencies = (args: any) => args.configuration.app.dependencies;
+export const clientDependencies = (args: any) =>
+  args.configuration.app.dependencies;
 
 export class Out {
-
   public static build(args) {
     return new Out(
       args.questionItemTagName ? new Tag(args.questionItemTagName) : undefined,
@@ -113,16 +115,16 @@ export class Out {
     readonly viewElements: string = 'pie-view.js',
     readonly controllers: string = 'pie-controller.js',
     readonly example: string = 'example.html',
-    readonly archive: string = 'pie-item.tar.gz') { }
-
+    readonly archive: string = 'pie-item.tar.gz'
+  ) {}
 }
 
 /**
  * @deprecated This should be removed
  */
 export type Names = {
-  build: BuildNames,
-  out: Out
+  build: BuildNames;
+  out: Out;
 };
 
 type BuildNames = {

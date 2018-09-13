@@ -22,22 +22,26 @@ const logger = buildLogger();
 const templatePath = join(__dirname, 'views/index.pug');
 
 export default class InfoApp implements App, Servable {
-
   public static generatedFiles: string[] = [];
 
-  public static build(args: any, loadSupport: (JsonConfig) => Promise<SupportConfig>): Promise<App> {
-
+  public static build(
+    args: any,
+    loadSupport: (JsonConfig) => Promise<SupportConfig>
+  ): Promise<App> {
     const dir = resolve(args.dir || process.cwd());
 
     if (!existsSync(join(dir, 'docs/demo'))) {
-      throw new Error(`Can't find a 'docs/demo' directory in path: ${dir}. Is this a pie directory?`);
+      throw new Error(
+        `Can't find a 'docs/demo' directory in path: ${dir}. Is this a pie directory?`
+      );
     }
 
     const config = JsonConfig.build(join(dir, 'docs/demo'), args);
     const session = Session.build(join(dir, 'docs/demo'), args);
 
-    return loadSupport(config)
-      .then(support => new InfoApp(dir, config, support, session));
+    return loadSupport(config).then(
+      support => new InfoApp(dir, config, support, session)
+    );
   }
 
   private static BUNDLE = 'info.bundle.js';
@@ -46,11 +50,12 @@ export default class InfoApp implements App, Servable {
   private template: any;
   private installer: Install;
 
-  constructor(private pieRoot: string,
+  constructor(
+    private pieRoot: string,
     readonly config: JsonConfig,
     private support: SupportConfig,
-    readonly session: Session) {
-
+    readonly session: Session
+  ) {
     this.template = pug.compileFile(templatePath);
 
     this.installer = new Install(config.dir, config.raw);
@@ -62,7 +67,7 @@ export default class InfoApp implements App, Servable {
   public watchableFiles(): string[] {
     return [
       resolve(join(this.pieRoot, 'README.md')),
-      resolve(join(this.pieRoot, 'package.json')),
+      resolve(join(this.pieRoot, 'package.json'))
     ];
   }
 
@@ -74,35 +79,42 @@ export default class InfoApp implements App, Servable {
 
     await writeEntryJs(join(dirs.root, InfoApp.ENTRY), js);
 
-    const config = webpackConfig(dirs, this.support, InfoApp.ENTRY, InfoApp.BUNDLE, null, opts.sourceMaps);
+    const resolveModules = [dirs.root, dirs.configure, dirs.controllers];
+    const config = webpackConfig(
+      resolveModules,
+      dirs.root,
+      this.support,
+      InfoApp.ENTRY,
+      InfoApp.BUNDLE,
+      null,
+      opts.sourceMaps
+    );
 
     const cssRule = config.module.rules.find(u => {
       const match = u.test.source === '\\.css$';
       return match;
     });
 
-    cssRule.exclude = [
-      /.*highlight\.js.*/,
-    ];
+    cssRule.exclude = [/.*highlight\.js.*/];
 
     // load in raw css for markdown element
-    config.module.rules = [{
-      test: /.*highlight\.js.*default\.css$/,
-      use: [
-        'raw-loader',
-      ],
-    },
-    {
-      test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2|otf)$/,
-      use: [
-        {
-          loader: 'url-loader',
-          options: {
-            limit: 10000
+    config.module.rules = [
+      {
+        test: /.*highlight\.js.*default\.css$/,
+        use: ['raw-loader']
+      },
+      {
+        test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2|otf)$/,
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 10000
+            }
           }
-        }
-      ]
-    }].concat(config.module.rules);
+        ]
+      }
+    ].concat(config.module.rules);
 
     writeConfig(join(dirs.root, 'info.webpack.config.js'), config);
 
@@ -115,7 +127,7 @@ export default class InfoApp implements App, Servable {
 
     linkCompilerToServer('main', compiler, server);
 
-    const reload = (name) => {
+    const reload = name => {
       logger.info('File Changed: ', name);
       this.config.reload();
       this.session.reload();
@@ -126,12 +138,11 @@ export default class InfoApp implements App, Servable {
       dirs,
       pkgs,
       reload,
-      server: server.httpServer,
+      server: server.httpServer
     };
   }
 
   private router(compiler: webpack.Compiler): express.Router {
-
     const router = express.Router();
 
     const middleware = webpackMiddleware(compiler, {
@@ -147,12 +158,10 @@ export default class InfoApp implements App, Servable {
     router.use(middleware);
 
     router.get('/', (req, res) => {
-
       const pkg = readJsonSync(join(this.pieRoot, 'package.json'));
       const readme = readFileSync(join(this.pieRoot, 'README.md'), 'utf8');
 
       const page = this.template({
-
         demo: {
           config: {
             langs: this.config.langs,
@@ -174,7 +183,7 @@ export default class InfoApp implements App, Servable {
           `/${InfoApp.BUNDLE}`
         ]),
         orgRepo: {
-          repo: pkg.name,
+          repo: pkg.name
         }
       });
 

@@ -21,7 +21,8 @@ describe('install', () => {
 
     deps = {
       'fs-extra': {
-        ensureDirSync: stub()
+        ensureDirSync: stub(),
+        writeFileSync: stub()
       },
       '../npm': {
         default: stub().returns(npm)

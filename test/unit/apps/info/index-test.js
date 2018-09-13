@@ -9,10 +9,21 @@ import proxyquire from 'proxyquire';
 const ROOT = '../../../../lib';
 
 describe('info app', () => {
-  let InfoApp, instance, mod, args, deps, config, supportConfig, middlewareInstance, routerInstance, express, compiler, dirs, session;
+  let InfoApp,
+    instance,
+    mod,
+    args,
+    deps,
+    config,
+    supportConfig,
+    middlewareInstance,
+    routerInstance,
+    express,
+    compiler,
+    dirs,
+    session;
 
   beforeEach(() => {
-
     dirs = {
       root: 'dir',
       configure: '.configure',
@@ -22,22 +33,22 @@ describe('info app', () => {
     routerInstance = {
       use: stub(),
       get: stub()
-    }
+    };
 
     middlewareInstance = {
       waitUntilValid: stub()
-    }
+    };
 
     compiler = {
       plugin: stub()
-    }
+    };
 
     express = stub().returns(routerInstance);
     express.Router = stub().returns(routerInstance);
 
     deps = {
-      'express': express,
-      'http': {
+      express: express,
+      http: {
         createServer: stub().returns({})
       },
       'fs-extra': {
@@ -58,9 +69,7 @@ describe('info app', () => {
       '../common': {
         webpackConfig: stub().returns({
           module: {
-            rules: [
-              { test: /\.css$/, use: 'css-loader' }
-            ]
+            rules: [{ test: /\.css$/, use: 'css-loader' }]
           }
         })
       },
@@ -72,7 +81,7 @@ describe('info app', () => {
         '@noCallThru': true,
         default: stub()
       }
-    }
+    };
 
     mod = proxyquire(`${ROOT}/apps/info`, deps);
 
@@ -95,10 +104,9 @@ describe('info app', () => {
 
     session = {
       array: []
-    }
+    };
 
     instance = new InfoApp('pie-root', config, supportConfig, session);
-
   });
 
   describe('constructor', () => {
@@ -107,17 +115,14 @@ describe('info app', () => {
     });
   });
 
-
   describe('server', () => {
-
     beforeEach(() => {
-
       instance.router = stub();
 
       instance.installer = {
         dir: '.pie',
         install: stub().returns(Promise.resolve({ pkgs: [], dirs }))
-      }
+      };
       return instance.server({});
     });
 
@@ -126,11 +131,22 @@ describe('info app', () => {
     });
 
     it('calls writeEntryJs', () => {
-      assert.calledWith(deps['../../code-gen'].writeEntryJs, p`${dirs.root}/info.entry.js`, match.string);
+      assert.calledWith(
+        deps['../../code-gen'].writeEntryJs,
+        p`${dirs.root}/info.entry.js`,
+        match.string
+      );
     });
 
     it('calls webpackConfig', () => {
-      assert.calledWith(deps['../common'].webpackConfig, match.object, match.object, 'info.entry.js', 'info.bundle.js');
+      assert.calledWith(
+        deps['../common'].webpackConfig,
+        [dirs.root, dirs.configure, dirs.controllers],
+        dirs.root,
+        match.object,
+        'info.entry.js',
+        'info.bundle.js'
+      );
     });
 
     it('calls webpack', () => {
@@ -166,8 +182,7 @@ describe('info app', () => {
     describe('GET /', () => {
       let handler, res;
       beforeEach(() => {
-
-        res = {}
+        res = {};
         res.set = stub().returns(res);
         res.status = stub().returns(res);
         res.send = stub();
@@ -175,8 +190,8 @@ describe('info app', () => {
         instance.template = stub();
         instance.installer = {
           installedPies: []
-        }
-        routerInstance.get = spy(function (path, h) {
+        };
+        routerInstance.get = spy(function(path, h) {
           handler = h;
         });
         instance.router({});
@@ -188,7 +203,10 @@ describe('info app', () => {
       });
 
       it('calls readJsonSync for package.json', () => {
-        assert.calledWith(deps['fs-extra'].readJsonSync, p`pie-root/package.json`);
+        assert.calledWith(
+          deps['fs-extra'].readJsonSync,
+          p`pie-root/package.json`
+        );
       });
 
       it('calls readFileSync for README.md', () => {

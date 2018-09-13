@@ -9,10 +9,21 @@ import proxyquire from 'proxyquire';
 const ROOT = '../../../../lib';
 
 describe('item app', () => {
-  let ItemApp, instance, mod, args, deps, config, supportConfig, middlewareInstance, routerInstance, express, compiler, dirs, session;
+  let ItemApp,
+    instance,
+    mod,
+    args,
+    deps,
+    config,
+    supportConfig,
+    middlewareInstance,
+    routerInstance,
+    express,
+    compiler,
+    dirs,
+    session;
 
   beforeEach(() => {
-
     dirs = {
       root: 'dir',
       configure: '.configure',
@@ -22,22 +33,22 @@ describe('item app', () => {
     routerInstance = {
       use: stub(),
       get: stub()
-    }
+    };
 
     middlewareInstance = {
       waitUntilValid: stub()
-    }
+    };
 
     compiler = {
       plugin: stub()
-    }
+    };
 
     express = stub().returns(routerInstance);
     express.Router = stub().returns(routerInstance);
 
     deps = {
-      'express': express,
-      'http': {
+      express: express,
+      http: {
         createServer: stub().returns({})
       },
       'fs-extra': {
@@ -58,9 +69,7 @@ describe('item app', () => {
       '../common': {
         webpackConfig: stub().returns({
           module: {
-            rules: [
-              { test: /\.css$/, use: 'css-loader' }
-            ]
+            rules: [{ test: /\.css$/, use: 'css-loader' }]
           }
         })
       },
@@ -72,7 +81,7 @@ describe('item app', () => {
         '@noCallThru': true,
         default: stub()
       }
-    }
+    };
 
     mod = proxyquire(`${ROOT}/apps/item`, deps);
 
@@ -94,7 +103,7 @@ describe('item app', () => {
     };
     session = {
       array: []
-    }
+    };
 
     instance = new ItemApp(config, supportConfig, session);
   });
@@ -105,17 +114,14 @@ describe('item app', () => {
     });
   });
 
-
   describe('server', () => {
-
     beforeEach(() => {
-
       instance.router = stub();
 
       instance.installer = {
         dir: '.pie',
         install: stub().returns(Promise.resolve({ pkgs: [], dirs }))
-      }
+      };
       return instance.server({});
     });
 
@@ -124,11 +130,22 @@ describe('item app', () => {
     });
 
     it('calls writeEntryJs', () => {
-      assert.calledWith(deps['../../code-gen'].writeEntryJs, p`${dirs.root}/item.entry.js`, match.string);
+      assert.calledWith(
+        deps['../../code-gen'].writeEntryJs,
+        p`${dirs.root}/item.entry.js`,
+        match.string
+      );
     });
 
     it('calls webpackConfig', () => {
-      assert.calledWith(deps['../common'].webpackConfig, match.object, match.object, 'item.entry.js', 'item.bundle.js');
+      assert.calledWith(
+        deps['../common'].webpackConfig,
+        [dirs.root, dirs.controller],
+        dirs.root,
+        match.object,
+        'item.entry.js',
+        'item.bundle.js'
+      );
     });
 
     it('calls webpack', () => {
@@ -164,8 +181,7 @@ describe('item app', () => {
     describe('GET /', () => {
       let handler, res;
       beforeEach(() => {
-
-        res = {}
+        res = {};
         res.set = stub().returns(res);
         res.status = stub().returns(res);
         res.send = stub();
@@ -173,8 +189,8 @@ describe('item app', () => {
         instance.template = stub();
         instance.installer = {
           installedPies: []
-        }
-        routerInstance.get = spy(function (path, h) {
+        };
+        routerInstance.get = spy(function(path, h) {
           handler = h;
         });
         instance.router({});
@@ -184,7 +200,6 @@ describe('item app', () => {
       it('calls template', () => {
         assert.called(instance.template);
       });
-
     });
   });
 });
