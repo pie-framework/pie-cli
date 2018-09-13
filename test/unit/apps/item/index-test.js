@@ -51,10 +51,6 @@ describe('item app', () => {
       http: {
         createServer: stub().returns({})
       },
-      path: {
-        resolve: stub().returnsArg(0),
-        join: stub().returnsArg(0)
-      },
       'fs-extra': {
         readFileSync: stub().returns(''),
         readJsonSync: stub().returns({
@@ -144,7 +140,7 @@ describe('item app', () => {
     it('calls webpackConfig', () => {
       assert.calledWith(
         deps['../common'].webpackConfig,
-        [dirs.root, dirs.controllers].map(mod.modules),
+        [dirs.root, dirs.controllers],
         dirs.root,
         match.object,
         'item.entry.js',
