@@ -28,13 +28,18 @@ export class ElementDeclaration implements Declaration {
   get js() {
     const comp = pascalCase(this.tag);
     return `import ${comp} from '${this.path}';
-    customElements.define('${this.tag}', ${comp});`.split('\n').map(s => s.trim()).join('\n');
+    if(!customElements.get('${this.tag}')){
+       customElements.define('${this.tag}', ${comp});
+    }`
+      .split('\n')
+      .map(s => s.trim())
+      .join('\n');
   }
 }
 
 function writeFilePromise(path: string, content: string): Promise<{}> {
   return new Promise((resolve, reject) => {
-    writeFile(path, content, { encoding: 'utf8' }, (err) => {
+    writeFile(path, content, { encoding: 'utf8' }, err => {
       if (err) {
         reject(err);
       } else {
@@ -48,7 +53,7 @@ function adjustUTimes(path: string, ageInSeconds: number) {
   return new Promise((resolve, reject) => {
     const now = Date.now() / 1000;
     const then = now - ageInSeconds;
-    utimes(path, then, then, (err) => {
+    utimes(path, then, then, err => {
       if (err) {
         reject(err);
       } else {
@@ -66,6 +71,5 @@ function adjustUTimes(path: string, ageInSeconds: number) {
  * @param js
  */
 export function writeEntryJs(path: string, js: string): Promise<{}> {
-  return writeFilePromise(path, js)
-    .then(() => adjustUTimes(path, 10));
+  return writeFilePromise(path, js).then(() => adjustUTimes(path, 10));
 }

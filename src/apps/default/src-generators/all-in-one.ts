@@ -13,14 +13,21 @@ export function allInOne(
   scoringType: string = 'weighted'
 ): string {
   return `
+
+  const safeDefine = (n, Clazz) => {
+    if(!customElements.get(n)){
+      customElements.define(n, Clazz);
+    }
+  }
+
   import Controller from 'pie-controller';
 
   ${declarations.map(d => d.js).join('\n')}
 
   import PiePlayer from 'pie-player';
-  customElements.define('pie-player', PiePlayer);
+  safeDefine('pie-player', PiePlayer);
   import ControlPanel from 'pie-catalog-client/src/catalog-demo/control-panel';
-  customElements.define('pie-control-panel', ControlPanel);
+  safeDefine('pie-control-panel', ControlPanel);
   require('pie-catalog-client/src/bootstrap/common.less');
   require('material-elements/src/select-field');
 
