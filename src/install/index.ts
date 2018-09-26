@@ -94,6 +94,12 @@ export default class Install {
     return result;
   }
 
+  private getElement(name: string, requestedVersion: string): string {
+    return Object.keys(this.config.elements).find(k => {
+      const request = this.config.elements[k];
+      return request === `${name}@${requestedVersion}`;
+    });
+  }
   private writeManifest(result: InstallResult): Promise<void> {
     return new Promise((resolve, reject) => {
       logger.info('write out a manifest.', result);
@@ -101,6 +107,7 @@ export default class Install {
       const info = result.pkgs.map(p => {
         const resolved = findResolution(result, p.input.value);
         return {
+          element: this.getElement(p.rootModuleId, p.input.version),
           pie: p.rootModuleId,
           version: {
             requested: p.input.version,
@@ -110,7 +117,10 @@ export default class Install {
       });
 
       const hash = mkHash(
-        info.map(i => ({ name: i.pie, version: i.version.resolved }))
+        info.map(i => ({
+          name: i.pie,
+          version: i.version.resolved
+        }))
       );
 
       const manifest = {

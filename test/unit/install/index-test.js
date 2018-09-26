@@ -33,7 +33,9 @@ describe('install', () => {
     };
 
     installedElement = {
-      input: {}
+      input: {
+        version: '1.0.0'
+      }
     };
 
     buildInfo = [
@@ -89,7 +91,9 @@ describe('install', () => {
   describe('Install', () => {
     let install, config;
     beforeEach(() => {
-      config = {};
+      config = {
+        elements: {}
+      };
       install = new mod.default('dir', config);
     });
 
