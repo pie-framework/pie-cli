@@ -129,6 +129,7 @@ export default class ItemApp implements App, Servable {
           session: this.session.array
         },
         js: this.support.externals.js.concat([
+          '//cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/2.0.2/webcomponents-bundle.js',
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
           `/${ItemApp.BUNDLE}`
         ])
