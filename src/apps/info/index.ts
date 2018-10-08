@@ -179,7 +179,7 @@ export default class InfoApp implements App, Servable {
           tag: pkg.version
         },
         js: this.support.externals.js.concat([
-          '//cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/2.0.2/webcomponents-bundle.js',
+          '//unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js',
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
           `/${InfoApp.BUNDLE}`
         ]),
