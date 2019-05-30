@@ -18,7 +18,7 @@
   },
   "repository": "pie-framework/pie-cli.git",
   "engines": {
-    "node": ">=9.4.0",
+    "node": ">=9.4.0 <10",
     "npm": ">=5.6.0"
   },
   "keywords": [
@@ -101,7 +101,7 @@
     "marked-terminal": "^2.0.0",
     "minimist": "^1.2.0",
     "ora": "^1.2.0",
-    "pie-catalog-client": "^2.2.0",
+    "pie-catalog-client": "^2.3.0",
     "pie-controller": "^3.3.0",
     "pie-player": "^3.4.0",
     "pie-support-less": "PieLabs/pie-support-less#master",
