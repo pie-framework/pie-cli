@@ -7,7 +7,9 @@ describe('declaration', () => {
     describe('js', () => {
       it('returns a custom element declaration', () => {
         let d = new mod.ElementDeclaration('my-tag');
-        expect(d.js).to.include(`customElements.define('my-tag', MyTag);`);
+        expect(d.js).to.eql(
+          `import MyTag from 'my-tag';\nif(!customElements.get('my-tag')){\ncustomElements.define('my-tag', MyTag);\n}`
+        );
       });
     });
   });
