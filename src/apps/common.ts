@@ -77,7 +77,8 @@ export function webpackConfig(
     },
     resolve: {
       extensions: _.uniq(['.js'].concat(support.extensions)),
-      modules: resolveModules
+      modules: resolveModules,
+      mainFields: ['browser', 'main']
     },
     resolveLoader: {
       modules: resolveLoaderModules

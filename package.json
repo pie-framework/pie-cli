@@ -91,6 +91,7 @@
     "fs-extra": "^3.0.1",
     "github": "^13.1.0",
     "glob": "^7.1.1",
+    "graceful-fs": "^4.2.3",
     "hosted-git-info": "^2.5.0",
     "invariant": "^2.2.2",
     "jsesc": "^2.4.0",
