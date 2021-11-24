@@ -40,7 +40,7 @@ export default class InfoApp implements App, Servable {
     const session = Session.build(join(dir, 'docs/demo'), args);
 
     return loadSupport(config).then(
-      support => new InfoApp(dir, config, support, session)
+      (support) => new InfoApp(dir, config, support, session)
     );
   }
 
@@ -67,7 +67,7 @@ export default class InfoApp implements App, Servable {
   public watchableFiles(): string[] {
     return [
       resolve(join(this.pieRoot, 'README.md')),
-      resolve(join(this.pieRoot, 'package.json'))
+      resolve(join(this.pieRoot, 'package.json')),
     ];
   }
 
@@ -90,7 +90,7 @@ export default class InfoApp implements App, Servable {
       opts.sourceMaps
     );
 
-    const cssRule = config.module.rules.find(u => {
+    const cssRule = config.module.rules.find((u) => {
       const match = u.test.source === '\\.css$';
       return match;
     });
@@ -101,7 +101,7 @@ export default class InfoApp implements App, Servable {
     config.module.rules = [
       {
         test: /.*highlight\.js.*default\.css$/,
-        use: ['raw-loader']
+        use: ['raw-loader'],
       },
       {
         test: /\.(png|jpg|gif|svg|eot|ttf|woff|woff2|otf)$/,
@@ -109,11 +109,11 @@ export default class InfoApp implements App, Servable {
           {
             loader: 'url-loader',
             options: {
-              limit: 10000
-            }
-          }
-        ]
-      }
+              limit: 10000,
+            },
+          },
+        ],
+      },
     ].concat(config.module.rules);
 
     writeConfig(join(dirs.root, 'info.webpack.config.js'), config);
@@ -127,7 +127,7 @@ export default class InfoApp implements App, Servable {
 
     linkCompilerToServer('main', compiler, server);
 
-    const reload = name => {
+    const reload = (name) => {
       logger.info('File Changed: ', name);
       this.config.reload();
       this.session.reload();
@@ -138,7 +138,7 @@ export default class InfoApp implements App, Servable {
       dirs,
       pkgs,
       reload,
-      server: server.httpServer
+      server: server.httpServer,
     };
   }
 
@@ -148,7 +148,7 @@ export default class InfoApp implements App, Servable {
     const middleware = webpackMiddleware(compiler, {
       noInfo: true,
       publicPath: '/',
-      quiet: true
+      quiet: true,
     });
 
     middleware.waitUntilValid(() => {
@@ -161,14 +161,14 @@ export default class InfoApp implements App, Servable {
       const pkg = readJsonSync(join(this.pieRoot, 'package.json'));
       const readme = readFileSync(join(this.pieRoot, 'README.md'), 'utf8');
 
-      const page = this.template({
+      const params = {
         demo: {
           config: {
             langs: this.config.langs,
-            models: this.config.models()
+            models: this.config.models(),
           },
           markup: jsesc(this.config.markup),
-          session: this.session.array
+          session: this.session.array,
         },
         element: {
           github: {},
@@ -176,22 +176,24 @@ export default class InfoApp implements App, Servable {
           package: pkg,
           readme,
           repo: pkg.name,
-          tag: pkg.version
+          tag: pkg.version,
         },
         js: this.support.externals.js.concat([
           '//unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js',
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
-          `/${InfoApp.BUNDLE}`
+          `/${InfoApp.BUNDLE}`,
         ]),
         orgRepo: {
-          repo: pkg.name
-        }
-      });
+          repo: pkg.name,
+        },
+      };
 
-      res
-        .set('Content-Type', 'text/html')
-        .status(200)
-        .send(page);
+      if (process.env.NODE_ENV === 'development') {
+        this.template = pug.compileFile(templatePath);
+      }
+
+      const page = this.template(params);
+      res.set('Content-Type', 'text/html').status(200).send(page);
     });
 
     router.use(express.static(this.config.dir));

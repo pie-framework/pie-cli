@@ -10,6 +10,9 @@ npm install -g pie
 
 #### Developer install
 
+> !! -- YOU MUST USE NODE 9.x and only use npm for building etc
+
+
 ```bash
 git clone git@github.com:pie-framework/pie-cli.git
 cd pie-cli

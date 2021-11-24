@@ -2,15 +2,15 @@ doctype html
 html
   head
     meta(charset='utf-8')
-    
+
     style.
       body{
         margin: 0;
         padding: 0;
       }
-    
+
     link(href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono|Patua+One" rel="stylesheet") 
-    
+
     //- init first 
     script. 
       window.demo = window.demo || {};
@@ -19,13 +19,65 @@ html
       window.demo.session = !{demo.session ? JSON.stringify(demo.session) : '{}'};
       window.element = !{element ? JSON.stringify(element) : '{}'};
       window.orgRepo = !{orgRepo ? JSON.stringify(orgRepo) : '{}'};
-    
-    
+
+      console.log("hi")
+
+      class PieToolbar extends HTMLElement {
+
+
+        constructor(){
+          super();
+          this.handlers = [];
+          this.onRegisterHandler = e => {
+            console.log('SS !!!', e.detail.handler);
+            if(!this.handlers.includes(e.detail.handler)){
+              this.handlers.push(e.detail.handler)
+            }
+          };
+
+          this.onTurnOnStrikethrough = e => {
+            console.log('st-on');
+            this.handlers.forEach( h => {
+              h.strikethrough = true;
+            })
+          }
+
+          this.onTurnOffStrikethrough = e => {
+            console.log('st-off')
+            this.handlers.forEach( h => {
+              h.strikethrough = false;
+            })
+          }
+        }
+
+        connectedCallback(){
+          this.innerHTML = `
+          <div>pie toolbar
+          <button id="st-on">ST ON</button>
+          <button id="st-off">ST OFF</button>
+          </div>`;
+          document.addEventListener("register-strikethrough-handler", this.onRegisterHandler);
+          document.addEventListener("deregister-strikethrough-handler", this.onDeregisterHandler);
+          this.querySelector("#st-on").addEventListener('click', this.onTurnOnStrikethrough);
+          this.querySelector("#st-off").addEventListener('click', this.onTurnOffStrikethrough);
+        }
+
+        disconnectedCallback() {
+          document.removeEventListener("register-strikethrough-handler", this.onRegisterHandler);
+          document.removeEventListener("deregister-strikethrough-handler", this.onDeregisterHandler);
+          this.querySelector("#st-on").removeEventListener('click', this.onTurnOnStrikethrough);
+          this.querySelector("#st-off").removeEventListener('click', this.onTurnOffStrikethrough);
+        }
+      }
+
+      customElements.define("pie-toolbar", PieToolbar);
+
     body
       catalog-container
         span(slot="header") 
           | pie info
         catalog-entry
+          pie-toolbar
           catalog-demo    
       each j in js 
         script(src=j, type='text/javascript')
