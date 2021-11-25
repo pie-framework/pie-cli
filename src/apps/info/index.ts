@@ -181,7 +181,9 @@ export default class InfoApp implements App, Servable {
         },
         externalJs: [
           {
-            src: this.args.toolbar || 'http://localhost:8000/lib/index.js',
+            src:
+              this.args.toolbar ||
+              'https://cdn.jsdelivr.net/npm/@pie-framework/pie-tools/lib/index.js',
             type: 'module',
           },
         ],
