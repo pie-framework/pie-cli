@@ -11,7 +11,7 @@ html
 
     link(href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono|Patua+One" rel="stylesheet") 
 
-    each j in externalJs 
+    each j in externalJs
       script(src=`${j.src}`, type=`${j.type || 'text/javascript'}`)
 
     //- init first 
@@ -22,8 +22,6 @@ html
       window.demo.session = !{demo.session ? JSON.stringify(demo.session) : '{}'};
       window.element = !{element ? JSON.stringify(element) : '{}'};
       window.orgRepo = !{orgRepo ? JSON.stringify(orgRepo) : '{}'};
-
-      console.log("hi")
 
 
     body
