@@ -40,7 +40,7 @@ export default class InfoApp implements App, Servable {
     const session = Session.build(join(dir, 'docs/demo'), args);
 
     return loadSupport(config).then(
-      (support) => new InfoApp(dir, config, support, session)
+      (support) => new InfoApp(dir, config, support, session, args)
     );
   }
 
@@ -54,7 +54,8 @@ export default class InfoApp implements App, Servable {
     private pieRoot: string,
     readonly config: JsonConfig,
     private support: SupportConfig,
-    readonly session: Session
+    readonly session: Session,
+    readonly args: any
   ) {
     this.template = pug.compileFile(templatePath);
 
@@ -178,6 +179,12 @@ export default class InfoApp implements App, Servable {
           repo: pkg.name,
           tag: pkg.version,
         },
+        externalJs: [
+          {
+            src: this.args.toolbar || 'http://localhost:8000/lib/index.js',
+            type: 'module',
+          },
+        ],
         js: this.support.externals.js.concat([
           '//unpkg.com/@webcomponents/webcomponentsjs@2.0.0/webcomponents-loader.js',
           '//cdn.jsdelivr.net/sockjs/1/sockjs.min.js',
