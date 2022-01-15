@@ -98,7 +98,7 @@
     "lodash": "^4.17.4",
     "log-factory": "^1.0.0",
     "log-symbols": "^1.0.2",
-    "marked": "^0.3.6",
+    "marked": "^4.0.10",
     "marked-terminal": "^2.0.0",
     "minimist": "^1.2.0",
     "ora": "^1.2.0",
