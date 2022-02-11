@@ -76,7 +76,7 @@
   "dependencies": {
     "@pie-cli-libs/installer": "^1.5.4",
     "@pie-cli-libs/hash": "^1.5.1",
-    "ajv": "^5.2.1",
+    "ajv": "^6.12.3",
     "archiver": "^2.0.0",
     "babel-core": "^6.24.0",
     "babel-loader": "^7.1.1",
