@@ -1,6 +1,6 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 import * as generators from './src-generators';
-import * as pug from 'pug';
+import pug from 'pug';
 
 import {
   App,

@@ -1,6 +1,6 @@
-import * as express from 'express';
-import * as http from 'http';
-import * as sockjs from 'sockjs';
+import express from 'express';
+import http from 'http';
+import sockjs from 'sockjs';
 
 import { HasServer, ReloadOrError } from './types';
 import { linkCompilerToServer, startServer } from './utils';

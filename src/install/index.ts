@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 import { buildLogger } from 'log-factory';
 import { writeFileSync } from 'fs-extra';
 import { join } from 'path';

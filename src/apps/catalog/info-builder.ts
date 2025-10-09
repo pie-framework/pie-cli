@@ -1,6 +1,6 @@
-import * as _ from 'lodash';
-import * as hostedGitInfo from 'hosted-git-info';
-import * as gitJs from 'simple-git';
+import _ from 'lodash';
+import hostedGitInfo from 'hosted-git-info';
+import gitJs from 'simple-git';
 
 function rawInfo(pkg: { repository: any }): any {
 

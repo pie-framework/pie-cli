@@ -1,5 +1,5 @@
-import * as _ from 'lodash';
-import * as archiver from 'archiver';
+import _ from 'lodash';
+import archiver from 'archiver';
 
 import { createWriteStream, existsSync, readFileSync } from 'fs-extra';
 

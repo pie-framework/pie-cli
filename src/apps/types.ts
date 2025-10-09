@@ -1,7 +1,7 @@
 /* tslint:disable:member-access */
 
-import * as _ from 'lodash';
-import * as http from 'http';
+import _ from 'lodash';
+import http from 'http';
 
 import { JsonConfig, Manifest } from '../question/config';
 

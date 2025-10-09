@@ -1,4 +1,4 @@
-import * as http from 'http';
+import http from 'http';
 
 export interface ReloadOrError {
   reload: (name: string) => void;

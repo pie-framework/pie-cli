@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import { Declaration, ElementDeclaration } from '../../code-gen';
 import { Manifest, Model, RawConfig, ScoringType, WEIGHTED, Weight, fromPath } from './types';

@@ -1,8 +1,8 @@
-import * as express from 'express';
-import * as jsesc from 'jsesc';
-import * as pug from 'pug';
-import * as webpack from 'webpack';
-import * as webpackMiddleware from 'webpack-dev-middleware';
+import express from 'express';
+import jsesc from 'jsesc';
+import pug from 'pug';
+import webpack from 'webpack';
+import webpackMiddleware from 'webpack-dev-middleware';
 
 import { App, Servable, ServeOpts, ServeResult } from '../types';
 import AppServer, { linkCompilerToServer } from '../../server';
@@ -146,9 +146,7 @@ export default class InfoApp implements App, Servable {
     const router = express.Router();
 
     const middleware = webpackMiddleware(compiler, {
-      noInfo: true,
       publicPath: '/',
-      quiet: true
     });
 
     middleware.waitUntilValid(() => {

@@ -3,7 +3,6 @@ const gulp = require('gulp'),
   ts = require('gulp-typescript'),
   tsProject = ts.createProject('tsconfig.json'),
   fsExtra = require('fs-extra'),
-  runSequence = require('run-sequence'),
   path = require('path'),
   spawn = require('child_process').spawn,
   { join } = require('path');
@@ -12,42 +11,61 @@ let glue = suffix => gulp.src(`src/**/*.${suffix}`).pipe(gulp.dest('lib'));
 
 let watch = (suffix, tasks) => {
   tasks = tasks ? tasks : [suffix];
-  return gulp.watch(`src/**/*.${suffix}`, tasks);
+  return gulp.watch(`src/**/*.${suffix}`, gulp.series(...tasks));
+};
+
+// individual tasks
+function pug() { return glue('pug'); }
+function md() { return glue('md'); }
+function ejs() { return glue('ejs'); }
+
+function tsCompile() {
+  let tsResult = tsProject.src().pipe(tsProject());
+  return tsResult.js.pipe(gulp.dest('lib'));
 }
 
-gulp.task('pug', () => glue('pug'));
-gulp.task('md', () => glue('md'));
-gulp.task('ejs', () => glue('ejs'));
-
-gulp.task('ts', () => {
-  let tsResult = tsProject.src()
-    .pipe(tsProject());
-  return tsResult.js.pipe(gulp.dest('lib'));
-});
-
-gulp.task('watch-ts', () => watch('ts'));
-gulp.task('watch-pug', () => watch('pug'));
-gulp.task('watch-ejs', () => watch('ejs'));
-gulp.task('watch-md', () => watch('md'));
-
-gulp.task('unit', ['build'], () => {
-  return gulp.src('test/unit/**/*.js', { read: false })
-    .pipe(mocha({ require: ['babel-register'] }));
-});
-
-gulp.task('it', ['build'], () => {
-  return gulp.src(['test/integration/init.js', 'test/integration/**/*-test.js'], { read: false })
-    .pipe(mocha({ bail: true, require: ['babel-register'] }))
-    .once('end', () => process.exit());
-});
-
-gulp.task('clean', (done) => {
+function clean(done) {
   fsExtra.remove('lib', done);
-})
+}
 
-gulp.task('build', done => runSequence('clean', ['md', 'ejs', 'pug', 'ts'], done));
+function unit() {
+  return gulp
+    .src('test/unit/**/*.js', { read: false })
+    .pipe(mocha({ require: ['@babel/register'] }));
+}
 
-gulp.task('dev', ['build', 'watch-md', 'watch-ejs', 'watch-pug', 'watch-ts']);
+function it() {
+  return gulp
+    .src(['test/integration/init.js', 'test/integration/**/*-test.js'], { read: false })
+    .pipe(mocha({ bail: true, require: ['@babel/register'] }))
+    .once('end', () => process.exit());
+}
 
-gulp.task('test', ['unit']);
+// watch tasks
+function watchTs() { return watch('ts'); }
+function watchPug() { return watch('pug'); }
+function watchEjs() { return watch('ejs'); }
+function watchMd() { return watch('md'); }
 
+// build pipeline
+const build = gulp.series(
+  clean,
+  gulp.parallel(md, ejs, pug, tsCompile)
+);
+
+const dev = gulp.series(
+  build,
+  gulp.parallel(watchMd, watchEjs, watchPug, watchTs)
+);
+
+// task exports
+exports.pug = pug;
+exports.md = md;
+exports.ejs = ejs;
+exports.ts = tsCompile;
+exports.clean = clean;
+exports.unit = gulp.series(build, unit);
+exports.it = gulp.series(build, it);
+exports.build = build;
+exports.dev = dev;
+exports.test = exports.unit;

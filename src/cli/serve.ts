@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import { types as apps, clean, loadApp } from '../apps';
 
@@ -32,7 +32,7 @@ class Cmd extends CliCommand {
       const { server, reload, pkgs, dirs } = await a.server(opts);
       await report.promise('starting server', startServer(opts.port, server));
       const extraFilesToWatch = [];
-      await report.promise('setting up file watching', new Promise(r => {
+      await report.promise('setting up file watching', new Promise((r: any) => {
         initWatch(a.config, reload, extraFilesToWatch, pkgs, dirs);
         // TODO: add validateConfig on reload if config.json changed
         r();

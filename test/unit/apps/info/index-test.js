@@ -21,13 +21,23 @@ describe('info app', () => {
     express,
     compiler,
     dirs,
-    session;
+    session,
+    installerInstance;
 
   beforeEach(() => {
     dirs = {
       root: 'dir',
       configure: '.configure',
       controllers: './controllers'
+    };
+
+    installerInstance = {
+      install: stub().returns(
+        Promise.resolve({
+          dirs,
+          pkgs: []
+        })
+      )
     };
 
     routerInstance = {
@@ -40,7 +50,14 @@ describe('info app', () => {
     };
 
     compiler = {
-      plugin: stub()
+      hooks: {
+        compile: {
+          tap: stub()
+        },
+        done: {
+          tap: stub()
+        },
+      }
     };
 
     express = stub().returns(routerInstance);
@@ -78,9 +95,9 @@ describe('info app', () => {
         writeEntryJs: stub().returns(Promise.resolve())
       },
       '../../install': {
-        '@noCallThru': true,
-        default: stub()
-      }
+        default: stub().returns(installerInstance),
+        configureDeclarations: stub().returns([])
+      },
     };
 
     mod = proxyquire(`${ROOT}/apps/info`, deps);
@@ -169,8 +186,6 @@ describe('info app', () => {
 
     it('calls webpackMiddleware', () => {
       assert.calledWith(deps['webpack-dev-middleware'], match.object, {
-        noInfo: true,
-        quiet: true,
         publicPath: '/'
       });
     });

@@ -1,4 +1,4 @@
-import * as Ajv from 'ajv';
+import Ajv from 'ajv';
 
 import { RawConfig } from '../index';
 import schema from './config-schema';

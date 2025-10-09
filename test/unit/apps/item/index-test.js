@@ -21,7 +21,8 @@ describe('item app', () => {
     express,
     compiler,
     dirs,
-    session;
+    session,
+    installerInstance;
 
   beforeEach(() => {
     dirs = {
@@ -35,12 +36,28 @@ describe('item app', () => {
       get: stub()
     };
 
+    installerInstance = {
+      install: stub().returns(
+        Promise.resolve({
+          dirs,
+          pkgs: []
+        })
+      )
+    };
+
     middlewareInstance = {
       waitUntilValid: stub()
     };
 
     compiler = {
-      plugin: stub()
+      hooks: {
+        compile: {
+          tap: stub()
+        },
+        done: {
+          tap: stub()
+        },
+      }
     };
 
     express = stub().returns(routerInstance);
@@ -78,9 +95,9 @@ describe('item app', () => {
         writeEntryJs: stub().returns(Promise.resolve())
       },
       '../../install': {
-        '@noCallThru': true,
-        default: stub()
-      }
+        default: stub().returns(installerInstance),
+        configureDeclarations: stub().returns([])
+      },
     };
 
     mod = proxyquire(`${ROOT}/apps/item`, deps);
@@ -168,8 +185,6 @@ describe('item app', () => {
 
     it('calls webpackMiddleware', () => {
       assert.calledWith(deps['webpack-dev-middleware'], match.object, {
-        noInfo: true,
-        quiet: true,
         publicPath: '/'
       });
     });

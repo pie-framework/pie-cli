@@ -1,8 +1,8 @@
-import * as TerminalRenderer from 'marked-terminal';
-import * as _ from 'lodash';
-import * as ejs from 'ejs';
-import * as marked from 'marked';
-import * as winston from 'winston';
+import TerminalRenderer from 'marked-terminal';
+import _ from 'lodash';
+import ejs from 'ejs';
+import marked from 'marked';
+import winston from 'winston';
 
 import { buildLogger, getLogger } from 'log-factory';
 import { dirname, extname, join, resolve } from 'path';
