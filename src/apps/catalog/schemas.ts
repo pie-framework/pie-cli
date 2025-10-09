@@ -1,6 +1,6 @@
 import { statSync, readJsonSync, readdirSync, existsSync } from 'fs-extra';
 import { join } from 'path';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 export function buildSchemas(filePath: string): any[] {
 

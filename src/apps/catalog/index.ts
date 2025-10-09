@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import { App, Archivable, BuildOpts, Buildable } from '../types';
 import Install, {
@@ -148,6 +148,7 @@ export default class CatalogApp
         ]
       }
     ].concat(config.module.rules);
+    console.log(config.module.plugins);
 
     await report.promise(
       'building webpack',

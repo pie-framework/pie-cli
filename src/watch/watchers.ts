@@ -1,7 +1,7 @@
-import * as _ from 'lodash';
-import * as chokidar from 'chokidar';
-import * as touch from 'touch';
-import * as invariant from 'invariant';
+import _ from 'lodash';
+import chokidar from 'chokidar';
+import touch from 'touch';
+import invariant from 'invariant';
 
 import { Stats, copy, existsSync, remove, statSync, lstatSync } from 'fs-extra';
 import { join, relative, resolve } from 'path';
@@ -48,9 +48,9 @@ export interface Watch {
   start: () => void;
 }
 
-export class BaseWatch implements Roots, Watch {
-  public srcRoot: string;
-  public targetRoot: string;
+export abstract class BaseWatch implements Roots, Watch {
+  abstract get srcRoot(): string;
+  abstract get targetRoot(): string;
   private watcher;
   constructor(private ignores) {}
 

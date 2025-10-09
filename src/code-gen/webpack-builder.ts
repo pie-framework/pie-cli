@@ -1,4 +1,4 @@
-import * as webpack from 'webpack';
+import webpack from 'webpack';
 
 import { buildLogger } from 'log-factory';
 import { join } from 'path';
@@ -9,7 +9,7 @@ const stripAnsi = require('strip-ansi');
 
 const logger = buildLogger();
 
-export type BuildResult = { stats: webpack.compiler.Stats, duration: number };
+export type BuildResult = { stats: webpack.Stats, duration: number };
 
 /**
  * The name of the log file that may be checked for errors.

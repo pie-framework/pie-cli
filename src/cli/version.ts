@@ -2,7 +2,7 @@ import { existsSync, readJsonSync } from 'fs-extra';
 import { execSync } from 'child_process';
 import { join } from 'path';
 import CliCommand from './cli-command';
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 class VersionCommand extends CliCommand {
   constructor() {

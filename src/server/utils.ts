@@ -1,4 +1,4 @@
-import * as http from 'http';
+import http from 'http';
 
 import { Compiler, Stats } from 'webpack';
 
@@ -42,7 +42,7 @@ export function linkCompilerToServer(name: string,
       if (stats.hasErrors()) {
         logger.error('recompile failed');
         const json = stats.toJson('errors-only');
-        logger.error(json.errors);
+        logger.error(json.errors as any);
         handlers.error(name, json.errors);
         if (reporter) {
           reporter.finish(new Error('compiling webpack failed'));
@@ -64,10 +64,11 @@ export function linkCompilerToServer(name: string,
     });
   };
 
+  logger.debug('LOGGING', compiler);
   /**
    * TODO:  This shouldn't be necessary but something is causing webpack to recompile repeatedly.
    * For now we debounce the done handler.
    */
-  compiler.plugin('compile', onCompile);
-  compiler.plugin('done', onDone);
+  compiler.hooks.compile.tap('Utils', onCompile);
+  compiler.hooks.done.tap('Utils', onDone);
 }

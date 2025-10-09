@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import { Dirs, Pkg, PackageType } from '../install';
 import { FileWatch, PackageWatch, PieWatch, Watch } from './watchers';

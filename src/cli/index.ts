@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import CliCommand from './cli-command';
 import { Help } from './help';

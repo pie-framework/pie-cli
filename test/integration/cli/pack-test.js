@@ -52,7 +52,8 @@ describe('pack', () => {
         'config.json',
         'index.html',
         'pie-catalog-data.json',
-        'pie-catalog.bundle.js'
+        'pie-catalog.bundle.js',
+        'pie.manifest.json'
       ]);
     });
   });

@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import _ from 'lodash';
 
 import { MultiConfig, SupportConfig, load as loadSupportModule } from '../framework-support';
 
@@ -21,10 +21,56 @@ const appMap = {
  * prepare support config using the Apps config object.
  */
 export async function loadSupportConfig(config: JsonConfig): Promise<SupportConfig> {
-  const less: SupportConfig = await loadSupportModule(config, 'pie-support-less');
-  const react: SupportConfig = await loadSupportModule(config, 'pie-support-react');
+  // const less: SupportConfig = await loadSupportModule(config, 'pie-support-less');
+  // const react: SupportConfig = await loadSupportModule(config, 'pie-support-react');
+  const react: SupportConfig = {
+    extensions: ['.js', '.jsx'],
+    externals: { css: [], js: [] },
+    modules: [],
+    rules: [{
+      test: /\.(jsx)?$/,
+      use: [
+        {
+          loader: 'babel-loader',
+          options: {
+            babelrc: false,
+            presets: [
+              "@babel/preset-env",
+              "@babel/preset-react",
+            ]
+          }
+        }
+      ]
+    }]
+  };
+  const less: SupportConfig = {
+    extensions: [],
+    externals: { css: [], js: [] },
+    modules: [],
+    rules: [ {
+      test: /\.less$/i,
+      use: [
+        'style-loader',
+        {
+          loader: 'css-loader',
+          options: {
+            modules: false,
+          },
+        },
+        {
+          loader: 'less-loader',
+          options: {
+            lessOptions: {
+              javascriptEnabled: true, // if needed
+            },
+          },
+        },
+      ],
+    } ]
+  };
 
   const support = _.compact([less, react]);
+
   return new MultiConfig(...support);
 }
 

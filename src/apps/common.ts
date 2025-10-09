@@ -1,5 +1,5 @@
-import * as _ from 'lodash';
-import * as webpack from 'webpack';
+import _ from 'lodash';
+import webpack from 'webpack';
 
 import { join, resolve } from 'path';
 
@@ -10,7 +10,7 @@ import { remove } from 'fs-extra';
 
 const logger = buildLogger();
 
-export type Compiler = webpack.compiler.Compiler;
+export type Compiler = webpack.Compiler;
 
 export class Tag {
   constructor(readonly name: string, readonly path?: string) {

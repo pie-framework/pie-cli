@@ -1,4 +1,4 @@
-import * as webpack from 'webpack';
+import webpack from 'webpack';
 
 import { BuildResult, build as buildWebpack } from './webpack-builder';
 import { utimes, writeFile } from 'fs-extra';
@@ -38,7 +38,7 @@ export class ElementDeclaration implements Declaration {
 }
 
 function writeFilePromise(path: string, content: string): Promise<{}> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve: any, reject) => {
     writeFile(path, content, { encoding: 'utf8' }, err => {
       if (err) {
         reject(err);
@@ -50,7 +50,7 @@ function writeFilePromise(path: string, content: string): Promise<{}> {
 }
 
 function adjustUTimes(path: string, ageInSeconds: number) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve: any, reject) => {
     const now = Date.now() / 1000;
     const then = now - ageInSeconds;
     utimes(path, then, then, err => {

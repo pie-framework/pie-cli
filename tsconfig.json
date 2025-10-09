@@ -1,20 +1,17 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "target": "es2020",           // was es6
+    "lib": ["es2020", "dom"],     // ensure modern lib types
+    "skipLibCheck": true,         // avoid duplicate identifier noise
+    "esModuleInterop": true,
+    "strict": false,
     "noImplicitAny": false,
-    "noImplicitUseStrict": false,
-    "removeComments": true,
-    "preserveConstEnums": true,
-    "sourceMap": true,
     "outDir": "lib/",
-    "target": "es6",
     "typeRoots": [
       "./node_modules/@types",
       "./local-typings"
-    ],
-    "noUnusedLocals": true
+    ]
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }

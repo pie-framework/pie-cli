@@ -1,7 +1,7 @@
-import * as readline from 'readline';
+import readline from 'readline';
 
 import { buildLogger } from 'log-factory';
-import * as child_process from 'child_process';
+import child_process from 'child_process';
 
 const logger = buildLogger();
 

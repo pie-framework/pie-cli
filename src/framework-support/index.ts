@@ -1,20 +1,20 @@
-import * as _ from 'lodash';
-import * as resolve from 'resolve';
+import _ from 'lodash';
+import resolve from 'resolve';
 
 import { JsonConfig } from './../question/config';
-import { Rule } from 'webpack';
+import { RuleSetRule } from 'webpack';
 import { buildLogger } from 'log-factory';
 import { existsSync } from 'fs-extra';
 import { join } from 'path';
 
-export { Rule };
+export { RuleSetRule };
 
 const logger = buildLogger();
 
 export interface SupportConfig {
   externals: { js: string[], css: string[] };
   modules: string[];
-  rules: Rule[];
+  rules: RuleSetRule[];
   extensions: string[];
 }
 
@@ -106,7 +106,7 @@ export class MultiConfig implements SupportConfig {
     }, []));
   }
 
-  get rules(): Rule[] {
+  get rules(): RuleSetRule[] {
     return this.configs.reduce((acc, c) => {
       return acc.concat(c.rules || []);
     }, []);
